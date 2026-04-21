@@ -106,6 +106,7 @@ E:/SH01/aigamejam/.workflow/gamejam_state.md
 | 用户确认阶段通过后 | 立即更新为 `✅ 已完成`，填写完成时间、产物路径、更新"下一步" |
 | 用户做出创意决策时 | 追加到"创意决策记录"（如：主角改成猫、删掉第 3 关、BGM 从电子乐改成钢琴） |
 | 产生产物文件时 | 更新"产物路径"清单 |
+| 06c 每次调用 Gemini API 后 | 更新"API 成本累计"；超过硬顶（默认 $10）暂停问用户 |
 | Playtest 通过后 | "当前状态"更新为"全部完成" |
 
 ### 状态标记
@@ -116,7 +117,7 @@ E:/SH01/aigamejam/.workflow/gamejam_state.md
 | 🔄 进行中 | subagent 正在执行或等待用户确认 |
 | ✅ 已完成 | 用户已确认通过 |
 | ↩️ 已回溯 | 因问题回溯，重新执行中 |
-| 🟠 阻塞中 | 等待外部事件（如用户手动把 Gemini 生成的图回填到 Unity） |
+| 🟠 阻塞中 | 等待外部事件（如 6·B 出图遇 SAFETY 拦截 / 成本硬顶 / 07 资产完整性扫描失败，需用户决策） |
 
 ---
 
@@ -148,6 +149,8 @@ Producer
  ├─ [阶段五]   策划总监（整合评审）     → prompts/05_design_review.md
  ├─ [阶段六·A] 美术风格规范师           → prompts/06a_art_style_lead.md
  ├─ [阶段六·B] 资产提示词工程师         → prompts/06b_art_prompt_engineer.md
+ │              └ [6·B.4] 图像生成工程师  → prompts/06c_art_image_generator.md
+ │              └ [6·B.5] 美术审核官      → prompts/06d_art_reviewer.md
  ├─ [阶段七]   Unity 开发（含 7.1~7.4） → prompts/07_unity_developer.md
  └─ [阶段八]   Playtest 验收           → prompts/08_playtest_qa.md
 ```
@@ -179,7 +182,7 @@ Producer
    > - 美术资产清单和提示词（约 N 条）
    > 估计额外耗时 Y 小时。是否仍要回溯？
 6. **文档基准**：阶段五评审通过后的设计文档集合是唯一基准，阶段六/七/八均以此为准
-7. **美术回填是阻塞动作**：阶段七·3 节点必须等用户明确"资产已落位"才能继续；此时状态标记 `🟠 阻塞中`
+7. **美术出图闭环（6·B.4 / 6·B.5）**：06c 负责自动调 Gemini 出图，06d 负责 Claude 视觉审核，升级阶梯 `Flash×2 → Pro×1 → 🟠 人工`，成本硬顶默认 $10。7.3 不再是「等用户回填」阻塞，而是「资产完整性扫描」，仅在扫描发现问题时标 🟠
 
 ---
 
@@ -200,6 +203,7 @@ Producer
 | Playtest 报告 | `E:/SH01/aigamejam/design/playtest_report.md` |
 | Unity 代码 | `E:/SH01/aigamejam/GameJam/Assets/Scripts/...` |
 | 最终美术资产 | `E:/SH01/aigamejam/GameJam/Assets/Art/...` |
+| 图片版本历史 | `E:/SH01/aigamejam/GameJam/Assets/Art/**/<asset_id>__v<n>__<model_tag>.png`（06c 落盘） |
 
 > ⚠️ **策划和美术的文本文档一律放在 `design/` 目录外层，不要放进 `GameJam/Assets/`**，避免 Unity 的 AssetDatabase 扫描产生 `.meta` 噪音、或意外打进 build。
 
@@ -320,15 +324,31 @@ Producer
 
 **启动 subagent**：传入所有策划文档 + 风格规范。
 
-**你的职责**（注意：此阶段分 3 次交付给用户）：
+**你的职责**（注意：此阶段分 5 次交付给用户）：
 
-1. **资产清单审查**：subagent 先扫出完整资产清单（Asset ID / 类别 / 尺寸 / 优先级），你展示给用户，让用户**裁剪/合并/补充**后确认
-2. **Gemini 提示词批量生成**：用户确认清单后，subagent 按清单逐条生成每个 `art_prompts/<asset_id>.md`，你**按类别分批次**展示（如先展示所有角色，再所有场景），让用户抽查、调整
-3. **切图与落位建议**：subagent 产出 `design/art_layout.md`（Unity 目录规划 + 九宫格/atlas 建议 + 尺寸校验清单），你展示给用户确认
+1. **资产清单审查**（06b）：subagent 先扫出完整资产清单（Asset ID / 类别 / 尺寸 / 优先级），你展示给用户，让用户**裁剪/合并/补充**后确认
+2. **Gemini 提示词批量生成**（06b）：用户确认清单后，subagent 按清单逐条生成每个 `art_prompts/<asset_id>.md`，你**按类别分批次**展示（如先展示所有角色，再所有场景），让用户抽查、调整
+3. **切图与落位建议**（06b）：subagent 产出 `design/art_layout.md`（Unity 目录规划 + 九宫格/atlas 建议 + 尺寸校验清单），你展示给用户确认
+4. **Gemini 自动出图**（06c `prompts/06c_art_image_generator.md`）：按 06b 的批次分法，逐批调 Gemini 出图，和 06d 交替循环（出图 → 审核 → 过/升级重试）
+5. **Claude 视觉审核**（06d `prompts/06d_art_reviewer.md`）：每张图由 06d 用视觉能力判 🟢/🟡/🔴，🔴 带 Confidence + 修正建议触发 06c 下一轮
 
-**立即更新状态文件：阶段六·B ✅ 已完成，填写 `design/art_prompts/` 目录路径**
+**6·B.4 / 6·B.5 编排细节**：
 
-**完成标志**：用户确认资产清单、提示词、切图建议三项齐全
+- **升级阶梯**：`Flash#1 → Flash#2(带修正)  → Pro#1(带修正)  → 🟠 人工`
+- **分层重试**：transient 错误（网络/空响应）指数退避 3 次，不消耗升级额度；SAFETY 直接跳 🟠
+- **批次汇报粒度**：一批完整跑完（生成 + 审核）后一次性呈现给用户
+  - 全 🟢 → 一行汇报："批次 C 6/6 通过，继续？"
+  - 存在 🟡/🟠 → 展开详情，用户可点名任一张"重做"
+  - 单批 ≤ 3 张合并到下一批；> 12 张强制拆
+- **熔断**：一批内 Flash#1 首次通过率 < 50% 时，06c 自动暂停，报告 Producer 可能是 style_guide 本身问题
+- **成本守护**：Producer 在 6·B.4 启动前算最坏预估展示用户，实际累计写状态文件；超过硬顶（默认 $10）立即暂停询问
+- **开批前 API ping**：06c 启动时调 `:countTokens` 1 token 验证 key + 配额
+- **版本化落盘**：`GameJam/Assets/Art/<category>/<asset_id>__v<n>__<model>.png`，当前版用 `<asset_id>.png` 拷贝覆盖
+- **审核回写**：06d 结论追加到对应 `art_prompts/<id>.md` 尾部「审核结论」段，保留每轮历史
+
+**立即更新状态文件：阶段六·B ✅ 已完成，填写 `design/art_prompts/` 目录路径和 `GameJam/Assets/Art/` 资产目录路径，并记录总 API 成本**
+
+**完成标志**：用户确认五次交付齐全（清单 / 提示词 / 切图建议 / 出图 / 审核）
 
 ---
 
@@ -338,12 +358,14 @@ Producer
 
 **启动 subagent**：传入所有策划文档 + 美术资产清单 + 落位规划。
 
-**此阶段包含 4 个子步骤：7.1 范围确认 → 7.2 占位实现 → 7.3 🟠 美术回填阻塞 → 7.4 自检**
+**此阶段包含 4 个子步骤：7.1 范围确认 → 7.2 占位实现 → 7.3 资产完整性扫描 → 7.4 自检**
 
 **你的职责**：
 - **7.1**：展示 subagent 列出的 Unity 目录规划、脚本清单、依赖图，等用户确认
 - **7.2**：将 subagent 遇到的未覆盖情况传达给用户，收集决策传回；每次决策追加状态文件
-- **7.3 🟠 阻塞节点**：subagent 输出"【等待美术资产】"清单后，**你暂停**，询问用户资产是否已按 `art_layout.md` 路径落位；状态文件阶段七标记为 `🟠 阻塞中`；用户明确"已落位"后，传回 subagent 进入 7.4
+- **7.3 资产完整性扫描**：此时 6·B.5 已全部通过，`GameJam/Assets/Art/` 下应已齐全。subagent 执行扫描（尺寸对比 prompt 元数据 / 透明通道 alpha 四角采样 / 命名与 art_asset_list Asset ID 集合 diff / UI 九宫格标注人工确认）。
+  - 扫描全通过 → 直接进入 7.4
+  - 扫描有失败项 → 状态文件阶段七标记为 `🟠 阻塞中`，Producer 输出「待手工修正清单」给用户，用户修正后再次扫描
 - **7.4**：展示 subagent 的自检结果（按 jam 精简清单）和改动文件清单
 - **立即更新状态文件：阶段七 ✅ 已完成，填写改动清单**
 

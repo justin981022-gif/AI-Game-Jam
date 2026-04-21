@@ -35,8 +35,8 @@ AI Game Jam 专用的全流程开发 skill，让 Claude Code 扮演**游戏制�
 | 四 | 数值策划 | `design/balance.md`（属性 + 公式 + 成长曲线） |
 | 五 | 策划总监 | `design/design_review.md`（一致性评审 + 冲突清单） |
 | 六·A | 美术风格规范师 | `design/art_style_guide.md`（色盘 + 笔触 + prompt 前缀） |
-| 六·B | 资产提示词工程师 | `design/art_asset_list.md` + `design/art_prompts/*.md` + `design/art_layout.md` |
-| 七 | Unity 开发 | `GameJam/Assets/` 内的代码与场景（含美术回填阻塞节点） |
+| 六·B | 资产提示词工程师 + 图像生成工程师 + 美术审核官 | `design/art_asset_list.md` + `design/art_prompts/*.md` + `design/art_layout.md` + `GameJam/Assets/Art/**/*.png`（Gemini 自动出图 + Claude 视觉审核闭环） |
+| 七 | Unity 开发 | `GameJam/Assets/` 内的代码与场景（含 7.3 资产完整性扫描） |
 | 八 | QA / Playtest | `design/playtest_report.md` |
 
 ## 文件结构
@@ -45,7 +45,7 @@ AI Game Jam 专用的全流程开发 skill，让 Claude Code 扮演**游戏制�
 agents/skill/
 ├── SKILL.md                    # Producer 编排入口
 ├── README.md                   # 本文件
-├── prompts/                    # 9 个 subagent prompt
+├── prompts/                    # 11 个 subagent prompt
 │   ├── 01_chief_designer.md
 │   ├── 02_narrative_designer.md
 │   ├── 03_level_designer.md
@@ -53,6 +53,8 @@ agents/skill/
 │   ├── 05_design_review.md
 │   ├── 06a_art_style_lead.md
 │   ├── 06b_art_prompt_engineer.md
+│   ├── 06c_art_image_generator.md   # 6·B.4 Gemini 自动出图
+│   ├── 06d_art_reviewer.md          # 6·B.5 Claude 视觉审核
 │   ├── 07_unity_developer.md
 │   └── 08_playtest_qa.md
 └── templates/                  # 10 个产物模板
@@ -72,10 +74,13 @@ agents/skill/
 
 - **串行依赖**：叙事→关卡→数值 强依赖链，严格串行，避免并行互相咬合
 - **美术拆两段**：风格规范（6·A）在主策划后即可启动，与叙事/关卡/数值并行；资产提示词（6·B）须等策划评审后统一批量生成
-- **美术回填阻塞**：阶段七必有"等待用户把 Gemini 出图回填"的阻塞节点，状态标记 🟠
-- **回溯成本预警**：Producer 在提议回溯前必须列出影响范围（改叙事 = N 条美术提示词重做）
+- **美术出图闭环**（6·B.4 / 6·B.5）：06c 自动调 Gemini API 出图（默认 `gemini-2.5-flash-image`），06d 用 Claude 视觉审核。升级阶梯 `Flash×2 → Pro×1 → 🟠 人工`，单资产最大成本 ~$0.21
+- **7.3 资产完整性扫描**：替代以往的"🟠 等用户手动回填"——6·B.5 已让图自动落位，7.3 仅做扫描校验（尺寸 / 透明通道 / 命名），发现问题才标 🟠 等用户修
+- **成本守护**：单次 jam 默认 $10 硬顶，Producer 每次 Gemini 调用后更新状态文件"API 成本累计"
+- **熔断**：一批内 Flash#1 通过率 < 50% 时 06c 暂停，避免 style_guide 本身有问题还继续烧额度
+- **回溯成本预警**：Producer 在提议回溯前必须列出影响范围（改叙事 = N 条美术提示词重做 + M 张图需重生成）
 - **创意决策记录**：状态文件专门有一列记录 jam 高发的创意拐点（主角改设定、删关卡等）
-- **Jam 指标**：状态文件含"剩余时间 / 已用时间 / 当前 MVP 星级（0-5）"，Producer 在节奏判断时参考
+- **Jam 指标**：状态文件含"剩余时间 / 已用时间 / 当前 MVP 星级（0-5）/ API 成本累计"，Producer 在节奏判断时参考
 
 ## 使用流程（整套）
 
@@ -87,19 +92,20 @@ agents/skill/
 6. 整合评审 → 用户确认无 🔴 冲突 → 归档 design_review.md
 7. 美术风格规范（可在主策划后提前启动，最迟此时完成）
 8. 美术提示词：清单 → 用户裁剪 → 批量生成 → 用户抽查 → 切图建议
-9. **用户手动把提示词贴到 Gemini 图像 Gem 生成图片，下载并按 art_layout 路径放进 `GameJam/Assets/Art/`**
-10. Unity 开发：范围确认 → 用户同意 → 占位实现 → 🟠 等用户确认资产落位 → 自检 → 用户确认
+9. **Gemini 自动出图 + Claude 视觉审核闭环**（6·B.4 / 6·B.5）：按批次调 Gemini，失败自动升级 Pro，全批完成后 Producer 一次性呈现给用户确认
+10. Unity 开发：范围确认 → 用户同意 → 占位实现 → 资产完整性扫描（有问题才 🟠）→ 自检 → 用户确认
 11. Playtest → 归档报告 → 用户验收通过
 12. 收尾：更新 memory、工作流自优化
 
 ## 依赖
 
-- 一个支持图像生成的 Gemini Gem（用户侧）
+- `GEMINI_API_KEY` 环境变量（git-bash 会话级，用户侧）
+- `python3` 在 PATH（06c 调 API + 解 base64）
 - Unity 2022.3.62f2c1（项目已配置）
 
 ## 与 dev-workflow 的关系
 
 本 skill 是 dev-workflow 在 Game Jam 场景下的变体：
 - **沿用**：状态文件、断点续跑、问题回溯、subagent 隔离、自治学习、收尾阶段
-- **新增**：创意决策列、Jam 指标区块、回溯成本预警、美术回填阻塞节点
+- **新增**：创意决策列、Jam 指标区块（含 API 成本累计）、回溯成本预警、美术自动出图闭环（6·B.4 / 6·B.5）、资产完整性扫描（7.3）
 - **移除**：飞书预读、阶段三·B 代码结构优化、阶段四独立 Code Review（Review 合并进开发自检）

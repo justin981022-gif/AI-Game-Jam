@@ -74,7 +74,9 @@ agents/skill/
 
 - **串行依赖**：叙事→关卡→数值 强依赖链，严格串行，避免并行互相咬合
 - **美术拆两段**：风格规范（6·A）在主策划后即可启动，与叙事/关卡/数值并行；资产提示词（6·B）须等策划评审后统一批量生成
-- **美术出图闭环**（6·B.4 / 6·B.5）：06c 自动调 Gemini API 出图（默认 `gemini-2.5-flash-image`），06d 用 Claude 视觉审核。升级阶梯 `Flash×2 → Pro×1 → 🟠 人工`，单资产最大成本 ~$0.21
+- **美术出图闭环**（6·B.4 / 6·B.5）：**06c 默认走公司 aiart 服务（主路径）**，必要时 fallback 到 Gemini 网关（Flash→Pro）。06d 用 Claude 视觉审核。aiart 升级阶梯 `R1 → R2(修正) → R3(img2img 用 R1 作参考) → 🟠`
+- **aiart 优势**：pixel art 风格命中稳定、背景永远纯灰便于抠图、支持 img2img `references` 字段做角色一致性
+- **Gemini fallback 仅在 aiart 服务宕机触发**，不因审核不过触发（Gemini 质量通常不胜 aiart）
 - **7.3 资产完整性扫描**：替代以往的"🟠 等用户手动回填"——6·B.5 已让图自动落位，7.3 仅做扫描校验（尺寸 / 透明通道 / 命名），发现问题才标 🟠 等用户修
 - **成本守护**：单次 jam 默认 $10 硬顶，Producer 每次 Gemini 调用后更新状态文件"API 成本累计"
 - **熔断**：一批内 Flash#1 通过率 < 50% 时 06c 暂停，避免 style_guide 本身有问题还继续烧额度
@@ -99,8 +101,10 @@ agents/skill/
 
 ## 依赖
 
-- `GEMINI_API_KEY` 环境变量（git-bash 会话级，用户侧）
-- `python3` 在 PATH（06c 调 API + 解 base64）
+- **aiart（主路径，公司内部服务）**：`AIART_API_KEY=st-...`（Bearer auth），base URL `https://aiart.happyelements.com`
+- **Gemini 网关（fallback）**：`GATEWAY_API_KEY=sk-...` + `GOOGLE_GEMINI_BASE_URL=https://ai-gateway-.../`
+- `node`（≥ 18）在 PATH（06c 调 API + 解 PNG）
+- 可选 `sharp`（npm）或 `ImageMagick` 用于 post-process 下采样 + chroma key 抠图
 - Unity 2022.3.62f2c1（项目已配置）
 
 ## 与 dev-workflow 的关系

@@ -107,6 +107,34 @@
   - `agents/skill/prompts/06c_art_image_generator.md`（改）— Pro 实测行为小节、升级触发条件限定、mimeType 决定文件扩展名
   - `agents/skill/prompts/06d_art_reviewer.md`（改）— 双模型刚性限制对照表、明确不触发升级的维度清单
 
+### 2026-04-21 · 公司 aiart 服务接入（主路径升级）
+- 行为：探测并接入公司内部 AI 画图服务 `https://aiart.happyelements.com/api/v1/ai-fusion-openapi/*`，用 Lucy 同一 prompt 生成第四版作为 A/B 基线，决策把 aiart 设为 06c 主路径、Gemini 降级为 fallback。
+- 接入过程关键发现：
+  1. **前端 URL 和 API 域不同**：用户给的 `aiart-v3.happyelements.com/image-generate` 是 Next.js 前端，实际 API 在 `aiart.happyelements.com`
+  2. **OpenAPI 专用命名空间**：程序化调用走 `/api/v1/ai-fusion-openapi/`（带 `-openapi` 后缀），非浏览器用的 `/api/v1/ai-fusion/`
+  3. **认证方式**：`Authorization: Bearer <secret>` 其中 secret 是 `st-` 前缀的 Service Account Token（本项目用 AccessKey ID `0a65bf11-c4d4d5abe654` 配对的 secret）
+  4. **异步任务 API**：`POST /images/generations` 返回 `taskId + status:"pending"`，需轮询 `GET /images/generations/{taskId}` 拿 CDN 下载 URL；30~60s 出图
+  5. **aiart 刚性行为**：请求 1024×1024 返回 **2048×2048 JPEG**（系统自动放大），背景永远是纯灰（非常便于 chroma key），必须正方形（非正方形 400）
+  6. **img2img 能力**：body 支持 `references: [{type: "image", url: ...}]`，对角色一致性（同角色换姿态换表情）有巨大价值，Gemini Flash/Pro 都不具备
+- Lucy v4 对比三版 Gemini 结论：
+  - 风格一致性：**aiart 最像素风**（16-bit 更正宗）
+  - 主体：发型不对称命中 ✅（Gemini 三版都差），颈部 cyber 植入仍缺（仅 Gemini Pro 画出）
+  - 背景：aiart **纯灰最易抠**，Gemini Flash 白底、Pro 画棋盘格（最糟）
+  - 尺寸：aiart 2048² 稳定；Gemini Flash 1024²、Pro 1408×768 随机
+- 新 skill 设计（已实装）：
+  - **06c 主路径切换到 aiart**，三轮升级 `R1 → R2(带修正) → R3(带修正 + img2img 用 R1 作参考)  → 🟠`
+  - **Gemini 降级为 Fallback**，**只在 aiart 服务宕机触发**（HTTP 错误 / 任务失败 / 轮询超时），不因审核不过触发
+  - **成本硬顶 $10 仅对 Gemini 路径生效**，aiart 视为内部免费服务只计任务数
+  - **Provider 识别按 key 值前缀**：`st-` = aiart，`sk-` = Gemini 网关，`AIza` = Google 直连
+- AI 介入：
+  - Claude Code 挖 Next.js chunk 定位真实 API 路径、试多种 auth scheme 锁定 Bearer、探测 endpoint body schema、轮询 taskId、下载 CDN 产物、视觉 review
+- 产物：
+  - `tmp/test_lucy__v4__aiart.jpg`（aiart 出的 Lucy，质量超 Gemini 三版）
+  - `agents/skill/prompts/06c_art_image_generator.md`（大改）— aiart 主路径 + submit/poll/download 骨架 + 三家 provider 刚性行为对照 + Gemini 降 fallback
+  - `agents/skill/prompts/06d_art_reviewer.md`（改）— 刚性行为表加 aiart 列、aiart 背景默认判 🟢 可用性
+  - `agents/skill/README.md`（改）— 依赖段加 AIART_API_KEY 主、GATEWAY_API_KEY fallback；关键设计点更新 aiart 主路径
+  - `agents/skill/templates/gamejam_state_template.md`（改）— API 成本累计按 provider 拆分，aiart 不计费只计任务数
+
 ---
 
 ## 后续待记录（占位）

@@ -32,6 +32,16 @@ Jam 节奏下你的工作会分 4 个子步骤。此前阶段 6·B.4 / 6·B.5 �
 - **OnDestroy 注销事件监听**：Jam 里漏这条最容易导致场景切换崩（单拿出来）
 - **不做代码结构优化独立阶段**：合并进 7.4 自检清单
 
+### WebGL 专项约束（本项目 H5 硬要求）
+
+- **Build Platform 从第一天就切到 WebGL**，不要等最后再切（切换会重新导入全部资产）
+- **禁用的 API**：`System.IO.File/Directory`、`System.Threading.Thread`（用 `async/await` 或 `Coroutine` 替代）、大多数 P/Invoke、`Application.OpenURL` 行为与桌面不同
+- **存档/配置读写走 `PlayerPrefs` 或 `IndexedDB via JS interop`**，不走本地文件
+- **内存预算**：Unity WebGL 默认 256MB heap，大量资产时在 PlayerSettings 中上调（上限视浏览器而定）；避免一次性加载全部场景资产
+- **Compression 设置**：提交前在 PlayerSettings → WebGL → Publishing Settings 确认压缩方式（Brotli/Gzip/Disabled）与 CDN / HTTP 服务器配置匹配，否则加载报错
+- **构建大小上限**：2GB（Jam 约束），纹理使用 Crunch 压缩或 WebP，音频降采样，避免非必要 Resources 文件夹内容
+- **调试**：WebGL 构建时 `Debug.Log` 仍有效，但 C# 异常堆栈可能被混淆；开发期留 Development Build 方便排查
+
 ## 执行步骤
 
 ### 7.1 影响范围与脚手架确认
@@ -143,17 +153,30 @@ var sprite = Resources.Load<Sprite>("Art/Characters/Hero/Hero_portrait");
 - 冗余清单：存在但未在清单中的文件（可能是版本化历史或测试文件，通常可忽略，但 Asset ID 命名不规范的要标出）
 
 **尺寸校验**
-```bash
-python3 <<'PY'
-from PIL import Image
-import os, re
-# 对每个 Asset ID：
-#   读 art_prompts/<id>.md 的元数据"尺寸目标"字段（如 1024×1024）
-#   打开 Assets/Art/**/<id>.png，对比实际宽高
-#   误差 > 5% 标为尺寸不符
-PY
+
+本机无 `python3`，使用 Node.js（v22 已有）直接读 PNG IHDR chunk：
+```js
+// node — 读 PNG/JPEG 宽高，无需第三方库
+const fs = require('fs');
+function getImageSize(p) {
+  const buf = fs.readFileSync(p);
+  if (buf[0]===0x89 && buf[1]===0x50) { // PNG
+    return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20) };
+  }
+  if (buf[0]===0xFF && buf[1]===0xD8) { // JPEG — 找 SOF0/SOF2 marker
+    let i=2;
+    while(i<buf.length-8){
+      if(buf[i]===0xFF&&(buf[i+1]===0xC0||buf[i+1]===0xC2))
+        return { w: buf.readUInt16BE(i+7), h: buf.readUInt16BE(i+5) };
+      i+=2+buf.readUInt16BE(i+2);
+    }
+  }
+  return null;
+}
+// 对每个 Asset ID：
+//   读 art_prompts/<id>.md 的元数据"尺寸目标"字段（如 1024×1024）
+//   调 getImageSize，误差 > 5% 标为尺寸不符
 ```
-若环境没有 PIL，退到 ImageMagick `identify -format "%wx%h"` 或直接读 PNG IHDR chunk（Python 标准库 `struct`）。
 
 **透明通道校验**（仅对 prompt 要求 transparent 的资产）
 - 读 `art_prompts/<id>.md` 元数据"背景要求"字段
@@ -226,9 +249,13 @@ PY
 - [ ] UI 图标在对应按钮上显示正常
 - [ ] 使用占位的资产已列出清单
 
-**构建（可选）**
-- [ ] 若 Jam 要求提交 WebGL → 本地构建成功
-- [ ] 若 Jam 要求 Standalone → 本地构建成功
+**构建（WebGL 必须）**
+- [ ] Build Platform 已切换到 WebGL（File → Build Settings）
+- [ ] PlayerSettings → WebGL → Publishing Settings 的 Compression 与服务器配置匹配
+- [ ] WebGL 本地构建成功（无 linker error / IL2CPP error）
+- [ ] 构建产物总大小 < 2GB（Jam 约束）
+- [ ] 在本地 HTTP 服务（`python -m http.server` 或 `npx serve`）上跑通 index.html，无控制台 CORS / WASM 错误
+- [ ] 代码中无 `System.IO.File`、`System.Threading.Thread` 等 WebGL 不支持的 API（编译通过不代表运行时无报错）
 
 #### 7.4 完成
 

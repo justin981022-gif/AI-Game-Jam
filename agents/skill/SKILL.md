@@ -22,6 +22,59 @@ description: >
 
 ---
 
+## 👥 多人协作模式（方案A：状态机流水线）
+
+### 团队构成
+
+三人团队，均为程序员，**轮换**担任美术 / 策划 / 程序角色，不固定文件域。
+
+### 协作规则
+
+| 角色（当次） | 职责 |
+|------------|------|
+| **发起人（策划）** | 提出需求 → AI 生成图片+代码草稿 → commit 所有内容（状态: pending） |
+| **开发** | 读取任务状态文件，处理代码内容 → 将 `dev` 字段更新为 `confirmed` |
+| **美术** | 读取任务状态文件，处理图片内容 → 将 `art` 字段更新为 `confirmed` |
+
+开发和美术可并行，互不阻塞。发起人是唯一有权创建 feature 文件夹和 `requirement.md` 的人。
+
+### 任务状态文件结构
+
+```
+.workflow/tasks/
+  feature_001/
+    requirement.md     ← 发起人写，其他人只读
+    status.json        ← art/dev 字段分开，各人只写自己字段
+    art_draft/         ← AI 生成的图片草稿
+    code_draft/        ← AI 生成的代码草稿
+```
+
+`status.json` 格式：
+
+```json
+{
+  "feature_id": "feature_001",
+  "title": "需求名称",
+  "created_by": "发起人姓名",
+  "created_at": "2026-04-22",
+  "art": "pending",
+  "dev": "pending"
+}
+```
+
+状态值：`pending` / `in_progress` / `confirmed`
+
+### AI 启动时的协作检查
+
+任何角色的 AI 启动时，除检查 `gamejam_state.md` 外，还需扫描 `.workflow/tasks/` 下所有 `status.json`，找出 `art` 或 `dev` 为 `pending` / `in_progress` 的任务，提示当前用户是否认领处理。
+
+### 约束
+
+- 同一个 feature 同一时间只有一人认领，认领时飞书群告知
+- 各人只修改 `status.json` 中自己负责的字段，不得覆盖对方字段
+
+---
+
 ## 🧠 自治学习：持续改进工作流
 
 每次 jam 流程中，你有权主动改进工作流文档，无需等待用户指令。
@@ -221,10 +274,24 @@ Producer
 **你的职责**：
 - 将 subagent 提取的核心概念（pitch / loop / 情绪词 / 技术范围）结构化展示给用户
 - 收集用户修订意见，传回 subagent 修订
+- **concept 内容稳定后，发送飞书团队通知（见下方）再等最终确认**
 - 用户明确确认后，通知 subagent 归档到 `design/concept.md`
 - **立即更新状态文件：阶段一 ✅ 已完成，填写文档路径**
 
-**完成标志**：用户确认 concept.md 内容，subagent 告知归档路径
+**飞书通知（三人共同确认）**：
+
+concept 草稿完成、用户初步认可后，执行：
+1. 将以下字段写入临时文件 `.workflow/feishu_chief.json`（格式见 `notify_feishu.js` 头部注释）：
+   - `stage`：`"主策划确认"`
+   - `project`：项目名
+   - `pitch`：一句话 Pitch
+   - `loop_summary`：核心 Loop 一行描述
+   - `decisions`：需团队拍板的 2~4 个问题（游戏类型、关卡结构、核心机制取舍等）
+2. 执行 `node agents/skill/notify_feishu.js .workflow/feishu_chief.json`
+3. 告知用户："已发送到飞书群，请三人讨论后把最终决策带回来，我再归档并进入阶段二。"
+4. **等待用户带回三人决策结论后**，再归档 concept.md 并更新状态文件
+
+**完成标志**：三人决策已确认，concept.md 已归档，subagent 告知归档路径
 
 ---
 

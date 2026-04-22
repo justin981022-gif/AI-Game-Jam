@@ -21,6 +21,7 @@ description: 基于主策划和叙事，设计关卡一览表、每关详细拆�
 - 阶段一 `design/concept.md` 已确认
 - 阶段二 `design/narrative.md` 已确认
 - 两份文档路径由 Producer 提供
+- **启动后第一件事：读取这两份文档全文，以其中已确认的内容为设计约束，不得推翻**
 
 ## 规则
 

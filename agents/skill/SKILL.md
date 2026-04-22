@@ -66,7 +66,11 @@ description: >
 
 ### AI 启动时的协作检查
 
-任何角色的 AI 启动时，除检查 `gamejam_state.md` 外，还需扫描 `.workflow/tasks/` 下所有 `status.json`，找出 `art` 或 `dev` 为 `pending` / `in_progress` 的任务，提示当前用户是否认领处理。
+**任何角色的 AI 启动时，必须按顺序执行以下检查，不得跳过：**
+
+1. **读取协作规范**：读取 `.workflow/collaboration_rules.md`，确认文档优先原则已加载
+2. **检查状态文件**：检查 `gamejam_state.md`（整套流程进度）
+3. **扫描任务列表**：扫描 `.workflow/tasks/` 下所有 `status.json`，找出 `art` 或 `dev` 为 `pending` / `in_progress` 的任务，提示当前用户是否认领处理
 
 ### 约束
 

@@ -2,7 +2,8 @@
 name: ai-game-jam
 description: >
   AI Game Jam 全流程 skill，覆盖游戏策划（主策划/叙事/关卡/数值）、策划整合评审、
-  美术提示词工程（风格规范 + Gemini 图像提示词 + 资产清单 + 切图建议）、Unity 开发、Playtest 验收。
+  美术提示词工程（风格规范 + Gemini 图像提示词 + 资产清单 + 切图建议）、测试用例验收。
+  程序实现由团队使用 Atoms 在 H5 环境中完成，不在此流程内。
   当用户说"启动 Game Jam 开发"、"走一遍 jam 流程"、"帮我开发一个 Game Jam 小游戏"时使用此 skill。
   也支持单阶段直达，如"只跑关卡策划"、"帮我生成美术提示词"、"验收一下现在的原型"。
 ---
@@ -208,8 +209,10 @@ Producer
  ├─ [阶段六·B] 资产提示词工程师         → prompts/06b_art_prompt_engineer.md
  │              └ [6·B.4] 图像生成工程师  → prompts/06c_art_image_generator.md
  │              └ [6·B.5] 美术审核官      → prompts/06d_art_reviewer.md
- ├─ [阶段七]   Unity 开发（含 7.1~7.4） → prompts/07_unity_developer.md
- └─ [阶段八]   Playtest 验收           → prompts/08_playtest_qa.md
+ └─ [阶段七]   测试用例验收             → prompts/07_test_cases.md
+```
+
+> ⚠️ **程序实现（原阶段七 Unity 开发）由团队使用 Atoms 在 H5 环境完成，不在此流程内。** 策划和美术产物完成后，团队自行使用 Atoms 实现，再触发阶段七测试用例验收。
 ```
 
 > 💡 阶段六·A（风格规范）与阶段二~阶段四（叙事/关卡/数值）之间**无硬依赖**，Producer 可在阶段一完成后即启动六·A（与二~四并行），但整体仍需等到阶段五评审通过后再启动六·B。
@@ -228,7 +231,7 @@ Producer
 2. **状态先写**：用户确认阶段通过的瞬间，**先更新状态文件，再启动下一阶段 subagent**
 3. **subagent 隔离**：各 subagent 不直接回应用户，所有输出先交回给你，由你转达
 4. **问题回溯**：
-   - Playtest 发现核心玩法有缺陷 → 回溯到阶段一（主策划）
+   - 测试用例发现核心玩法缺陷 → 回溯到阶段一（主策划）
    - 数值手感差且曲线本身没问题 → 回溯到阶段四（数值），状态标记 `↩️ 已回溯`
    - 关卡策划发现叙事角色动机不支持 → 回溯到阶段二
    - 美术提示词批量生成前发现资产清单缺失 → 回溯到阶段六·B 前段或阶段五
@@ -257,10 +260,10 @@ Producer
 | 美术资产清单 | `E:/SH01/aigamejam/design/art_asset_list.md` |
 | 单个资产提示词 | `E:/SH01/aigamejam/design/art_prompts/<asset_id>.md` |
 | 切图/落位建议 | `E:/SH01/aigamejam/design/art_layout.md` |
-| Playtest 报告 | `E:/SH01/aigamejam/design/playtest_report.md` |
-| Unity 代码 | `E:/SH01/aigamejam/GameJam/Assets/Scripts/...` |
-| 最终美术资产 | `E:/SH01/aigamejam/GameJam/Assets/Art/...` |
-| 图片版本历史 | `E:/SH01/aigamejam/GameJam/Assets/Art/**/<asset_id>__v<n>__<model_tag>.png`（06c 落盘） |
+| 测试用例报告 | `E:/SH01/aigamejam/design/test_cases_report.md` |
+| H5 游戏源码 | `E:/SH01/aigamejam/GameJam/`（由团队用 Atoms 维护） |
+| 最终美术资产 | `E:/SH01/aigamejam/GameJam/assets/art/...` |
+| 图片版本历史 | `E:/SH01/aigamejam/GameJam/assets/art/<category>/<asset_id>__v<n>__<model_tag>.png`（06c 落盘） |
 
 > ⚠️ **策划和美术的文本文档一律放在 `design/` 目录外层，不要放进 `GameJam/Assets/`**，避免 Unity 的 AssetDatabase 扫描产生 `.meta` 噪音、或意外打进 build。
 
@@ -423,42 +426,23 @@ concept 草稿完成、用户初步认可后，执行：
 
 ---
 
-### 阶段七：Unity 开发
+### 阶段七：测试用例验收
 
-> Subagent prompt：`prompts/07_unity_developer.md`
+> Subagent prompt：`prompts/07_test_cases.md`
+> 产物模板：`templates/test_cases_template.md`
 
-**启动 subagent**：传入所有策划文档 + 美术资产清单 + 落位规划。
+**触发时机**：团队使用 Atoms 完成 H5 程序实现后，由任意成员触发。
 
-**此阶段包含 4 个子步骤：7.1 范围确认 → 7.2 占位实现 → 7.3 资产完整性扫描 → 7.4 自检**
-
-**你的职责**：
-- **7.1**：展示 subagent 列出的 Unity 目录规划、脚本清单、依赖图，等用户确认
-- **7.2**：将 subagent 遇到的未覆盖情况传达给用户，收集决策传回；每次决策追加状态文件
-- **7.3 资产完整性扫描**：此时 6·B.5 已全部通过，`GameJam/Assets/Art/` 下应已齐全。subagent 执行扫描（尺寸对比 prompt 元数据 / 透明通道 alpha 四角采样 / 命名与 art_asset_list Asset ID 集合 diff / UI 九宫格标注人工确认）。
-  - 扫描全通过 → 直接进入 7.4
-  - 扫描有失败项 → 状态文件阶段七标记为 `🟠 阻塞中`，Producer 输出「待手工修正清单」给用户，用户修正后再次扫描
-- **7.4**：展示 subagent 的自检结果（按 jam 精简清单）和改动文件清单
-- **立即更新状态文件：阶段七 ✅ 已完成，填写改动清单**
-
-**完成标志**：自检全过，用户确认可以进入 Playtest
-
----
-
-### 阶段八：Playtest 验收
-
-> Subagent prompt：`prompts/08_playtest_qa.md`
-> 产物模板：`templates/playtest_report_template.md`
-
-**启动 subagent**：传入所有策划文档 + 当前代码上下文 + 关键测试路径。
+**启动 subagent**：传入所有策划文档 + 美术资产清单 + 团队描述的实现完成情况。
 
 **你的职责**：
-- 展示 subagent 的 Playtest 报告（可玩性 / 数值手感 / 叙事传达 / 美术观感 / bug 清单）
-- 对 🟡 非核心问题，与用户确认是否接受为已知问题，**追加到状态文件"待处理问题"**
-- 核心 bug 或可玩性失败 → 先做**回溯成本预警**，再决定回溯到哪个阶段
-- 通过后归档到 `design/playtest_report.md`
-- **立即更新状态文件：阶段八 ✅ 已完成，"当前状态"更新为"全部完成"**
+- 将 subagent 生成的测试用例清单（按功能模块分组，每条含前置条件 / 操作步骤 / 预期结果）呈现给用户
+- 收集用户对用例的补充或删减，传回 subagent 更新
+- 用户确认用例清单后，subagent 逐条标注 ✅ 通过 / ❌ 失败 / ⏭ 跳过
+- ❌ 失败项由团队在 Atoms 中修复后，重新触发对应用例验证
+- **立即更新状态文件：阶段七 ✅ 已完成，"当前状态"更新为"全部完成"，填写测试报告路径**
 
-**完成标志**：Playtest 报告输出，用户确认验收结论
+**完成标志**：所有核心用例通过，用户确认验收结论
 
 ---
 

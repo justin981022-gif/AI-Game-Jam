@@ -230,7 +230,16 @@ Producer
 1. **禁止抢跑**：每个阶段必须等用户明确确认后，才启动下一阶段的 subagent
 2. **状态先写**：用户确认阶段通过的瞬间，**先更新状态文件，再启动下一阶段 subagent**
 3. **subagent 隔离**：各 subagent 不直接回应用户，所有输出先交回给你，由你转达
-4. **问题回溯**：
+4. **主策划 Review 环节（阶段二 / 三 / 四 专属）**：
+   每个策划阶段（叙事/关卡/数值）完成草稿后，**在向用户展示之前**，必须先由主策划 subagent 做一轮 Review：
+   - 主策划不只给出 🟢/🔴 判断，**还必须对有问题的部分直接从设计角度给出优化后的替代内容**（不只列问题，要给答案）
+   - **原则性问题（违背 concept.md 核心方向、玩法逻辑无法落地、三阶段结构缺失等）：主策划有权直接修改对应设计文档文件**（narrative.md / levels.md / balance.md），改后将改动摘要交回 Producer 告知用户；非原则性问题仍走"传回执行策划修订"流程
+   - 🟢 通过：可直接进入用户确认
+   - 🔴 不通过：主策划输出"问题描述 + 优化替代内容"，Producer 将优化内容传给当前阶段 subagent 执行修订，修订后再次提交主策划 Review
+   - **最多循环 3 次**；第 3 次仍 🔴 → 停止循环，**将草稿 + 主策划优化意见一并呈现给用户，由用户拍板**
+   - 🟢 或用户拍板后：将最终版本展示给用户做最终确认，再归档
+   - 状态文件中记录每次 Review 轮次（"阶段二 Review：第 1 轮 🔴 → 第 2 轮 🟢"）
+5. **问题回溯**：
    - 测试用例发现核心玩法缺陷 → 回溯到阶段一（主策划）
    - 数值手感差且曲线本身没问题 → 回溯到阶段四（数值），状态标记 `↩️ 已回溯`
    - 关卡策划发现叙事角色动机不支持 → 回溯到阶段二
@@ -252,8 +261,9 @@ Producer
 |------|------|
 | 状态文件 | `E:/SH01/aigamejam/.workflow/gamejam_state.md` |
 | 主策划文档 | `E:/SH01/aigamejam/design/concept.md` |
-| 叙事文档 | `E:/SH01/aigamejam/design/narrative.md` |
-| 关卡文档 | `E:/SH01/aigamejam/design/levels.md` |
+| 叙事文档（融合版） | `E:/SH01/aigamejam/design/narrative.md` |
+| 关卡文档（融合版） | `E:/SH01/aigamejam/design/levels.md` |
+| 三人草稿目录 | `E:/SH01/aigamejam/design/drafts/{zhiyu-qi\|chuwen-huang\|xiaolong-zhuo}/` |
 | 数值文档 | `E:/SH01/aigamejam/design/balance.md` |
 | 策划评审报告 | `E:/SH01/aigamejam/design/design_review.md` |
 | 美术风格规范 | `E:/SH01/aigamejam/design/art_style_guide.md` |
@@ -307,15 +317,40 @@ concept 草稿完成、用户初步认可后，执行：
 > Subagent prompt：`prompts/02_narrative_designer.md`
 > 产物模板：`templates/narrative_template.md`
 
-**启动 subagent**：传入 `design/concept.md` 路径和项目上下文。
+**三人草稿模式**（本阶段启用）：
 
-**你的职责**：
-- 将 subagent 产出的世界观/角色表/剧情节拍呈现给用户
-- 收集用户的创意反馈（"主角改成XX"、"加一个反派"等），传回 subagent；**每次创意决策追加到状态文件**
-- 用户确认后归档到 `design/narrative.md`
-- **立即更新状态文件：阶段二 ✅ 已完成**
+三位成员各自独立触发 AI，生成自己视角的叙事草稿，存入各自的草稿目录。全部提交后由 Producer 融合。
 
-**完成标志**：用户确认叙事文档，可以进入关卡策划
+**草稿目录结构**：
+
+```
+design/drafts/
+  zhiyu-qi/narrative.md
+  chuwen-huang/narrative.md
+  xiaolong-zhuo/narrative.md
+```
+
+**单人草稿生成流程**：
+1. 启动叙事策划 subagent，传入 `design/concept.md`
+2. subagent 产出草稿后写入 `design/drafts/{当前成员名}/narrative.md`
+3. **触发主策划 Review**（最多 3 轮，🔴 则修订，第 3 轮仍不通过则标注争议点保留）
+4. Review 通过后，草稿留在 drafts 目录，**不提前写入 `design/narrative.md`**
+5. 告知用户：本人草稿已完成，等待其他成员提交
+
+**三人融合流程**（用户告知"三人都提交了"后触发）：
+1. 读取三份草稿：`design/drafts/zhiyu-qi/narrative.md`、`design/drafts/chuwen-huang/narrative.md`、`design/drafts/xiaolong-zhuo/narrative.md`
+2. 逐章节对比三份内容，输出对比分析（差异点 + 各方选择理由）
+3. Producer 给出融合方案（取最优/合并/折中），说明每处取舍理由
+4. 将融合结果提交主策划 Review（最多 1 轮）
+5. 通过后写入 `design/narrative.md`，更新状态文件
+
+**你的职责（三人融合时）**：
+- 对比维度：世界观一句话 / 角色表 / 三幕节拍 / 触发点数量与内容 / 简历规范
+- 融合原则：**叙事张力最强 > 玩法锚点最清晰 > Jam 工期最可行**
+- 有冲突时给出明确建议，不做"两种都行"的模糊结论
+- **立即更新状态文件：阶段二 ✅ 已完成，记录参与成员和 Review 轮次**
+
+**完成标志**：三份草稿均完成主策划 Review，融合版写入 `design/narrative.md`，用户确认
 
 ---
 
@@ -324,15 +359,34 @@ concept 草稿完成、用户初步认可后，执行：
 > Subagent prompt：`prompts/03_level_designer.md`
 > 产物模板：`templates/levels_template.md`
 
-**启动 subagent**：传入 `concept.md` 和 `narrative.md` 路径。
+**三人草稿模式**（本阶段启用）：
 
-**你的职责**：
-- 将 subagent 产出的关卡一览表和每关详解呈现给用户
-- 若用户反馈导致关卡数、机制增减，传回 subagent 更新；**重要改动追加到状态文件创意决策**
-- 用户确认后归档到 `design/levels.md`
-- **立即更新状态文件：阶段三 ✅ 已完成**
+同阶段二，三位成员各自独立生成关卡草稿，存入各自草稿目录。全部提交后融合。
 
-**完成标志**：用户确认关卡文档
+**草稿目录结构**：
+
+```
+design/drafts/
+  zhiyu-qi/levels.md
+  chuwen-huang/levels.md
+  xiaolong-zhuo/levels.md
+```
+
+**单人草稿生成流程**：
+1. 启动关卡策划 subagent，传入 `design/concept.md` + `design/narrative.md`（融合版）
+2. subagent 产出草稿后写入 `design/drafts/{当前成员名}/levels.md`
+3. **触发主策划 Review**（最多 3 轮）
+4. Review 通过后草稿留在 drafts 目录，不提前写入 `design/levels.md`
+
+**三人融合流程**（用户告知"三人都提交了"后触发）：
+1. 读取三份关卡草稿
+2. 对比：关卡总数 / 难度曲线 / 机制引入顺序 / 每关叙事锚点 / Boss 关设计
+3. 融合原则：**教学节奏最清晰 > 难度曲线最合理 > 叙事融合度最高**
+4. 融合结果提交主策划 Review（最多 1 轮）
+5. 通过后写入 `design/levels.md`，更新状态文件
+- **立即更新状态文件：阶段三 ✅ 已完成，记录参与成员和 Review 轮次**
+
+**完成标志**：三份草稿均完成主策划 Review，融合版写入 `design/levels.md`，用户确认
 
 ---
 
@@ -346,8 +400,10 @@ concept 草稿完成、用户初步认可后，执行：
 **你的职责**：
 - 将 subagent 产出的属性定义、核心公式、成长曲线、平衡矩阵呈现给用户
 - 对用户提出的"太难/太简单/奖励不够"类反馈，传回 subagent 调参
+- **触发主策划 Review**：草稿完成后先提交主策划 subagent 审核（最多 3 轮，第 3 轮仍不通过则带意见交用户拍板）
+- 主策划 🟢 / 用户拍板后，将最终版展示给用户做最终确认
 - 用户确认后归档到 `design/balance.md`
-- **立即更新状态文件：阶段四 ✅ 已完成**
+- **立即更新状态文件：阶段四 ✅ 已完成，记录 Review 轮次**
 
 **完成标志**：用户确认数值文档
 

@@ -30,8 +30,8 @@
 | 阶段 | 名称 | 状态 | 完成时间 |
 |------|------|------|----------|
 | 一 | 主策划 | ✅ 已完成 | 2026-04-22 |
-| 二 | 叙事策划 | 🟠 阻塞中（zhiyu-qi ✅ 已提交，等待 chuwen-huang / xiaolong-zhuo） | 2026-04-23 |
-| 三 | 关卡策划 | 🟠 阻塞中（zhiyu-qi ✅ 已提交，等待 chuwen-huang / xiaolong-zhuo） | 2026-04-23 |
+| 二 | 叙事策划 | 🟠 阻塞中（zhiyu-qi ✅ chuwen-huang ✅ 已提交，等待 xiaolong-zhuo） | 2026-04-23 |
+| 三 | 关卡策划 | 🟠 阻塞中（zhiyu-qi ✅ chuwen-huang ✅ 已提交，等待 xiaolong-zhuo） | 2026-04-23 |
 | 四 | 数值策划 | ⏳ 待执行 | — |
 | 五 | 策划整合评审 | ⏳ 待执行 | — |
 | 六·A | 美术风格规范 | ⏳ 待执行 | — |
@@ -41,8 +41,8 @@
 ## 产物路径
 
 - **主策划文档**：E:/SH01/aigamejam/design/concept.md
-- **叙事文档**：design/drafts/zhiyu-qi/narrative.md（融合版待生成）
-- **关卡文档**：design/drafts/zhiyu-qi/levels.md（融合版待生成）
+- **叙事文档**：design/drafts/zhiyu-qi/narrative.md ✅ / design/drafts/chuwen-huang/narrative.md ✅（融合版待生成）
+- **关卡文档**：design/drafts/zhiyu-qi/levels.md ✅ / design/drafts/chuwen-huang/levels.md ✅（融合版待生成）
 - **数值文档**：—
 - **策划评审报告**：—
 - **美术风格规范**：—

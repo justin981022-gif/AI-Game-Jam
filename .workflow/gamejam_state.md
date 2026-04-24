@@ -8,7 +8,7 @@
 - **Jam 主题/灵感**：你是魔王城 HR 总监，招募怪物、管理薪酬、抵御勇者突袭
 - **流程类型**：整套七阶段（原八阶段，已删除 Unity 开发阶段，程序由团队用 Atoms 实现）
 - **启动时间**：2026-04-22
-- **最后更新**：2026-04-22
+- **最后更新**：2026-04-24
 - **项目路径**：E:/SH01/aigamejam/
 
 ## Jam 指标
@@ -30,8 +30,8 @@
 | 阶段 | 名称 | 状态 | 完成时间 |
 |------|------|------|----------|
 | 一 | 主策划 | ✅ 已完成 | 2026-04-22 |
-| 二 | 叙事策划 | 🟠 阻塞中（zhiyu-qi ✅ chuwen-huang ✅ 已提交，等待 xiaolong-zhuo） | 2026-04-23 |
-| 三 | 关卡策划 | 🟠 阻塞中（zhiyu-qi ✅ chuwen-huang ✅ 已提交，等待 xiaolong-zhuo） | 2026-04-23 |
+| 二 | 叙事策划 | 🟠 三人草稿均完成 Review，等待融合（zhiyu-qi ✅ / chuwen-huang ✅ / xiaolong-zhuo ✅ 2 轮 Review 通过） | 2026-04-24 |
+| 三 | 关卡策划 | 🟠 三人草稿均完成 Review，等待融合（zhiyu-qi ✅ / chuwen-huang ✅ / xiaolong-zhuo ✅ 1 轮 Review 通过） | 2026-04-24 |
 | 四 | 数值策划 | ⏳ 待执行 | — |
 | 五 | 策划整合评审 | ⏳ 待执行 | — |
 | 六·A | 美术风格规范 | ⏳ 待执行 | — |
@@ -41,8 +41,8 @@
 ## 产物路径
 
 - **主策划文档**：E:/SH01/aigamejam/design/concept.md
-- **叙事文档**：design/drafts/zhiyu-qi/narrative.md ✅ / design/drafts/chuwen-huang/narrative.md ✅（融合版待生成）
-- **关卡文档**：design/drafts/zhiyu-qi/levels.md ✅ / design/drafts/chuwen-huang/levels.md ✅（融合版待生成）
+- **叙事文档**：design/drafts/zhiyu-qi/narrative.md ✅ / design/drafts/chuwen-huang/narrative.md ✅ / design/drafts/xiaolong-zhuo/narrative.md ✅（v1.2, 主策划 Review 第 2 轮 🟢 通过，融合版待生成）
+- **关卡文档**：design/drafts/zhiyu-qi/levels.md ✅ / design/drafts/chuwen-huang/levels.md ✅ / design/drafts/xiaolong-zhuo/levels.md ✅（v1.1, 主策划 Review 第 1 轮 🟢 通过，融合版待生成）
 - **数值文档**：—
 - **策划评审报告**：—
 - **美术风格规范**：—
@@ -57,7 +57,7 @@
 |------|---------|---------|------|
 | 一 | 核心设定 | 地下城打工人（Dungeon HR），魔王城 HR 总监视角，扁平企业风 | 2026-04-22 |
 | 一 | 机制调整 | 战斗改为分段实时演算，自动推进+点击加速，突发事件限时10s超时选不利，每场最多3个随机触发 | 2026-04-22 |
-| 一 | 技术取舍 | AI 生成简历改为模板化随机生成；战斗视觉为文字播报+HP条，不做角色动画 | 2026-04-22 |
+| 二 | 创意方向 | xiaolong-zhuo 草稿提出"渊净保洁服务有限公司"主题换皮方向（机制保留 concept，虚构层改为地牢保洁公司 + CL/SV/MD 三职业 + 前任经理 K. 失踪悬疑副线）。用户确认换皮路径，待融合阶段决定是否采纳 | 2026-04-24 |
 
 ## 阻塞事项
 
@@ -79,6 +79,6 @@
 
 ## 当前状态
 
-- **当前阶段**：待用户确认是否进入四 — 数值策划
-- **阶段状态**：等待用户确认
-- **下一步**：用户确认关卡文档后启动阶段四数值策划
+- **当前阶段**：阶段二叙事策划 — 三人草稿均完成，等待融合
+- **阶段状态**：等待用户触发融合
+- **下一步**：用户确认后，Producer 读三份草稿对比 + 融合方案（核心岔路：是否采纳 xiaolong-zhuo 的保洁公司换皮方向；两方案均可融合 B/C/D 突发事件文案和角色设定）

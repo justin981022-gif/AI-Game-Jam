@@ -8,7 +8,7 @@
 - **Jam 主题/灵感**：你是魔王城 HR 总监，招募怪物、管理薪酬、抵御勇者突袭
 - **流程类型**：整套七阶段（原八阶段，已删除 Unity 开发阶段，程序由团队用 Atoms 实现）
 - **启动时间**：2026-04-22
-- **最后更新**：2026-04-24
+- **最后更新**：2026-04-27
 - **项目路径**：E:/SH01/aigamejam/
 
 ## Jam 指标
@@ -30,9 +30,9 @@
 | 阶段 | 名称 | 状态 | 完成时间 |
 |------|------|------|----------|
 | 一 | 主策划 | ✅ 已完成 | 2026-04-22 |
-| 二 | 叙事策划 | 🟠 三人草稿均完成 Review，等待融合（zhiyu-qi ✅ / chuwen-huang ✅ / xiaolong-zhuo ✅ 2 轮 Review 通过） | 2026-04-24 |
-| 三 | 关卡策划 | 🟠 三人草稿均完成 Review，等待融合（zhiyu-qi ✅ / chuwen-huang ✅ / xiaolong-zhuo ✅ 1 轮 Review 通过） | 2026-04-24 |
-| 四 | 数值策划 | ⏳ 待执行 | — |
+| 二 | 叙事策划 | 🔄 融合方案已决策（final-plan.md v1.0），narrative.md v1.3 修订进行中 | — |
+| 三 | 关卡策划 | 🔄 融合方案已决策（final-plan.md v1.0），levels.md v1.2 修订进行中 | — |
+| 四 | 数值策划 | 🔄 已派发启动（与文档修订并行） | — |
 | 五 | 策划整合评审 | ⏳ 待执行 | — |
 | 六·A | 美术风格规范 | ⏳ 待执行 | — |
 | 六·B | 美术资产提示词 + 自动出图 + 审核 | ⏳ 待执行 | — |
@@ -41,8 +41,9 @@
 ## 产物路径
 
 - **主策划文档**：E:/SH01/aigamejam/design/concept.md
-- **叙事文档**：design/drafts/zhiyu-qi/narrative.md ✅ / design/drafts/chuwen-huang/narrative.md ✅ / design/drafts/xiaolong-zhuo/narrative.md ✅（v1.2, 主策划 Review 第 2 轮 🟢 通过，融合版待生成）
-- **关卡文档**：design/drafts/zhiyu-qi/levels.md ✅ / design/drafts/chuwen-huang/levels.md ✅ / design/drafts/xiaolong-zhuo/levels.md ✅（v1.1, 主策划 Review 第 1 轮 🟢 通过，融合版待生成）
+- **融合方案**：design/final-plan.md v1.0（主策划 + PD 联合签署，2026-04-27）
+- **叙事文档**：design/narrative.md v1.2（待修订为 v1.3，任务 .workflow/tasks/narrative_v1.3/）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
+- **关卡文档**：design/levels.md v1.1（待修订为 v1.2，任务 .workflow/tasks/levels_v1.2/）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
 - **数值文档**：—
 - **策划评审报告**：—
 - **美术风格规范**：—
@@ -58,6 +59,7 @@
 | 一 | 核心设定 | 地下城打工人（Dungeon HR），魔王城 HR 总监视角，扁平企业风 | 2026-04-22 |
 | 一 | 机制调整 | 战斗改为分段实时演算，自动推进+点击加速，突发事件限时10s超时选不利，每场最多3个随机触发 | 2026-04-22 |
 | 二 | 创意方向 | xiaolong-zhuo 草稿提出"渊净保洁服务有限公司"主题换皮方向（机制保留 concept，虚构层改为地牢保洁公司 + CL/SV/MD 三职业 + 前任经理 K. 失踪悬疑副线）。用户确认换皮路径，待融合阶段决定是否采纳 | 2026-04-24 |
+| 二/三 | 融合决策 | 主策划 + PD 联合签署 final-plan.md v1.0：以 zhiyu-qi 主干为基线，融合 chuwen-huang 5 项（P03 提前 L03 / 格鲁巴斯私信 / 宵星替换奥莫斯 / C01 事件 / 简历内心泄露句）；废弃 xiaolong-zhuo 全部内容（保洁换皮/三职业/K 系列副线移入 v2 候选）；C02–C05 推迟 v2 | 2026-04-27 |
 
 ## 阻塞事项
 
@@ -79,6 +81,10 @@
 
 ## 当前状态
 
-- **当前阶段**：阶段二叙事策划 — 三人草稿均完成，等待融合
-- **阶段状态**：等待用户触发融合
-- **下一步**：用户确认后，Producer 读三份草稿对比 + 融合方案（核心岔路：是否采纳 xiaolong-zhuo 的保洁公司换皮方向；两方案均可融合 B/C/D 突发事件文案和角色设定）
+- **当前阶段**：阶段二/三 融合方案落地执行 + 阶段四数值策划启动
+- **阶段状态**：3 个并行任务已派发（飞书 + .workflow/tasks/）
+- **下一步**：
+  - 任务 A（narrative_v1.3）：建议 chuwen-huang 主笔，2026-04-28 前提交
+  - 任务 B（levels_v1.2）：建议 zhiyu-qi 主笔，2026-04-28 前提交
+  - 任务 C（balance 启动）：建议 xiaolong-zhuo 推进，2026-04-29 前出草稿
+  - 三任务全部完成后进入阶段五（策划整合评审）

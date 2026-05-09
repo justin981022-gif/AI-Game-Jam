@@ -8,7 +8,7 @@
 - **Jam 主题/灵感**：你是魔王城 HR 总监，招募怪物、管理薪酬、抵御勇者突袭
 - **流程类型**：整套七阶段（原八阶段，已删除 Unity 开发阶段，程序由团队用 Atoms 实现）
 - **启动时间**：2026-04-22
-- **最后更新**：2026-04-27
+- **最后更新**：2026-05-09
 - **项目路径**：E:/SH01/aigamejam/
 
 ## Jam 指标
@@ -30,7 +30,7 @@
 | 阶段 | 名称 | 状态 | 完成时间 |
 |------|------|------|----------|
 | 一 | 主策划 | ✅ 已完成 | 2026-04-22 |
-| 二 | 叙事策划 | 🔄 融合方案已决策（final-plan.md v1.0），narrative.md v1.3 修订进行中 | — |
+| 二 | 叙事策划 | ✅ 已完成（v1.3 由 chuwen-huang 修订落地） | 2026-05-09 |
 | 三 | 关卡策划 | 🔄 融合方案已决策（final-plan.md v1.0），levels.md v1.2 修订进行中 | — |
 | 四 | 数值策划 | 🔄 已派发启动（与文档修订并行） | — |
 | 五 | 策划整合评审 | ⏳ 待执行 | — |
@@ -42,7 +42,7 @@
 
 - **主策划文档**：E:/SH01/aigamejam/design/concept.md
 - **融合方案**：design/final-plan.md v1.0（主策划 + PD 联合签署，2026-04-27）
-- **叙事文档**：design/narrative.md v1.2（待修订为 v1.3，任务 .workflow/tasks/narrative_v1.3/）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
+- **叙事文档**：design/narrative.md v1.3（2026-05-09 chuwen-huang 修订完成）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
 - **关卡文档**：design/levels.md v1.1（待修订为 v1.2，任务 .workflow/tasks/levels_v1.2/）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
 - **数值文档**：—
 - **策划评审报告**：—
@@ -81,10 +81,10 @@
 
 ## 当前状态
 
-- **当前阶段**：阶段二/三 融合方案落地执行 + 阶段四数值策划启动
-- **阶段状态**：3 个并行任务已派发（飞书 + .workflow/tasks/）
+- **当前阶段**：阶段二 已完成；阶段三/四 修订与启动并行
+- **阶段状态**：narrative_v1.3 ✅ 关闭（2026-05-09 chuwen-huang 修订 → status.json 已 confirmed）；levels_v1.2 / balance 草案 待推进
 - **下一步**：
-  - 任务 A（narrative_v1.3）：建议 chuwen-huang 主笔，2026-04-28 前提交
-  - 任务 B（levels_v1.2）：建议 zhiyu-qi 主笔，2026-04-28 前提交
-  - 任务 C（balance 启动）：建议 xiaolong-zhuo 推进，2026-04-29 前出草稿
-  - 三任务全部完成后进入阶段五（策划整合评审）
+  - 任务 B（levels_v1.2）：建议 zhiyu-qi 主笔，narrative.md v1.3 已就绪可直接引用 C01 / 宵星 / 格鲁巴斯私信等条目
+  - 任务 C（balance 启动）：建议 xiaolong-zhuo 推进，需先生成 requirement.md
+  - 等主策划 Review narrative v1.3（最多 1 轮）后正式归档；当前 status.json 标 confirmed 待 Review 最终拍板
+  - B/C 任务全部完成后进入阶段五（策划整合评审）

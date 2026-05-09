@@ -31,7 +31,7 @@
 |------|------|------|----------|
 | 一 | 主策划 | ✅ 已完成 | 2026-04-22 |
 | 二 | 叙事策划 | ✅ 已完成（v1.3 由 chuwen-huang 修订落地） | 2026-05-09 |
-| 三 | 关卡策划 | 🔄 融合方案已决策（final-plan.md v1.0），levels.md v1.2 修订进行中 | — |
+| 三 | 关卡策划 | 🔄 v1.2 已提交（zhiyu-qi 修订完成 2026-05-09），待主策划 Review | — |
 | 四 | 数值策划 | 🔄 已派发启动（与文档修订并行） | — |
 | 五 | 策划整合评审 | ⏳ 待执行 | — |
 | 六·A | 美术风格规范 | ⏳ 待执行 | — |
@@ -43,7 +43,7 @@
 - **主策划文档**：E:/SH01/aigamejam/design/concept.md
 - **融合方案**：design/final-plan.md v1.0（主策划 + PD 联合签署，2026-04-27）
 - **叙事文档**：design/narrative.md v1.3（2026-05-09 chuwen-huang 修订完成）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
-- **关卡文档**：design/levels.md v1.1（待修订为 v1.2，任务 .workflow/tasks/levels_v1.2/）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
+- **关卡文档**：design/levels.md v1.2（2026-05-09 zhiyu-qi 修订完成，待主策划 Review）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
 - **数值文档**：—
 - **策划评审报告**：—
 - **美术风格规范**：—
@@ -81,10 +81,10 @@
 
 ## 当前状态
 
-- **当前阶段**：阶段二 已完成；阶段三/四 修订与启动并行
-- **阶段状态**：narrative_v1.3 ✅ 关闭（2026-05-09 chuwen-huang 修订 → status.json 已 confirmed）；levels_v1.2 / balance 草案 待推进
+- **当前阶段**：阶段二 已完成；阶段三 待主策划 Review；阶段四 待启动
+- **阶段状态**：narrative_v1.3 ✅ 关闭（status.json 已 confirmed/confirmed）；levels_v1.2 ✅ 修订提交（status.json levels=confirmed，review=pending）；balance 待启动
 - **下一步**：
-  - 任务 B（levels_v1.2）：建议 zhiyu-qi 主笔，narrative.md v1.3 已就绪可直接引用 C01 / 宵星 / 格鲁巴斯私信等条目
+  - levels_v1.2：等待主策划 Review（最多 1 轮，预计 < 0.5h）→ 通过后 review=confirmed 任务关闭
   - 任务 C（balance 启动）：建议 xiaolong-zhuo 推进，需先生成 requirement.md
-  - 等主策划 Review narrative v1.3（最多 1 轮）后正式归档；当前 status.json 标 confirmed 待 Review 最终拍板
-  - B/C 任务全部完成后进入阶段五（策划整合评审）
+  - levels Review 通过 + balance 完成后进入阶段五（策划整合评审）
+- **最后更新**：2026-05-09

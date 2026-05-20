@@ -72,7 +72,7 @@
 
 | Asset ID | 兜底方案 |
 |----------|---------|
-|  | 用纯色 + Unity 内置 sprite 替代 |
+|  | 用纯色 + 内置 sprite / tween 替代 |
 |  | 复用同类别其他资产 |
 |  | 临时用提示词里的描述作文字占位 |
 
@@ -81,7 +81,7 @@
 > 6·B.4 / 6·B.5 自动化闭环，Producer 编排，用户只在批次汇报时确认。
 
 1. 06c 按批次（场景/立绘/敌人/UI/特效）逐张调 Gemini API 出图
-2. 落盘 `GameJam/Assets/Art/<category>/<asset_id>__v<n>__<model>.png`
+2. 落盘 `atoms/assets/art/<category>/<asset_id>__v<n>__<model>.png`
 3. 06d 读图 + art_style_guide + 对应 art_prompt，输出 🟢/🟡/🔴 + Confidence + 修正建议
 4. 🔴 高/中 Confidence → 06c 升级重试（Flash#1 → Flash#2 → Pro#1 → 🟠）
 5. 🟢/🟡 → 拷贝到 `<asset_id>.png`，更新下表「回填状态跟踪」
@@ -91,6 +91,6 @@
 
 ## 回填状态跟踪
 
-| Asset ID | 已生成 | 已放入 Unity | 尺寸/pivot 验证 | 使用模型 | 重试次数 | 审核结论 | 生成时间 |
+| Asset ID | 已生成 | 已放入 atoms | 尺寸/pivot 验证 | 使用模型 | 重试次数 | 审核结论 | 生成时间 |
 |----------|--------|-------------|---------------|---------|---------|---------|---------|
 |  | [ ] | [ ] | [ ] | flash / pro / 人工 | 0 | 🟢/🟡/🟠 | |

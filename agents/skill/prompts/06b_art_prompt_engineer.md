@@ -27,7 +27,7 @@ description: 基于所有策划文档和美术风格规范，产出完整资产�
 
 - **禁止一次吐所有产物**：资产清单可能有 30~50 条，一次性输出提示词用户无法 review。必须分 3 次交付
 - **每条提示词必须以 art_style_guide 的正反向前缀开头**，保证风格一致
-- **Unity 落位路径必须提前规划**：在 `art_layout.md` 中给出 `GameJam/Assets/Art/...` 的完整目录规划
+- **Atoms 落位路径必须提前规划**：在 `art_layout.md` 中给出 `atoms/assets/art/...` 的完整目录规划
 - **尺寸要匹配用途**：UI 图标不要 1920×1080，场景背景不要 512×512
 - **为回填验证负责**：切图建议中必须包含 pivot、边距、atlas 规则等工程化细节
 - **尺寸与 alpha 不写进 prompt 正文**（Gemini 2.5 Flash Image 刚性限制）：
@@ -86,7 +86,7 @@ description: 基于所有策划文档和美术风格规范，产出完整资产�
 
 为每个 Asset ID 创建 `E:/SH01/aigamejam/design/art_prompts/<asset_id>.md`，使用 `templates/art_prompt_template.md` 格式。每个文件必须包含：
 
-- **元数据表**：尺寸、宽高比、背景要求、切图方式、Unity 落位路径、pivot 位置
+- **元数据表**：尺寸、宽高比、背景要求、切图方式、Atoms 落位路径、pivot 位置
 - **风格锚点**（继承自 style guide）：情绪词、色盘偏重、特殊注意
 - **正向 Prompt**（代码块，可直接拷贝）：以 style_guide 的正向前缀开头 + 本资产的特有描述（英文）
 - **反向 Prompt**（代码块）：以 style_guide 的反向前缀开头 + 本资产特有禁忌
@@ -133,25 +133,28 @@ ample empty space around subject for easy cutout
 
 ### 【交付 3/3】切图与落位建议
 
-#### 3.1 Unity 目录规划
+#### 3.1 Atoms 目录规划
 
 给出完整目录树建议，写入 `design/art_layout.md`：
 
 ```
-GameJam/Assets/Art/
-├── Backgrounds/
+atoms/assets/art/
+├── backgrounds/
 │   ├── L01_forest.png
 │   └── L02_cave.png
-├── Characters/
-│   ├── Hero/
-│   │   ├── Hero_portrait.png        # 立绘
-│   │   └── Hero_sprite.png          # 行走 sprite sheet
-│   └── Enemies/
-├── UI/
-│   ├── Icons/
-│   └── Buttons/
-├── Effects/
-└── Props/
+├── characters/
+│   ├── hero/
+│   │   ├── hero_portrait.png        # 立绘
+│   │   └── hero_sprite.png          # 行走 sprite sheet
+│   └── ...
+├── enemies/
+├── ui/
+│   ├── icons/
+│   └── buttons/
+├── fx/
+├── props/
+├── endings/
+└── emotes/
 ```
 
 每个 Asset ID 对应的落位路径必须在其 `art_prompts/<asset_id>.md` 中已写明。
@@ -163,13 +166,13 @@ GameJam/Assets/Art/
 - **场景背景**：若是横版卷轴，建议是否做视差分层（近景/中景/远景）
 - **特效**：是否逐帧动画、atlas 打包建议
 
-#### 3.3 Unity Import 设置建议
+#### 3.3 Atoms 资源导入建议
 
-为每类资产给出 Unity 导入参数建议：
-- Texture Type
-- Pixels Per Unit
-- Filter Mode（像素游戏必须 Point）
-- Compression
+为每类资产给出 Atoms 引用约定：
+- 命名规范（asset_id 全小写连字符或大写下划线，与目录约定一致）
+- pivot / anchor 设定
+- 像素游戏类资产是否需要 Point 采样标记
+- 是否需要 atlas 打包
 
 #### 3.4 尺寸校验清单
 

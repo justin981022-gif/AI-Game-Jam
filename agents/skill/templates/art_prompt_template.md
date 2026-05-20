@@ -14,7 +14,7 @@
 | 宽高比 | 1:1 / 16:9 / 9:16 |
 | 背景要求 | 透明 PNG / 纯色 / 带背景 |
 | 切图方式 | 单张 / 九宫格 / 逐帧序列 / atlas 拼接 |
-| Unity 落位路径 | `Assets/Art/Characters/Hero.png` |
+| atoms 落位路径 | `atoms/assets/art/characters/A-CHR-HERO.png` |
 | pivot 位置 | Center / Bottom / Custom(x, y) |
 
 ## 风格锚点（继承自 art_style_guide）
@@ -61,19 +61,19 @@ anatomically incorrect, extra limbs, neon colors,
 - **切图方式详解**：
   > 示例："九宫格按 128/256/128 横向切分"、"逐帧 4 帧切为水平 sprite sheet 间距 10px"、"单张直接用"
 - **边距要求**：（上下左右各预留多少像素透明边）
-- **Unity Import 设置建议**：
-  - Texture Type：Sprite (2D and UI) / Default
-  - Pixels Per Unit：100 / 32 / 64
-  - Filter Mode：Point / Bilinear
-  - Compression：None / Normal Quality
+- **资源导入建议**（Atoms）：
+  - 命名：与目录约定一致（asset_id 大写连字符）
+  - pivot / anchor：Center / Bottom / Custom(x, y)
+  - 像素游戏类资产：标记 Point 采样
+  - atlas 打包：是否需要
 
 ## 回填验收 Checklist
 
 - [ ] Gemini 出图符合正向 prompt 描述
 - [ ] 未出现反向 prompt 禁忌
 - [ ] 尺寸与元数据一致
-- [ ] 已按 Unity 落位路径保存
-- [ ] Unity Import 设置已调整
+- [ ] 已按 atoms 落位路径保存
+- [ ] 资源导入设置已调整
 - [ ] 在场景/UI 中实际显示正常（pivot 正确、颜色对得上色盘）
 
 ## 审核结论（06d 逐轮追加，不覆盖历史）
@@ -82,7 +82,7 @@ anatomically incorrect, extra limbs, neon colors,
 
 ### Flash#1 @ <时间戳>
 - 模型：`gemini-2.5-flash-image`
-- 文件：`Assets/Art/<category>/<asset_id>__v1__flash.png`
+- 文件：`atoms/assets/art/<category>/<asset_id>__v1__flash.png`
 - 结论：🟢 / 🟡 / 🔴
 - Confidence：高 / 中 / 低（仅 🔴 必填）
 - 评分：

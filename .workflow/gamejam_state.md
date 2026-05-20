@@ -8,7 +8,7 @@
 - **Jam 主题/灵感**：你是魔王城 HR 总监，招募怪物、管理薪酬、抵御勇者突袭
 - **流程类型**：整套七阶段（原八阶段，已删除 Unity 开发阶段，程序由团队用 Atoms 实现）
 - **启动时间**：2026-04-22
-- **最后更新**：2026-05-18
+- **最后更新**：2026-05-19
 - **项目路径**：E:/SH01/aigamejam/
 
 ## Jam 指标
@@ -31,10 +31,10 @@
 |------|------|------|----------|
 | 一 | 主策划 | ✅ 已完成 | 2026-04-22 |
 | 二 | 叙事策划 | ✅ 已完成（v1.3 由 chuwen-huang 修订落地） | 2026-05-09 |
-| 三 | 关卡策划 | ✅ 已完成（v1.2 zhiyu-qi 修订 → 主策划 Review 一轮 🟢） | 2026-05-09 |
-| 四 | 数值策划 | ✅ 已完成（v0.1.1，主策划 Review 2 轮 🟢） | 2026-05-18 |
-| 五 | 策划整合评审 | ⏳ 待执行 | — |
-| 六·A | 美术风格规范 | ⏳ 待执行 | — |
+| 三 | 关卡策划 | ✅ 已完成（v1.2 → v1.3 按 design_review 修订） | 2026-05-19 |
+| 四 | 数值策划 | ✅ 已完成（v0.1.1 → v0.1.2 按 design_review 修订） | 2026-05-19 |
+| 五 | 策划整合评审 | ✅ 已完成（design_review v1.1 通过；🟡#1/#2/#3 修订落地，#4 进入 Playtest 观察） | 2026-05-19 |
+| 六·A | 美术风格规范 | ✅ 已完成（v1.0 定稿，aiart 双样品风格一致性验证通过） | 2026-05-19 |
 | 六·B | 美术资产提示词 + 自动出图 + 审核 | ⏳ 待执行 | — |
 | 七 | 测试用例验收 | ⏳ 待执行 | — |
 
@@ -43,10 +43,10 @@
 - **主策划文档**：E:/SH01/aigamejam/design/concept.md
 - **融合方案**：design/final-plan.md v1.0（主策划 + PD 联合签署，2026-04-27）
 - **叙事文档**：design/narrative.md v1.3（2026-05-09 chuwen-huang 修订完成）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
-- **关卡文档**：design/levels.md v1.2（2026-05-09 zhiyu-qi 修订完成，主策划 Review 一轮 🟢 通过）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
-- **数值文档**：design/balance.md v0.1.1（2026-05-18 落地，主策划 Review 2 轮通过）
-- **策划评审报告**：—
-- **美术风格规范**：—
+- **关卡文档**：design/levels.md **v1.3**（2026-05-19 按 design_review 🟡#1/#2 修订：T06 唯一归属 L07 起点、P04 前置到 L04 末）；三人草稿保留在 design/drafts/{zhiyu-qi,chuwen-huang,xiaolong-zhuo}/
+- **数值文档**：design/balance.md **v0.1.2**（2026-05-19 按 design_review 🟡#3 修订：宵星「省钱攒学费」隐藏词条数值定义）
+- **策划评审报告**：design/design_review.md **v1.1**（2026-05-19 通过，无 🔴；4 条 🟡 中 #1/#2/#3 已修订落地，#4 入 Playtest 观察清单 KI-01）
+- **美术风格规范**：design/art_style_guide.md **v1.0**（2026-05-19 定稿；样品 tmp/style_sample/sample_hr_director.jpg + sample_xiaoxing_skull_mage.jpg 验证风格一致性通过）
 - **资产清单**：—
 - **资产提示词目录**：—
 - **切图/落位建议**：—
@@ -81,10 +81,19 @@
 
 ## 当前状态
 
-- **当前阶段**：阶段四 ✅ 关闭；阶段五（策划整合评审）待启动
-- **阶段状态**：narrative_v1.3 ✅；levels_v1.2 ✅；balance_v0.1.1 ✅ 关闭（Review 第 1 轮 🟢-with-fixes 含 3 项原则性直改 + 5 项增量修订；Review 第 2 轮 🟢 通过）
-- **下一步**：
-  - 阶段五 策划整合评审（05_design_review subagent）：输入 concept / narrative v1.3 / levels v1.2 / balance v0.1.1，输出 design/design_review.md（一致性检查 🟢🟡🔴 + 冲突清单）
-  - 无 🔴 → 进入阶段六·A 美术风格规范（subagent 06a）
-- **最后更新**：2026-05-18
-- **最后更新**：2026-05-18
+- **当前阶段**：阶段六·A ✅ 关闭；阶段六·B.1（资产清单审查）待启动
+- **阶段状态**：art_style_guide v1.0 定稿（aiart 双样品 sample_hr_director / sample_xiaoxing_skull_mage 验证风格一致性通过）
+- **下一步（明日继续从此处恢复）**：
+  - **第一动作**：启动 06b_art_prompt_engineer subagent 跑 6·B.1 资产清单审查，输入 `design/concept.md` + `narrative.md v1.3` + `levels.md v1.3` + `balance.md v0.1.2` + `art_style_guide.md v1.0`，输出完整资产清单（Asset ID / 类别 / 尺寸 / 优先级）
+  - **拍板后三人并行分工**（用户已确认此方案，2026-05-19 决议）：
+    - **1 人开发**：用 Atoms 实现，依据 balance v0.1.2 + levels v1.3：战斗状态机 / ScriptableObject 配资源 / EventRollService 3 槽抽签 / B07 OnFirstHeroCrit hook / L03 必死阈值 + 兜底 / L06 行动点参数化；用纯色 placeholder 占位，按 asset_id 命名引用，等美术覆盖
+    - **2 人美术**：跑 6·B.2 prompt → 6·B.3 切图建议 → 6·B.4 aiart 自动出图 → 6·B.5 审核；落盘 `GameJam/Assets/Art/<category>/<asset_id>.png`
+  - **6·B.1 必须拍死的强制对齐项**：Asset ID 命名规范 / 关键资产尺寸（突发卡片 / CEO 邮件 / 简历框 / 结局画面 4 张 / 角色立绘 / HP 条）/ 落盘路径与 placeholder 协议
+  - **美术优先级建议**：先出结局画面 4 张 + 突发卡片框 + 4 主角立绘（开发关键路径依赖）；勇者梯度 W01–W04+ELITE 与场景背景后排
+  - 后续 6·B.2~6·B.5 流程 + 阶段七测试用例验收（待 Atoms 程序实现完成后由任意成员触发）
+- **今日进度（2026-05-19）**：
+  - 阶段五 design_review v1.1 通过（🟡#1/#2/#3 修订落地为 levels v1.3 + balance v0.1.2，🟡#4 入 KI-01 Playtest 观察）
+  - 阶段六·A art_style_guide v1.0 定稿（莫兰迪扁平企业风 + 主色盘 #B8B5A8/#C97B5C/#8FA89B；4 参考锚点：Reigns / Two Point Hospital / BoJack Horseman / 克制版 Corporate Memphis；英文正反向 prompt 前缀已落地）
+  - aiart 出 2 张验证样品（HR 总监 + 宵星骷髅法师），风格一致性 ✅
+  - 三人并行分工方案确认
+- **最后更新**：2026-05-19

@@ -18,7 +18,8 @@
 - **剩余时间**：—
 - **当前 MVP 可玩性评估**：⭐☆☆☆☆（0 星：纯文档阶段）
 - **API 成本累计**：
-  - aiart 任务数：26（首批 22 + W04 重提交 1 + R2 三张 3；内部服务，不计费）
+  - aiart 任务数：49（首批 22 + W04 重出 1 + R2 三张 3 + v3 rmbg 16 + v3 修复 4 + HR v4 + E01/E02 v2 共 3；内部服务，不计费）
+  - aiart /remove-backgrounds 调用：16 + 4 + 1 = 21（内部服务，不计费）
   - Gemini Flash 调用：0 次（$0.00）
   - Gemini Pro 调用：0 次（$0.00）
   - 06d 审核 token：$0.00
@@ -82,17 +83,21 @@
 
 ## 当前状态
 
-- **当前阶段**：阶段六·B.4 ✅ 关闭；六·B.5 06d 全量审核完成（14🟢/6🟡/2🔴）；R2 三张已重出（A-CHR-HR / A-UI-CARD-EVENT / A-UI-RESUME），等用户人眼审核
-- **阶段状态**：22 张 final PNG 落盘 atoms/assets/art/；6·B.5 后续审核机制已切换为「用户主导审核 + Producer 出 prompt」（用户 2026-05-27 决议：06d agent 太耗时）；R2 raw 落 `<id>__v2__aiart.jpg`，旧 R1 raw `<id>__v1__aiart.jpg` 保留 A/B
-- **下一步**：
-  - **第一动作**：用户对 R2 三张人眼审核 → 给出意见 → Producer 落新 prompt → 必要时 R3
-  - **🟡 6 张挂账**（END-E01/E04 辅锚点 / W02 短剑 / W04 袖章 / ELITE 战痕 / EMOTE-CEO-STAMP 字符）：用户决定后续是否需要修订
-  - 后续：阶段七测试用例验收（待 Atoms 程序实现完成后由任意成员触发）
-- **今日进度（2026-05-27）**：
-  - 阶段六·B.4：22 张全量 aiart 出图（首批 17/22 + 修复批 5/5）✅ 关闭
-  - 阶段六·B.5：4 个并行 06d agent 全量审核 → 14🟢/6🟡/2🔴；结论与修正建议落入各 art_prompts/<id>.md 尾部
-  - R2 重出 3 张：HR 改回女性版（参 sample）+ CARD-EVENT 强制空框 + RESUME 去文字 → 落盘成功，等用户审核
-  - **审核机制变更**：06d agent 实测耗时 4-22 min/批（视觉读图 + Edit 回写），用户决定后续审核由用户主导，Producer 仅负责落 prompt
-- **昨日进度（2026-05-20）**：
-  - 阶段六·B.1/B.2/B.3 三步全量收口（资产清单 v1.0 / 22 张 prompt / art_layout.md v1.0）
-- **最后更新**：2026-05-27（第二轮）
+- **当前阶段**：阶段六·B.4/B.5 ✅；v3 (rmbg) 重出全量 16 张 transparent 资产 + HR v4 + 结局 E01/E02 v2 已落盘；用户仅复核 HR/RESUME/CARD-EVENT/E01/E02 共 5 张，其余 13 张待后续优化
+- **阶段状态**：22 张 final PNG 落盘 atoms/assets/art/；hand-roll 色键挖洞问题彻底解决（改用 aiart 官方 `/remove-backgrounds` endpoint）；HR 已稳定到女性可爱 chibi 版（prompt 加强女性门控 + 禁忌身材曲线）；E01/E02 HR 描述同步修订为女性版
+- **下一步（后续优化）**：
+  - CARD-EVENT 仍有 "LOREM IPSUM" 文字残留：需加强反向 prompt
+  - 其余 13 张 v3 资产用户尚未逐一过眼
+  - rmbg 流程固化：把 `tmp/run_aiart_batch.js` 的 hand-roll 色键替换为 rmbg pipeline，作为以后任意重跑的默认管线
+  - 状态机：阶段七测试用例验收（Atoms 程序实现完成后触发）
+- **今日进度（2026-05-27 第三轮）**：
+  - 诊断：hand-roll 色键算法（四角采样 + 全图色距）对含内部白色的资产挖洞 — HR 眼白/衣服、RESUME 纸张、CARD-EVENT 内框全中招
+  - 验证：aiart 原生有 `/api/v1/ai-fusion-openapi/images/remove-backgrounds`（异步 taskId+poll），输入 imageURL，效果显著优于 hand-roll（保留所有内部细节）
+  - 限制：rmbg 仅接公开 URL，不支持 base64/upload，无 file endpoint；CDN URL 几分钟即 403，必须"生成→立即喂 rmbg"
+  - 落地：`tmp/run_aiart_rmbg.js` 16 张并发跑 → 12/16 + 修复批 4/4 = 16/16 全成功
+  - 反馈修订：HR 加强可爱 chibi 描述、禁忌身材曲线/胸部强调；E01/E02 HR 由"橙西装男"改写为"米色西装女主角"
+  - 修订重出：HR v4 + E01/E02 v2 共 3 张 → 用户 5 张关键视觉复核全部 OK
+- **历史**：
+  - 2026-05-27 第二轮：阶段六·B.4/B.5（22 张全量出图 + 06d 全量审核，14🟢/6🟡/2🔴）
+  - 2026-05-20：阶段六·B.1/B.2/B.3 三步全量收口
+- **最后更新**：2026-05-27（第三轮）

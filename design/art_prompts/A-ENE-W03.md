@@ -86,3 +86,15 @@ gore, blood, decapitation, dark horror style, realistic violence, anime hero sho
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/enemies/A-ENE-W03.png
+- 结论：🟢（Confidence：中）
+- 评分：
+  - 风格一致性：🟢 — 风格统一，扁平描边/低饱和。
+  - 主体正确：🟢 — 强化皮甲+金属护肩+主短剑+腰带+雾紫小护身符+业绩本（黄色小书）齐全；副匕首被业绩本取代但腰带仍呈"装备体系化"感觉，可接受。
+  - 构图尺寸：🟢 — 居中、留白合规、剑尖未贴边。
+  - 无禁忌元素：🟢 — 无血腥、无邪恶气、无重甲。
+  - 可用性：🟢 — 主体清晰，边缘干净。
+- 修正建议：（无；如严格要求副匕首可在下一轮加"a small dagger sheathed behind the right hip"。）

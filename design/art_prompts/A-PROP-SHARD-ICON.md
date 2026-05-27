@@ -84,3 +84,15 @@ photograph, 3D perspective, drop shadows, neon colors, fantasy parchment, ornate
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/props/A-PROP-SHARD-ICON.png
+- 结论：🟢（Confidence：高）
+- 评分：
+  - 风格一致性：🟢 — 陶土橘 #C97B5C 主色 + 同色相暗块 + 米白单一高光面 + 雾灰粗描边，与色盘 v1.0 主 2 一致。
+  - 主体正确：🟢 — 多面切割（约 5 面）不规则碎片轮廓 + 立体感来自描边与平涂。
+  - 构图尺寸：🟢 — 1:1 居中、上下左右留白充足、HUD 32px 缩放下轮廓仍清晰。
+  - 无禁忌元素：🟢 — 无写实宝石、无闪光特效、无紫蓝绿主色、无金属底座、无角色。
+  - 可用性：🟢 — 单张直出可作 HUD 货币 / 飘字 / 奖金特效复用。
+- 修正建议：（无）

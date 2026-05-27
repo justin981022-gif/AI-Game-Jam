@@ -85,3 +85,15 @@ photograph, 3D perspective, drop shadows, neon colors, fantasy parchment, ornate
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/ui/A-UI-MAIL-CEO.png
+- 结论：🟢（Confidence：高）
+- 评分：
+  - 风格一致性：🟢 — 米白信纸 + 雾灰描边 + 黄铜金细线分隔、deadpan 公文体到位。
+  - 主体正确：🟢 — 8:5 邮件框 + 顶部抬头 + 左上折角 + 右下淡陶土橘红章预留圆，全部命中 spec。
+  - 构图尺寸：🟢 — 横向居中、留白充足、四角圆角克制，9-slice 安全区无装饰侵入。
+  - 无禁忌元素：🟢 — 红章预留位仅画浅色空圆，未画完整印章；无真实可读文字、无华丽花纹。
+  - 可用性：🟢 — 折角与红章预留圆都在中央可拉伸区外侧但仍属定位锚点处理范围；与 A-EMOTE-CEO-STAMP 叠加位置一致。
+- 修正建议：（无）

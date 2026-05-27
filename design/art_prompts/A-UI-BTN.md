@@ -86,3 +86,15 @@ photograph, 3D perspective, drop shadows, neon colors, fantasy parchment, ornate
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/ui/A-UI-BTN.png
+- 结论：🟢（Confidence：高）
+- 评分：
+  - 风格一致性：🟢 — 雾灰主体 + 雾灰描边 + 16px 圆角，克制企业 OA 风。
+  - 主体正确：🟢 — 8:3 空按钮底，无文字 / icon / emoji。
+  - 构图尺寸：🟢 — 居中、四角干净、24px 安全区无装饰侵入；opaque 0.13 与 8:3 空底比例吻合。
+  - 无禁忌元素：🟢 — 无渐变、无 3D 高光、无投影、无 candy bevel；亦无 "OK / CONFIRM" 字样。
+  - 可用性：🟢 — 9-slice 拉伸友好；适合 4 状态 Tint。
+- 修正建议：（无）

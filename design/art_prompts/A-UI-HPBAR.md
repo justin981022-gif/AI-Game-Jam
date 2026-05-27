@@ -84,3 +84,16 @@ photograph, 3D perspective, drop shadows, neon colors, fantasy parchment, ornate
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/ui/A-UI-HPBAR.png
+- 结论：🟢（Confidence：中）
+- 评分：
+  - 风格一致性：🟢 — 扁平胶囊 + 雾灰描边、克制企业仪表盘语感。
+  - 主体正确：🟢 — 10:1 横向胶囊形 + 双层（外框/内槽）描边 + 仅空槽底，无填充进度色。
+  - 构图尺寸：🟢 — 居中、半圆端无被切；上下 8px 安全区充足；post chroma-key 0.14 opaque 与 10:1 极扁条形吻合。
+  - 无禁忌元素：🟢 — 无渐变、无液体、无文字、无 HP 数字、无心形 icon。
+  - 可用性：🟡 — 内槽底偏米白、外圈夹层是更深的雾灰，比 spec "内槽偏深 / 外侧米白" 略反相，但代码 Tint 填充层叠加后影响可控；如后续看不出"凹槽感"再迭代。
+- 修正建议：（无强制；可选）
+  > 若下一轮想完全贴合 spec，把特有描述段的"inner empty slot is filled with a single flat foggy-beige #B8B5A8"与"surrounding area inside the bar but outside the slot is warm cream #E8E2D5"两句之间加一行 `the inner slot must be VISIBLY DARKER than the outer cream groove, never the other way around` 即可。

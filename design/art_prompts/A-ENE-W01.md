@@ -86,3 +86,15 @@ gore, blood, decapitation, dark horror style, realistic violence, anime hero sho
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/enemies/A-ENE-W01.png
+- 结论：🟢（Confidence：高）
+- 评分：
+  - 风格一致性：🟢 — 莫兰迪低饱和、粗描边、扁平平涂、Q 版 2.5 头身均命中。
+  - 主体正确：🟢 — 木棒 + 锅盖盾 + 米白工装 + 薄荷护腕 + 实习工牌齐全，眼神瞪大显紧张。
+  - 构图尺寸：🟢 — 主体居中，留白充足，符合 768×1024 比例。
+  - 无禁忌元素：🟢 — 无血腥/重甲/反派表情，纯灰背景干净。
+  - 可用性：🟢 — chroma key 后主体完整，边缘清晰，无 artifacts。
+- 修正建议：（无）

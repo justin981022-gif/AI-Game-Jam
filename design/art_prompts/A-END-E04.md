@@ -73,7 +73,7 @@ gore, blood, death imagery, dark horror style, photorealistic, real readable tex
 
 ### Flash#1 @ <时间戳>
 - 模型：`gemini-2.5-flash-image`
-- 文件：`atoms/assets/art/endings/A-END-E04__v1__flash.png`
+- 文件:`atoms/assets/art/endings/A-END-E04__v1__flash.png`
 - 结论：🟢 / 🟡 / 🔴
 - Confidence：高 / 中 / 低（仅 🔴 必填）
 - 评分：
@@ -84,3 +84,16 @@ gore, blood, death imagery, dark horror style, photorealistic, real readable tex
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/endings/A-END-E04.png
+- 结论：🟡（Confidence：中）
+- 评分：
+  - 风格一致性：🟢 — 雾紫室内 + 陶土橘窗光对冲、米白离职信、灰薄荷点缀、扁平硬边光块（窗光投影地板），与 style_guide 莫兰迪扁平企业风一致
+  - 主体正确：🟡 — 空 HR 办公室构图命中（多张工位收拾干净、推开椅子、纸箱、远角枯萎绿萝、窗外晚霞暖橙窗光），前景中央桌上离职信带砖红蜡印 + lorem 横线 ✓；但**格鲁巴斯小工牌（灰薄荷绿圆形剪影 + 黄铜金挂绳）作为情绪焦点之一在画面上不明显或缺失**——主体核心（空房+离职信+窗光）已成立，工牌为辅锚点，未达硬门槛失败
+  - 构图尺寸：🟢 — 16:9，底部字幕安全区充足；中央前景信件清晰未被压线
+  - 无禁忌元素：🟢 — 无角色、无血腥、无可读真实文字、无戏剧化光线/lens flare、无地下城石墙
+  - 可用性：🟢 — 边缘清晰、色块整洁、无 artifacts；雾紫主调与暖橙窗光对比明确便于做最终结局画面
+- 修正建议：
+  > 辅锚点缺失：格鲁巴斯小工牌不够显眼。建议把特有描述段中"beside the letter rests a tiny chibi employee ID badge..."替换为：`directly next to the folded resignation letter rests a clearly visible chibi employee ID badge for Groobas the slime intern, the badge is rectangular cream-white #E8E2D5 with a thick charcoal #3D3A36 outline, on its face a circular dusty-mint-green #8FA89B slime-shape silhouette, attached at the top with a brass-gold #D4A574 lanyard cord curling onto the desk surface, this badge must be unmistakably visible at the center foreground as an emotional focal companion to the letter, no readable text on the badge`。当前缺陷不触及硬门槛，建议 🟡 入库由用户判断是否重出。

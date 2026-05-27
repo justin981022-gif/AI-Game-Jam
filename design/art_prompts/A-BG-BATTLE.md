@@ -85,3 +85,15 @@ characters, human or monster figures, foreground actors, silhouettes of people, 
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/backgrounds/A-BG-BATTLE.png
+- 结论：🟢（Confidence：高）
+- 评分：
+  - 风格一致性：🟢 — 莫兰迪雾灰地砖 + 米白墙面 + 黄铜金电梯门 + 灰薄荷绿应急灯 + 砖红警示条带配色全部命中，扁平平涂粗描边一致
+  - 主体正确：🟢 — B1 入口走廊对称纵深视角，电梯门嵌石砌拱门带 "B1" 楼层指示牌，左墙 "WELCOME ADVENTURERS PLEASE TAKE A NUMBER" 海报，右侧前台柜台 + 取号机 + 绿萝，下墙砖红警示条带；HR 写字楼 ↔ 地下城混搭气质命中
+  - 构图尺寸：🟢 — 左右 25% 立绘安全区充足，中央纵深给 HP 条/卡片留白合理；上下安全区无关键元素压线
+  - 无禁忌元素：🟢 — 无角色/武器/火把/血腥，无真实奇幻地牢；prompt 主动要求的公文体海报短词不构成禁忌
+  - 可用性：🟢 — 边缘清晰、无 artifacts，纯色墙面与地砖便于立绘叠加
+- 修正建议：（无，🟢 通过入库）

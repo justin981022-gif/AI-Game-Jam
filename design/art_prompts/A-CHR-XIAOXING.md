@@ -86,3 +86,15 @@ gore, decaying flesh, rotting meat on bones, blood stains on robe, evil necroman
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/characters/A-CHR-XIAOXING.png
+- 结论：🟢（Confidence：高）
+- 评分：
+  - 风格一致性：🟢 — 雾紫袍主色 + 莫兰迪扁平 + 粗描边 + 硬边阴影，骨色米白克制无邪术氛围
+  - 主体正确：🟢 — 朴素带补丁雾紫袍 + 工牌 + 卷起的纸/笔记 + 法杖、空洞眼窝小光点温和理性，学生书生气达成
+  - 构图尺寸：🟢 — 立绘居中，袍角下摆留白充足，3:4 构图合规
+  - 无禁忌元素：🟢 — 无腐肉血污、无亡灵绿火、无邪术师反派造型、无尖牙凶相
+  - 可用性：🟢 — 主体抠图完整，可直接落 atoms 进 characters_atlas
+- 修正建议：（🟢 无）

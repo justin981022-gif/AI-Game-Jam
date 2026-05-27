@@ -83,3 +83,16 @@ gore, blood, death imagery, dark horror style, photorealistic, real readable tex
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/endings/A-END-E01.png
+- 结论：🟡（Confidence：中）
+- 评分：
+  - 风格一致性：🟢 — 陶土橘 + 黄铜金 + 米白 + 灰薄荷绿员工列队主调，明亮温暖基调命中，扁平平涂粗描边
+  - 主体正确：🟢 — 黄铜金钟悬于上方中央作视觉锚点 + HR 总监（陶土橘西装持小木槌）+ 魔王 CEO（高个带角）+ 员工列队 + 上扬股价图（含简化烛形 + 右上箭头）+ 彩纸花，叙事锚点全部命中
+  - 构图尺寸：🟡 — 16:9 比例与底部字幕安全区基本满足，但**右下角格鲁巴斯私信弹窗框未出现**（prompt 明确要求 chat-popup + 圆形剪影头像 + lorem 横线）；其余构图正常
+  - 无禁忌元素：🟢 — 无血腥/真实文字/写实摄影/下行曲线/真实媒体 logo；股价图为抽象 tick 形状无可读数字
+  - 可用性：🟢 — 边缘清晰、无 artifacts、配色干净
+- 修正建议：
+  > 主体局部缺失：右下角格鲁巴斯私信弹窗未出现。如希望补上可在特有描述段「in the lower-right corner a small chat-popup notification frame...」一句前加强语气，例如替换为：`in the lower-right corner of the composition place a clearly visible small chat-popup notification frame outlined in charcoal #3D3A36 with a circular dusty-mint-green #8FA89B slime-shaped silhouette avatar on the left and three short horizontal lorem placeholder bars on the right suggesting a private message blessing from Groobas the slime intern, this popup must be present and not omitted`。当前缺失非硬门槛失败（主体核心+无禁忌均🟢），建议直接 🟡 入库，由用户裁定是否重出。

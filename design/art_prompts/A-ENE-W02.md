@@ -85,3 +85,16 @@ gore, blood, decapitation, dark horror style, realistic violence, anime hero sho
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/enemies/A-ENE-W02.png
+- 结论：🟡（Confidence：中）
+- 评分：
+  - 风格一致性：🟢 — 风格沿用 W01，描边/平涂/低饱和一致，色相协调。
+  - 主体正确：🟡 — 薄荷皮甲背心+米白衬衣+员工证胸卡命中，但腰间手持的是黑色短剑/夹子状物，没有正常剑鞘佩在腰侧的"按剑柄"姿态；笔记夹被替换成 PM 风格手持记事板，可接受。
+  - 构图尺寸：🟢 — 居中，留白合规。
+  - 无禁忌元素：🟢 — 无重甲/反派/血腥。
+  - 可用性：🟢 — 主体边缘干净，抠图无障碍。
+- 修正建议：
+  > 把特有描述段中"holding ... right hand resting lightly on the pommel"明确为"a basic short straight-blade sword sheathed at the LEFT hip in a charcoal scabbard, the right hand resting lightly on the sword pommel; the LEFT hand holds a small clipboard / notepad clip at chest height"，避免模型把剑画成手持夹子状黑色道具。

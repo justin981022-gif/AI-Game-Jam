@@ -85,3 +85,16 @@ gore, blood, decapitation, dark horror style, realistic violence, anime hero sho
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/enemies/A-ENE-W04.png
+- 结论：🟡（Confidence：中）
+- 评分：
+  - 风格一致性：🟢 — 描边/平涂/低饱和延续。
+  - 主体正确：🟡 — 链甲背心（深灰格纹）+ 长剑直立 + 小圆盾（黄铜金边）+ 严肃专业表情命中；但小队袖章砖红警示边、打卡机道具未画出（被腰间小盒/挂件代替），削弱"班长"职场反差萌。
+  - 构图尺寸：🟢 — 居中合规。
+  - 无禁忌元素：🟢 — 无写实金属反光、无重甲反派、无血腥。
+  - 可用性：🟢 — 边缘清晰，抠图无障碍。
+- 修正建议：
+  > 在特有描述段强化两处："a dusty mint green #8FA89B squad armband on the upper LEFT arm with a clearly visible thin brick-red #A85C5C warning border" 与 "a chibi cartoon brass-gold mechanical attendance time-clock punch device with two visible round buttons and tiny gear teeth clipped to the right side of the belt"，避免被简化成普通腰挂件。

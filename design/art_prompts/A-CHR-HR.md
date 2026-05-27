@@ -32,7 +32,7 @@
 ```
 flat corporate illustration style, muted Morandi color palette dominated by foggy beige #B8B5A8, terracotta orange #C97B5C and dusty mint green #8FA89B, accent colors include charcoal outline #3D3A36 and warm cream #E8E2D5, chibi 2.5-head proportion characters with oversized round eyes and minimalist geometric bodies, thick uniform 5px charcoal outline (never pure black), pure flat color fills with no gradients and no brush texture, hard-edged single-tone shadow blocks, soft even diffuse cool office lighting like ambient fluorescent daylight, plain neutral solid grey background for easy compositing, all monster characters wear corporate office attire (lanyards, suits, ties, briefcases, badges) blending dungeon fantasy with white-collar workplace humor, 2D front-facing portrait composition with generous negative space, inspired by Reigns: Her Majesty card art, Two Point Hospital character design, BoJack Horseman flat color animation and restrained Corporate Memphis illustration, consistent line weight and consistent flat shading across all assets, deadpan office-comedy mood, clean vector-like finish suitable for H5 WebGL game UI
 
-full body portrait of the Dungeon HR Director (player character), a chibi 2.5-head proportion adult white-collar worker standing facing forward in a tired but professional neutral pose, wearing a charcoal-grey #3D3A36 office suit jacket over a warm cream #E8E2D5 collared shirt with a terracotta-orange #C97B5C necktie slightly loosened, two small low-key matte black devil horns poking out from the top of a tidy short hairstyle as a subtle dungeon-meets-office reversal gag, an ID badge on a brass-gold #D4A574 lanyard worn slightly crooked off-center on the chest, holding a closed manila folder of resumes in one hand and a paper coffee cup with a tiny soul-shard motif in the other, posture slightly slumped with shoulders gently drooping, faint matching-tone shadow blocks under the eyes hinting at fatigue while the mouth maintains a small forced professional smile, oversized round eyes with a deadpan exhausted glint, centered composition, clean isolated character on a flat neutral Morandi foggy-beige #B8B5A8 background, ample empty space around subject for easy cutout, hard-edged tiny shadow ellipse beneath the feet, no other props or scenery, deadpan corporate-comedy mood, clean vector-flat finish
+full body portrait of the Dungeon HR Director (player character), a weary cartoon female human white-collar worker in chibi 2.5-head proportion standing facing forward in a tired but professional neutral pose, wearing a foggy-beige #B8B5A8 business blazer over a warm cream #E8E2D5 collared shirt with a terracotta-orange #C97B5C necktie slightly loosened, two small low-key matte black devil horns poking out from messy dark hair tied in a loose bun as a subtle dungeon-meets-office reversal gag, an ID badge on a brass-gold #D4A574 lanyard worn slightly crooked off-center on the chest, holding a clipboard stack of monster resumes in one hand and a paper coffee cup with a tiny soul-shard motif in the other, posture slightly slumped with shoulders gently drooping, faint matching-tone shadow blocks under the round oversized eyes hinting at fatigue while the mouth maintains a small forced professional smile, deadpan exhausted glint in the eyes, centered front-facing bust-to-full-body composition, clean isolated character on a flat neutral Morandi foggy-beige #B8B5A8 background, ample empty space around subject for easy cutout, hard-edged tiny shadow ellipse beneath the feet, no other props or scenery, no other characters, deadpan corporate-comedy mood, clean vector-flat finish
 ```
 
 ## 反向 Prompt / 禁忌
@@ -85,3 +85,27 @@ weapons, sword, axe, staff, dagger, gun, fantasy warrior outfit, plate armor, ch
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/characters/A-CHR-HR__v1__aiart.jpg（已被 R2 覆盖）
+- 结论：🟢（Confidence：高，06d agent 评分）
+- 评分：
+  - 风格一致性：🟢 — 莫兰迪低饱和、粗描边、平涂硬阴影、chibi 2.5 头身全部命中
+  - 主体正确：🟢 — 西装外套+米白衬衫+橘色领带+小恶魔角+黄铜挂绳工牌+文件夹+咖啡杯
+  - 构图尺寸：🟢
+  - 无禁忌元素：🟢
+  - 可用性：🟢
+- **用户驳回**：性别为男，与之前 sample 女性版相比"不够可爱"。改 R2
+
+### aiart-R2 @ 2026-05-27（用户拍板：性别改回 sample 女性版）
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/characters/A-CHR-HR.png（覆盖 R1）
+- 触发：R1 默认描述未指定性别，aiart 抽中男性版本，用户对比 tmp/style_sample/sample_hr_director.jpg 后要求改回女性 + 米色商务西装 + 文件夹 + 散乱低发髻
+- 修订点（仅特有描述段）：
+  - "adult white-collar worker" → "weary cartoon female human white-collar worker"
+  - "charcoal-grey #3D3A36 office suit jacket" → "foggy-beige #B8B5A8 business blazer"（参 sample）
+  - "tidy short hairstyle" → "messy dark hair tied in a loose bun"（参 sample）
+  - "closed manila folder" → "clipboard stack of monster resumes"（参 sample）
+  - 加 "no other characters"
+- 待审核：用户人眼判定（后续审核由用户主导）

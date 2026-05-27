@@ -84,3 +84,15 @@ characters, human or monster figures, foreground actors, silhouettes of people, 
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/backgrounds/A-BG-PREP.png
+- 结论：🟢（Confidence：高）
+- 评分：
+  - 风格一致性：🟢 — 莫兰迪雾灰 + 陶土橘 + 灰薄荷绿/米白配色精准命中，粗描边平涂、无渐变，质感与 style_guide 完全对齐
+  - 主体正确：🟢 — HR 办公桌中景半身视角，桌面散布 RESUME 文件夹/纸堆/陶土橘马克杯/工牌挂绳/绿萝/DAY 01 台历，墙面 HR 小恶魔头像海报 + "TEAMWORK MAKES THE DREAMWORK" 标语全部命中 prompt 要求
+  - 构图尺寸：🟢 — 16:9 横构图，中央与右下方留白充足，便于招募 3 选 1 与 HUD 叠加；上下安全区合理
+  - 无禁忌元素：🟢 — 无角色、无地下城石墙/火把/血腥、无真实品牌；prompt 明确要求的 RESUME/HR/TEAMWORK/DAY 01 短词为公文体海报锚点，不属反向禁忌
+  - 可用性：🟢 — 边缘清晰、无 artifacts，纯灰墙便于 chroma key 与 UI 叠加
+- 修正建议：（无，🟢 通过入库）

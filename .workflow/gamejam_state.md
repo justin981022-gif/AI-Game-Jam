@@ -8,7 +8,7 @@
 - **Jam 主题/灵感**：你是魔王城 HR 总监，招募怪物、管理薪酬、抵御勇者突袭
 - **流程类型**：整套七阶段（原八阶段，已删除 Unity 开发阶段，程序由团队用 Atoms 实现）
 - **启动时间**：2026-04-22
-- **最后更新**：2026-05-20
+- **最后更新**：2026-05-27
 - **项目路径**：E:/SH01/aigamejam/
 
 ## Jam 指标
@@ -18,7 +18,7 @@
 - **剩余时间**：—
 - **当前 MVP 可玩性评估**：⭐☆☆☆☆（0 星：纯文档阶段）
 - **API 成本累计**：
-  - aiart 任务数：0（内部服务，不计费）
+  - aiart 任务数：23（首批 22 + W04 重提交 1；内部服务，不计费）
   - Gemini Flash 调用：0 次（$0.00）
   - Gemini Pro 调用：0 次（$0.00）
   - 06d 审核 token：$0.00
@@ -35,7 +35,7 @@
 | 四 | 数值策划 | ✅ 已完成（v0.1.1 → v0.1.2 按 design_review 修订） | 2026-05-19 |
 | 五 | 策划整合评审 | ✅ 已完成（design_review v1.1 通过；🟡#1/#2/#3 修订落地，#4 进入 Playtest 观察） | 2026-05-19 |
 | 六·A | 美术风格规范 | ✅ 已完成（v1.0 定稿，aiart 双样品风格一致性验证通过） | 2026-05-19 |
-| 六·B | 美术资产提示词 + 自动出图 + 审核 | 🟡 进行中（B.1/B.2/B.3 ✅；B.4 出图 + B.5 审核待启动） | — |
+| 六·B | 美术资产提示词 + 自动出图 + 审核 | 🟡 进行中（B.1/B.2/B.3 ✅；B.4 ✅ 22 张全量出图落盘；B.5 审核待启动） | — |
 | 七 | 测试用例验收 | ⏳ 待执行 | — |
 
 ## 产物路径
@@ -82,23 +82,21 @@
 
 ## 当前状态
 
-- **当前阶段**：阶段六·B.1 ✅ / B.2 ✅ / B.3 ✅ 关闭；阶段六·B.4（aiart 自动出图）+ B.5（06d 审核）待启动
-- **阶段状态**：22 张 prompt 全量落地（design/art_prompts/）；art_layout.md v1.0（含 9-slice 参数 / 结局裁切策略 / color-to-alpha 阈值 / placeholder ImageMagick 命令模板 / 22 行尺寸校验表）
+- **当前阶段**：阶段六·B.1/B.2/B.3 ✅ 关闭；阶段六·B.4 ✅ 关闭（22 张全量自动出图落盘）；阶段六·B.5（06d 审核）待启动
+- **阶段状态**：22 张 prompt 全量落地（design/art_prompts/）；art_layout.md v1.0；22 张 final PNG 已落盘 atoms/assets/art/<category>/<asset_id>.png（含 16 张透明抠图 + 6 张全场景）；raw 版本 `<asset_id>__v1__aiart.jpg` 同目录保留作证据
 - **下一步**：
-  - **第一动作**：启动 06c（图像生成工程师）跑 6·B.4，按出图优先级先发结局 ×4 + CARD-EVENT + 3 主角立绘（开发关键路径），落盘 `atoms/assets/art/<category>/<asset_id>__v<n>__<model>.png`，由 06d 联动 6·B.5 审核闭环
+  - **第一动作**：用户对 22 张图人眼抽查 → 决策是否启动 06d 审核闭环 / 或直接进入开发
   - **三人并行分工**（用户已确认，2026-05-19 决议）：
-    - **1 人开发（Atoms）**：依据 balance v0.1.2 + levels v1.3 实现：战斗状态机 / 配置资源 / EventRollService 3 槽抽签 / B07 OnFirstHeroCrit hook / L03 必死阈值 + 兜底 / L06 行动点参数化；用纯色 placeholder 占位（按 art_layout §5 ImageMagick 命令生成），按 asset_id 命名引用，等美术覆盖
-    - **2 人美术**：执行 6·B.4 出图 + 6·B.5 审核闭环
+    - **1 人开发（Atoms）**：依据 balance v0.1.2 + levels v1.3 实现：战斗状态机 / 配置资源 / EventRollService 3 槽抽签 / B07 OnFirstHeroCrit hook / L03 必死阈值 + 兜底 / L06 行动点参数化；现已可用 22 张真图替换 placeholder（按 art_layout 引用 asset_id）
+    - **2 人美术**：6·B.4 已批量完成；如启动 6·B.5 由 06d 给逐张评分 + 修正建议
   - 后续：阶段七测试用例验收（待 Atoms 程序实现完成后由任意成员触发）
-- **今日进度（2026-05-20）**：
-  - 阶段五/六·A 关闭成果提交（commit fb25723）
-  - 阶段六·B.1：资产清单 v0.1（38 条草案）→ 用户拍板 6 项裁剪全接受 → v1.0（22 条；20 🔴 + 1 🟡）✅ 关闭（commit 0ca0b0b）
-  - 阶段六·B.2：22 张 prompt 全量落地（6 批次：场景 2 + 立绘 3 + 敌人 5 + UI/道具 7 + 结局 4 + 装饰 1），用户全部抽查通过 ✅ 关闭（commit cfe08a1）
-  - 阶段六·B.3：art_layout.md v1.0 定稿，含目录规划 / 切图规则 / 9-slice 参数 / Atoms 导入约定 / 06c post-process 规范（裁切 + color-to-alpha ΔE≤24）/ placeholder ImageMagick 命令 / 尺寸校验清单 / 6·B.4-5 交接说明 ✅ 关闭
-  - **去 Unity 化**：用户决定不用 Unity 改用 Atoms；创建 atoms/ 工程根目录骨架；落盘约定确定为 `atoms/assets/art/<category>/<asset_id>.png`；art_asset_list.md / gamejam_state.md / 06b skill / art_asset_list_template / art_prompt_template / art_layout.md 路径与术语全部 Atoms 化（其余 Unity 残留按需清理策略 A 处理）
-- **昨日进度（2026-05-19）**：
-  - 阶段五 design_review v1.1 通过（🟡#1/#2/#3 修订落地为 levels v1.3 + balance v0.1.2，🟡#4 入 KI-01 Playtest 观察）
-  - 阶段六·A art_style_guide v1.0 定稿（莫兰迪扁平企业风 + 主色盘 #B8B5A8/#C97B5C/#8FA89B；4 参考锚点：Reigns / Two Point Hospital / BoJack Horseman / 克制版 Corporate Memphis；英文正反向 prompt 前缀已落地）
-  - aiart 出 2 张验证样品（HR 总监 + 宵星骷髅法师），风格一致性 ✅
-  - 三人并行分工方案确认
-- **最后更新**：2026-05-20
+- **今日进度（2026-05-27）**：
+  - 阶段六·B.4：22 张全量 aiart 出图，并行 concurrency=10，首批 17/22 通过 + 修复批 5/5 通过 ✅ 关闭
+    - 失败模式：aiart 偶发返回 PNG（4 张，magic 为 89504e47）/ poll 180s 超时（5 张，实际 200~280s 完成）/ 文件句柄竞态（2 张）→ 修复脚本统一接受 PNG/JPEG + maxSec 360s + 从 raw 直接 post-process
+    - post-process：node + sharp，chroma-key 四角中位数取 key + 双阈值平滑边缘 + alpha bbox 自动裁切 + contain fit
+    - 文件清单全 ✅ 落盘 atoms/assets/art/{backgrounds,characters,enemies,ui,props,endings,emotes}/
+  - art_asset_list.md §9 回填表全量 ✅，含失败模式批注
+- **昨日进度（2026-05-20）**：
+  - 阶段六·B.1/B.2/B.3 三步全量收口（资产清单 v1.0 / 22 张 prompt / art_layout.md v1.0）
+  - 去 Unity 化决议：路径与术语 Atoms 化
+- **最后更新**：2026-05-27

@@ -86,3 +86,16 @@ gore, blood, decapitation, dark horror style, realistic violence, anime hero sho
   - 可用性：🟢/🟡/🔴
 - 修正建议（🔴/🟡 时必填，仅可改特有描述段）：
   > ...
+
+### aiart-R1 @ 2026-05-27
+- 模型：aiart 默认 artSpec
+- 文件：atoms/assets/art/enemies/A-ENE-ELITE.png
+- 结论：🟡（Confidence：中）
+- 评分：
+  - 风格一致性：🟢 — 莫兰迪扁平、粗描边一致；披风砖红命中辅 5。
+  - 主体正确：🟡 — 板甲（深炭灰）+ 头盔 + 砖红披风 + 长直剑 + 金牌业绩奖牌（圆形勋章带砖红丝带）齐全，威严感最强；但盔顶羽饰被简化为羽毛箭一根（OK），业绩档案夹未明显出现，磨损战痕也较弱，影响"老兵"沧桑度。
+  - 构图尺寸：🟢 — 居中、披风未严重外溢、剑尖未贴底边。
+  - 无禁忌元素：🟢 — 无血污、无发光武器、无暴怒/邪恶眼神，符合"老练而非反派"基调。
+  - 可用性：🟢 — 主体清晰，边缘干净，抠图友好。
+- 修正建议：
+  > 在特有描述段补强两处："add 3-4 simplified hard-edged battle-scuff notches on the cuirass and pauldron rendered as same-hue one-shade-darker flat blocks (no blood, no rust)"，以及 "a leather-bound brass-gold trimmed performance dossier folder clearly visible clipped at the LEFT hip beside the cape"，让磨损与档案夹更明确。

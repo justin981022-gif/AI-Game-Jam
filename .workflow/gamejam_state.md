@@ -18,7 +18,7 @@
 - **剩余时间**：—
 - **当前 MVP 可玩性评估**：⭐☆☆☆☆（0 星：纯文档阶段）
 - **API 成本累计**：
-  - aiart 任务数：23（首批 22 + W04 重提交 1；内部服务，不计费）
+  - aiart 任务数：26（首批 22 + W04 重提交 1 + R2 三张 3；内部服务，不计费）
   - Gemini Flash 调用：0 次（$0.00）
   - Gemini Pro 调用：0 次（$0.00）
   - 06d 审核 token：$0.00
@@ -35,7 +35,7 @@
 | 四 | 数值策划 | ✅ 已完成（v0.1.1 → v0.1.2 按 design_review 修订） | 2026-05-19 |
 | 五 | 策划整合评审 | ✅ 已完成（design_review v1.1 通过；🟡#1/#2/#3 修订落地，#4 进入 Playtest 观察） | 2026-05-19 |
 | 六·A | 美术风格规范 | ✅ 已完成（v1.0 定稿，aiart 双样品风格一致性验证通过） | 2026-05-19 |
-| 六·B | 美术资产提示词 + 自动出图 + 审核 | 🟡 进行中（B.1/B.2/B.3 ✅；B.4 ✅ 22 张全量出图落盘；B.5 审核待启动） | — |
+| 六·B | 美术资产提示词 + 自动出图 + 审核 | 🟡 进行中（B.1/B.2/B.3 ✅；B.4 ✅ 22 张全量出图落盘；B.5 06d 全量审核完成 14🟢/6🟡/2🔴；R2 三张已重出待用户人眼审核） | — |
 | 七 | 测试用例验收 | ⏳ 待执行 | — |
 
 ## 产物路径
@@ -82,21 +82,17 @@
 
 ## 当前状态
 
-- **当前阶段**：阶段六·B.1/B.2/B.3 ✅ 关闭；阶段六·B.4 ✅ 关闭（22 张全量自动出图落盘）；阶段六·B.5（06d 审核）待启动
-- **阶段状态**：22 张 prompt 全量落地（design/art_prompts/）；art_layout.md v1.0；22 张 final PNG 已落盘 atoms/assets/art/<category>/<asset_id>.png（含 16 张透明抠图 + 6 张全场景）；raw 版本 `<asset_id>__v1__aiart.jpg` 同目录保留作证据
+- **当前阶段**：阶段六·B.4 ✅ 关闭；六·B.5 06d 全量审核完成（14🟢/6🟡/2🔴）；R2 三张已重出（A-CHR-HR / A-UI-CARD-EVENT / A-UI-RESUME），等用户人眼审核
+- **阶段状态**：22 张 final PNG 落盘 atoms/assets/art/；6·B.5 后续审核机制已切换为「用户主导审核 + Producer 出 prompt」（用户 2026-05-27 决议：06d agent 太耗时）；R2 raw 落 `<id>__v2__aiart.jpg`，旧 R1 raw `<id>__v1__aiart.jpg` 保留 A/B
 - **下一步**：
-  - **第一动作**：用户对 22 张图人眼抽查 → 决策是否启动 06d 审核闭环 / 或直接进入开发
-  - **三人并行分工**（用户已确认，2026-05-19 决议）：
-    - **1 人开发（Atoms）**：依据 balance v0.1.2 + levels v1.3 实现：战斗状态机 / 配置资源 / EventRollService 3 槽抽签 / B07 OnFirstHeroCrit hook / L03 必死阈值 + 兜底 / L06 行动点参数化；现已可用 22 张真图替换 placeholder（按 art_layout 引用 asset_id）
-    - **2 人美术**：6·B.4 已批量完成；如启动 6·B.5 由 06d 给逐张评分 + 修正建议
+  - **第一动作**：用户对 R2 三张人眼审核 → 给出意见 → Producer 落新 prompt → 必要时 R3
+  - **🟡 6 张挂账**（END-E01/E04 辅锚点 / W02 短剑 / W04 袖章 / ELITE 战痕 / EMOTE-CEO-STAMP 字符）：用户决定后续是否需要修订
   - 后续：阶段七测试用例验收（待 Atoms 程序实现完成后由任意成员触发）
 - **今日进度（2026-05-27）**：
-  - 阶段六·B.4：22 张全量 aiart 出图，并行 concurrency=10，首批 17/22 通过 + 修复批 5/5 通过 ✅ 关闭
-    - 失败模式：aiart 偶发返回 PNG（4 张，magic 为 89504e47）/ poll 180s 超时（5 张，实际 200~280s 完成）/ 文件句柄竞态（2 张）→ 修复脚本统一接受 PNG/JPEG + maxSec 360s + 从 raw 直接 post-process
-    - post-process：node + sharp，chroma-key 四角中位数取 key + 双阈值平滑边缘 + alpha bbox 自动裁切 + contain fit
-    - 文件清单全 ✅ 落盘 atoms/assets/art/{backgrounds,characters,enemies,ui,props,endings,emotes}/
-  - art_asset_list.md §9 回填表全量 ✅，含失败模式批注
+  - 阶段六·B.4：22 张全量 aiart 出图（首批 17/22 + 修复批 5/5）✅ 关闭
+  - 阶段六·B.5：4 个并行 06d agent 全量审核 → 14🟢/6🟡/2🔴；结论与修正建议落入各 art_prompts/<id>.md 尾部
+  - R2 重出 3 张：HR 改回女性版（参 sample）+ CARD-EVENT 强制空框 + RESUME 去文字 → 落盘成功，等用户审核
+  - **审核机制变更**：06d agent 实测耗时 4-22 min/批（视觉读图 + Edit 回写），用户决定后续审核由用户主导，Producer 仅负责落 prompt
 - **昨日进度（2026-05-20）**：
   - 阶段六·B.1/B.2/B.3 三步全量收口（资产清单 v1.0 / 22 张 prompt / art_layout.md v1.0）
-  - 去 Unity 化决议：路径与术语 Atoms 化
-- **最后更新**：2026-05-27
+- **最后更新**：2026-05-27（第二轮）

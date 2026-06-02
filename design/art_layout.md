@@ -1,7 +1,7 @@
 # 美术切图与落位建议 — 地下城打工人 (Dungeon HR)
 
-**版本**：v1.0（一次性交付，与 art_asset_list v1.0、art_prompts/ 22 张 prompt 同步）
-**日期**：2026-05-20
+**版本**：v1.1（v1.0 + 14 张增量同步，2026-06-02）
+**日期**：2026-06-02（v1.1） / 2026-05-20（v1.0）
 **负责人**：资产提示词工程师 (06b_art_prompt_engineer)
 **上游依赖**：
 - `design/art_asset_list.md` v1.0（22 条资产、命名规范、关键尺寸、落盘协议）
@@ -44,10 +44,13 @@ atoms/assets/art/
 │   ├── A-BG-PREP.png               # 准备阶段背景（HR 办公室）         1920×1080
 │   └── A-BG-BATTLE.png             # 战斗阶段背景（B1 入口走廊）       1920×1080
 │
-├── characters/                     # 主角立绘（3 张，🔴）
+├── characters/                     # 主角立绘（3 张，🔴）+ 泛用怪物员工（v1.1 新增 3 张，🟡）
 │   ├── A-CHR-HR.png                # HR 总监（玩家）                   768×1024
 │   ├── A-CHR-GROOBAS.png           # 格鲁巴斯·史莱姆                   768×1024
-│   └── A-CHR-XIAOXING.png          # 宵星·骷髅法师                     768×1024
+│   ├── A-CHR-XIAOXING.png          # 宵星·骷髅法师                     768×1024
+│   ├── A-CHR-GENERIC-1.png         # 泛用怪物 #1 哥布林近战（v1.1）   768×1024
+│   ├── A-CHR-GENERIC-2.png         # 泛用怪物 #2 小恶魔文员（v1.1）   768×1024
+│   └── A-CHR-GENERIC-3.png         # 泛用怪物 #3 触手怪杂工（v1.1）   768×1024
 │
 ├── enemies/                        # 勇者敌人（5 张，🔴）
 │   ├── A-ENE-W01.png               # 新手勇者（菜鸟）                  768×1024
@@ -56,13 +59,19 @@ atoms/assets/art/
 │   ├── A-ENE-W04.png               # 中级勇者                          768×1024
 │   └── A-ENE-ELITE.png             # 精英勇者                          768×1024
 │
-├── ui/                             # UI 框 / HUD / 按钮（6 张，🔴）
+├── ui/                             # UI 框 / HUD / 按钮 / 图标
 │   ├── A-UI-CARD-EVENT.png         # 突发卡片 / 日志 / 备忘录通用框    900×600   9-slice
 │   ├── A-UI-MAIL-CEO.png           # CEO 邮件框（公文体）              800×500   9-slice
 │   ├── A-UI-RESUME.png             # 简历框                            600×800   9-slice
 │   ├── A-UI-HPBAR.png              # HP 条                             400×40    9-slice
 │   ├── A-UI-TIMER.png              # 圆形倒计时进度环                  128×128
-│   └── A-UI-BTN.png                # 通用 CTA 按钮底                   256×96    9-slice
+│   ├── A-UI-BTN.png                # 通用 CTA 按钮底                   256×96    9-slice
+│   ├── A-UI-TITLE.png              # 游戏标题画面封面（v1.1）         1920×1080  不切片
+│   ├── A-UI-RESULT.png             # 波次结算面板（v1.1）             900×700    9-slice
+│   ├── A-UI-TOAST.png              # 教学引导气泡（v1.1）             600×160    9-slice
+│   ├── A-UI-ICO-PAUSE.png          # 暂停图标（v1.1）                 128×128
+│   ├── A-UI-ICO-VOLUME.png         # 音量图标（v1.1）                 128×128
+│   └── A-UI-ICO-RESTART.png        # 重开图标（v1.1）                 128×128
 │
 ├── props/                          # 道具 / 货币（1 张，🔴）
 │   └── A-PROP-SHARD-ICON.png       # 灵魂碎片图标（货币）              128×128
@@ -73,8 +82,13 @@ atoms/assets/art/
 │   ├── A-END-E03.png               # 勇者前台合影·无人值守             1280×720
 │   └── A-END-E04.png               # 集体离职·公司破产                 1280×720
 │
-├── emotes/                         # 装饰贴（1 张，🟡）
-│   └── A-EMOTE-CEO-STAMP.png       # CEO 邮件红章                      256×256
+├── emotes/                         # 装饰贴
+│   ├── A-EMOTE-CEO-STAMP.png       # CEO 邮件红章                      256×256
+│   ├── A-EMOTE-RANK-S.png          # 绩效评级章 S 黄铜金（v1.1）       256×256
+│   ├── A-EMOTE-RANK-A.png          # 绩效评级章 A 陶土橘（v1.1）       256×256
+│   ├── A-EMOTE-RANK-B.png          # 绩效评级章 B 灰薄荷绿（v1.1）     256×256
+│   ├── A-EMOTE-RANK-C.png          # 绩效评级章 C 雾紫（v1.1）         256×256
+│   └── A-EMOTE-RANK-D.png          # 绩效评级章 D 砖红（v1.1）         256×256
 │
 ├── fx/                             # 保留目录（v1.0 清单空，Atoms 粒子/tween 实现）
 │   └── .gitkeep
@@ -220,6 +234,85 @@ atoms/assets/art/
 | color-to-alpha | 是 |
 | 06c 裁切策略 | Gemini 1024×1024 → 中央正方形 → 双线性下采样到 256×256 |
 
+### 2.10 v1.1 新增切图规则（14 张增量）
+
+> 与现有规则风格一致；本节集中描述 v1.1 新增 14 张的特殊点，通用项继承自 §2.1–2.9。
+
+#### 2.10.1 A-UI-TITLE（启动 splash 全屏背景）
+
+| 维度 | 规则 |
+|------|------|
+| 尺寸 | 1920×1080 |
+| 切图 | **不切片**（全屏背景） |
+| pivot | Center |
+| atlas 打包 | **否**（全屏背景独立加载） |
+| color-to-alpha | **否**（保留底色） |
+| 边距 | 顶部 ≥80px UI 安全区；底部 ≥80px 给 Start CTA 与版权 |
+| 06c 裁切策略 | 同背景图：Gemini 1024×1024 → 等比缩放至 1080 高 → 左右补 `#B8B5A8` 至 1920；必要时取边缘像素延伸而非硬裁 |
+
+#### 2.10.2 A-UI-RESULT（波次结算面板 9-slice）
+
+| 维度 | 规则 |
+|------|------|
+| 尺寸 | 900×700 |
+| 9-slice | **40 / 820 / 40**（横）× **40 / 620 / 40**（纵），圆角 20px |
+| pivot | Center |
+| atlas 打包 | 是（进 `ui_atlas`） |
+| color-to-alpha | 是 |
+| 关键约束 | 绩效红章预留位（256×256）位于中央可拉伸区，禁止 9-slice 拉伸；Atoms 端按相对锚点叠加 A-EMOTE-RANK-* |
+| 06c 裁切策略 | Gemini 1024×1024 → 中央裁 9:7（1024×796）→ 双线性下采样到 900×700 → color-to-alpha |
+
+#### 2.10.3 A-UI-TOAST（教学引导气泡 9-slice）
+
+| 维度 | 规则 |
+|------|------|
+| 尺寸 | 600×160 |
+| 9-slice | **32 / 536 / 32**（横）× **32 / 96 / 32**（纵），圆角 16px |
+| pivot | Center |
+| atlas 打包 | 是（进 `ui_atlas`） |
+| color-to-alpha | 是 |
+| 关键约束 | 左侧 128×128 icon 槽位限制在 32px 安全区内不参与拉伸，中央正文区可横向拉伸；本版本无尖角箭头，箭头由代码可选叠加 |
+| 06c 裁切策略 | Gemini 1024×1024 → 中央裁 15:4（1024×273）→ 双线性下采样到 600×160 → color-to-alpha |
+
+#### 2.10.4 A-UI-ICO-PAUSE / -VOLUME / -RESTART（3 张系统图标）
+
+| 维度 | 规则 |
+|------|------|
+| 尺寸 | 128×128（每张） |
+| 切图 | **不切片**（单张图标） |
+| pivot | **Center**（居中 pivot，用于状态切换动效绕中心缩放） |
+| atlas 打包 | 是（进 `ui_atlas`） |
+| color-to-alpha | 是 |
+| 边距 | 上下左右各 ≥16px 透明安全区 |
+| 06c 裁切策略 | Gemini 1024×1024 → 中央 1:1 → 双线性下采样到 128×128 → color-to-alpha |
+| 视觉一致性 | 三张共用「米白圆盘 + 黄铜金外圈细环 + 居中符号」设计语言；区分仅靠中央符号与点缀色（PAUSE 深炭灰 / VOLUME 灰薄荷绿音波 / RESTART 陶土橘箭尖） |
+
+#### 2.10.5 A-CHR-GENERIC-1 / -2 / -3（3 张泛用怪物立绘）
+
+| 维度 | 规则 |
+|------|------|
+| 尺寸 | 768×1024（每张） |
+| 切图 | 不切片 |
+| pivot | **Bottom Center**（与 A-CHR-HR/GROOBAS/XIAOXING 一致） |
+| atlas 打包 | 与 v1.0 3 张主角共打 `characters_atlas`（共 6 张 ×768×1024，仍 ≤6MB）或单开 `characters_generic_atlas` 二选一，由 Atoms 工程决定；优先后者 |
+| color-to-alpha | 是 |
+| 边距 | 上 ≥80px / 下 ≥60px / 左右各 ≥100px 透明安全区（与立绘通用规则一致） |
+| 06c 裁切策略 | 同立绘：Gemini 1024×1024 → 左右各裁 128px 居中 → color-to-alpha |
+
+#### 2.10.6 A-EMOTE-RANK-S / -A / -B / -C / -D（5 张绩效评级章）
+
+| 维度 | 规则 |
+|------|------|
+| 尺寸 | 256×256（每张） |
+| 切图 | **不切片**（单张装饰贴） |
+| pivot | **Center**（印章几何中心，便于 ±5°~15° 倾斜旋转盖章动效，与 A-EMOTE-CEO-STAMP 一致） |
+| atlas 打包 | 与 A-EMOTE-CEO-STAMP 共打 `emotes_atlas`（共 6 张，仍 <1MB） |
+| color-to-alpha | 是 |
+| 边距 | 主体上下左右各 ≥16px 透明安全边；磨损边缘视为印章一部分，不可被裁掉 |
+| 视觉差异 | 5 档主色不同：S 黄铜金 / A 陶土橘 / B 灰薄荷绿 / C 雾紫 / D 砖红；中央"档位字符"以抽象几何剪影呈现，绝不可读拉丁字母；外圈小星数量从 5→4→3→2→0（D 档无星 + 警示三角） |
+| RANK-D 与 CEO-STAMP 区分 | 同砖红色但中央图形 + 装饰方式明显区分：CEO-STAMP 为恶魔角剪影 + "CEO" 占位；RANK-D 为半圆瓣剪影 + 警示三角，无小星 |
+| 06c 裁切策略 | Gemini 1024×1024 → 中央 1:1 → 双线性下采样到 256×256 → color-to-alpha |
+
 ---
 
 ## §3 Atoms 资源导入约定
@@ -264,6 +357,60 @@ atoms/assets/art/
 
 - art_style_guide v1.0 主辅色盘 8 个 HEX 由 Atoms 端集中配置为常量表（命名建议 `DungeonHRPalette`）
 - placeholder 主色（§5）/ color-to-alpha 阈值底色（§4.2）/ HP 条 Tint 颜色（§2.5）/ 按钮状态 Tint 公式（§2.6）**全部从该常量表索引**，禁止散落硬编码
+
+### 3.6 按 asset_id 的集成快查表（v1.1 新增，2026-06-02）
+
+> **写给 Atoms 程序员**：拿到一张 png 时，本表回答三个问题：①**什么时候显示？**（触发点 / game event 来源）②**上面叠什么文字、叠在哪？**（文本叠加区 / 是否需要）③**应该归到哪个 UI/逻辑模块？**（建议命名，可改）。详细切图边界值仍以 §2 为准；narrative 触发条件原文以 `design/narrative.md` v1.3 为准。
+
+| asset_id | 触发点 / 显示时机（→ narrative ID 或 levels 锚点） | 文本叠加区 / 文字内容来源 | 关联逻辑模块（建议命名） |
+|----------|--------------------------------------------|------------------------|----------------------|
+| A-BG-PREP | L01–L06 准备阶段全程铺底 | 无需叠（背景层），关卡标题由 UI 层叠上 | `PrepPhaseScene` |
+| A-BG-BATTLE | L02–L06 战斗阶段全程铺底 | 无需叠 | `BattlePhaseScene` |
+| A-CHR-HR | 全程：T01 / T05 / P02 / P03 / E01–E02 + 招募/谈薪界面 | 无（立绘本体不叠字；台词由 dialog box 承载） | `HRCharacterView` |
+| A-CHR-GROOBAS | L01 招募 / B02/B05/C01 战斗事件（若 GROOBAS 在场）/ E01 私信 / E04 留言 | 无（同上） | `MonsterCharacterView`（同 GENERIC，按 ID 选图） |
+| A-CHR-XIAOXING | 中段招募 / L04 谈薪 P02 | 无 | 同上 |
+| A-CHR-GENERIC-1 | 玩家招到的"哥布林近战档"任意员工时全程使用 | 无 | 同上 |
+| A-CHR-GENERIC-2 | 玩家招到的"恶魔小翅膀文员档"任意员工时全程使用 | 无 | 同上 |
+| A-CHR-GENERIC-3 | 玩家招到的"触手怪杂工档"任意员工时全程使用 | 无 | 同上 |
+| A-ENE-W01 | L02 战斗阶段 | 头顶可选 tag "W01" / 等级数字（缺图兜底所用） | `EnemyView` + `EnemyWaveConfig` |
+| A-ENE-W02 | L03 | 同上 | 同上 |
+| A-ENE-W03 | L04 | 同上 | 同上 |
+| A-ENE-W04 | L05 | 同上 | 同上 |
+| A-ENE-ELITE | L06 | 同上 | 同上 |
+| A-UI-CARD-EVENT | T04 教学 / B01–B07 战斗突发事件 / C01 入职 / T05 绩效备忘录 / BATTLELOG | **9-slice 三段**：上 80px 标题 + 中 360px 正文 + 下 120px 双选项；文案来自 narrative §战斗突发事件表 / §剧情触发点 | `EventCardPanel` + `EventCardConfig` |
+| A-UI-MAIL-CEO | T01 入职欢迎 / P04 中期审计 / T06 路演倒计时 / T07 上市钟邮件 | 全屏邮件公文体；文案来自 narrative T01/P04/T06/T07 | `CEOMailPanel` |
+| A-UI-RESUME | L01 招募 / 各关补员；3 选 1 时并排 3 张 | 简历正文（姓名/年限/期望/隐藏词条占位/内心泄露句）；生成规则见 narrative §简历语气规范 §随机生成规则 | `ResumeCardPanel` + `ResumeGenerator` |
+| A-UI-HPBAR | L02–L06 战斗 HUD（每个怪物 + 每个勇者各一根） | 中央可叠数字 HP 文本（可选） | `HPBarView` |
+| A-UI-TIMER | T04 教学 / B01–B07 突发卡片右上角 | 中央叠倒计时数字（10→0） | `EventCardPanel` 内嵌组件 |
+| A-UI-BTN | 全局 CTA：招募 / 扩建 / 奖金 / 警戒 / 谈薪 / 确认 / 取消 | 按钮上叠文字 + emoji（v1.0 砍 ICO 后约定）；按钮状态 Tint 见 §2.6 | `CtaButton` |
+| A-PROP-SHARD-ICON | 全局 HUD 灵魂碎片余额 / 结算飘字 / 简历薪酬期望旁 | 旁叠数字（如 "× 123"） | `CurrencyHUD` / `ShardFlyToast` |
+| A-END-E01 | L07 胜利结局：撑过 N 波 + 碎片>0 + ≥1 怪物存活 | 下方字幕带 16:9 1280×720 底部留白：CEO 邮件正文 + 格鲁巴斯私信文本；文案 narrative §分支与结局 E01 | `EndingCgPanel`（参数化 ending_id） |
+| A-END-E02 | L07 惨胜：撑过 N 波 + 碎片≤安全线 | 下方字幕带；文案 narrative E02 | 同上 |
+| A-END-E03 | L07 失败①：怪物全阵亡/离职 | 下方字幕带；文案 narrative E03 | 同上 |
+| A-END-E04 | L07 失败②：碎片归零无法付薪 | 下方字幕带；文案 narrative E04 + 格鲁巴斯最后留言 | 同上 |
+| A-EMOTE-CEO-STAMP | A-UI-MAIL-CEO 右下角装饰（每封 CEO 邮件都贴） | 无（图本体含 "CEO" 占位形状，不再叠字） | `CEOMailPanel` 子层 |
+| A-UI-TITLE | 游戏启动 splash / 主菜单背景 | **下方留白可叠**：副标题 / "点击开始" CTA / 制作人滚动 | `TitleScene` |
+| A-UI-RESULT | 每波战斗结束的结算弹窗 / P05 净亏损提示 | **三段式**：上 100px 标题（"第 N 波结算"）+ 中部行项（灵魂碎片收支 / 阵亡名单 / 各员工绩效评级章贴位）+ 底部 CTA（"继续"） | `WaveResultPanel` |
+| A-UI-TOAST | T02 / T03 / T04 教学浮层 / 其它教学性瞬时提示 | 9-slice 内单行短文本（≤ 20 汉字），含一个指向 anchor 的小三角 | `ToastTutorialView` |
+| A-UI-ICO-PAUSE | 全局 HUD 右上角 / 暂停按钮 | 无 | `SystemBtn`（按 id 切图） |
+| A-UI-ICO-VOLUME | 全局 HUD 右上角 / 音量按钮（点击切静音状态由代码 tint） | 无 | 同上 |
+| A-UI-ICO-RESTART | 失败结局 / 暂停菜单的"重开本关" | 无 | 同上 |
+| A-EMOTE-RANK-S | T05 绩效备忘录右下角章 / 结算面板每员工评级位（最高档） | 无（中央字符已烧入图） | `RankStampView`（按 grade S/A/B/C/D 选图） |
+| A-EMOTE-RANK-A | 同上（A 档） | 无 | 同上 |
+| A-EMOTE-RANK-B | 同上（B 档） | 无 | 同上 |
+| A-EMOTE-RANK-C | 同上（C 档） | 无 | 同上 |
+| A-EMOTE-RANK-D | 同上（D 档；与 CEO-STAMP 同砖红色，注意上下文别混淆） | 无 | 同上 |
+
+#### 3.6.1 使用约定
+
+- **逻辑模块命名仅为建议**：Atoms 工程师可按自己习惯重命名，但同一 asset 在不同模块复用时（如 CARD-EVENT 用于战斗/教学/备忘录）必须复用同一 sprite 实例，禁止重复加载
+- **未列入"文本叠加区"的资产**：图本身已自带必要装饰（或纯背景 / 纯立绘），代码层不应再叠字
+- **触发点为 narrative ID 时**：上 narrative.md 查原文，本表只指方向、不重复正文
+- **状态变体（hover / disabled / 暗化）**：v1.0/v1.1 未单独出图，全部由 Atoms 端 Tint 实现（见 §2.6 按钮状态 Tint 公式）
+
+#### 3.6.2 总数对账
+
+本表 36 行 = v1.1 art_asset_list 总数 36，与 §1 目录树、§6 尺寸校验清单一一对应。任何后续新增资产必须同步追加本表。
 
 ---
 
@@ -415,8 +562,22 @@ magick -size 1280x720 xc:"#3D3A36" \
 | A-END-E03 | 1280×720 | 否 | 否 | 否 | [ ] |
 | A-END-E04 | 1280×720 | 否 | 否 | 否 | [ ] |
 | A-EMOTE-CEO-STAMP | 256×256 | 是 | 否 | emotes_atlas | [ ] |
+| A-UI-TITLE | 1920×1080 | 否 | 否 | 否（v1.1） | [ ] |
+| A-UI-RESULT | 900×700 | 是 | 40/820/40 × 40/620/40 | ui_atlas（v1.1） | [ ] |
+| A-UI-TOAST | 600×160 | 是 | 32/536/32 × 32/96/32 | ui_atlas（v1.1） | [ ] |
+| A-UI-ICO-PAUSE | 128×128 | 是 | 否 | ui_atlas（v1.1） | [ ] |
+| A-UI-ICO-VOLUME | 128×128 | 是 | 否 | ui_atlas（v1.1） | [ ] |
+| A-UI-ICO-RESTART | 128×128 | 是 | 否 | ui_atlas（v1.1） | [ ] |
+| A-CHR-GENERIC-1 | 768×1024 | 是 | 否 | characters_generic_atlas（v1.1） | [ ] |
+| A-CHR-GENERIC-2 | 768×1024 | 是 | 否 | characters_generic_atlas（v1.1） | [ ] |
+| A-CHR-GENERIC-3 | 768×1024 | 是 | 否 | characters_generic_atlas（v1.1） | [ ] |
+| A-EMOTE-RANK-S | 256×256 | 是 | 否 | emotes_atlas（v1.1） | [ ] |
+| A-EMOTE-RANK-A | 256×256 | 是 | 否 | emotes_atlas（v1.1） | [ ] |
+| A-EMOTE-RANK-B | 256×256 | 是 | 否 | emotes_atlas（v1.1） | [ ] |
+| A-EMOTE-RANK-C | 256×256 | 是 | 否 | emotes_atlas（v1.1） | [ ] |
+| A-EMOTE-RANK-D | 256×256 | 是 | 否 | emotes_atlas（v1.1） | [ ] |
 
-> 22 条与 art_asset_list v1.0 §1、§9 完全对账一致。
+> 22 条与 art_asset_list v1.0 §1、§9 完全对账一致；v1.1 新增 14 条与 art_asset_list v1.1 §1、§9 完全对账一致；合计 36 条。
 
 ---
 
@@ -455,6 +616,28 @@ magick -size 1280x720 xc:"#3D3A36" \
 ---
 
 ## §8 变更记录
+
+### v1.1（2026-06-02）— v1.0 基础上的 14 张增量同步
+
+- 目录规划（§1）追加 14 条新落位：characters/ +3（GENERIC-1/-2/-3）/ ui/ +6（TITLE/RESULT/TOAST/ICO-PAUSE/-VOLUME/-RESTART）/ emotes/ +5（RANK-S/A/B/C/D）
+- 切图规则新增 §2.10（v1.1 6 个小节）：
+  - A-UI-TITLE：全屏背景不切片，1024×1024 → 1920×1080 等比放大 + 左右补 `#B8B5A8`
+  - A-UI-RESULT：9-slice 40/820/40 × 40/620/40；中央绩效红章预留位不参与拉伸
+  - A-UI-TOAST：9-slice 32/536/32 × 32/96/32；左 icon 槽 + 右正文区，无尖角箭头
+  - A-UI-ICO-PAUSE / -VOLUME / -RESTART：单张图标 Center pivot，128×128，共用"米白圆盘 + 黄铜金外圈"设计语言
+  - A-CHR-GENERIC-1/-2/-3：与主角立绘同规格，Bottom Center pivot，可单开 `characters_generic_atlas` 或并入 `characters_atlas`
+  - A-EMOTE-RANK-S/A/B/C/D：5 张装饰贴 Center pivot，与 CEO-STAMP 共用 `emotes_atlas`；RANK-D 与 CEO-STAMP 同砖红但中央图形 + 装饰差异区分
+- 尺寸校验清单（§6）追加 14 行
+- atlas 归属：
+  - `ui_atlas` 成员从 v1.0 的 6 张（含 SHARD-ICON）→ v1.1 11 张（+TITLE 单独不打 atlas + RESULT/TOAST/ICO×3 进 atlas = +5 张进 atlas）
+  - 建议 `characters_generic_atlas` 与 v1.0 `characters_atlas` 分两个 atlas（避免主角与泛用怪物互相挤压尺寸）
+  - `emotes_atlas` 成员从 v1.0 1 张 → v1.1 6 张
+- 与 art_asset_list v1.1 完全对账：14 张增量分别在 v1.1 §1 / §5.x / §6 / §9 / §10 中全表落地
+- 06b 阶段六·B.2 v1.1 增量交付收尾：
+  - 【交付 1/3】资产清单 v1.1 → `design/art_asset_list.md` v1.1 ✅
+  - 【交付 2/3】14 张 prompt v1.1 → `design/art_prompts/` ✅
+  - 【交付 3/3】切图与落位 v1.1 → 本文 ✅
+- 可进入 6·B.4（启动 06c 出 14 张增量）+ 6·B.5（06d 审核闭环）
 
 ### v1.0（2026-05-20）— 一次性交付定稿
 

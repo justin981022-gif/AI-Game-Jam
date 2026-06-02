@@ -8,7 +8,7 @@
 - **Jam 主题/灵感**：你是魔王城 HR 总监，招募怪物、管理薪酬、抵御勇者突袭
 - **流程类型**：整套七阶段（原八阶段，已删除 Unity 开发阶段，程序由团队用 Atoms 实现）
 - **启动时间**：2026-04-22
-- **最后更新**：2026-05-27
+- **最后更新**：2026-06-02
 - **项目路径**：E:/SH01/aigamejam/
 
 ## Jam 指标
@@ -18,8 +18,8 @@
 - **剩余时间**：—
 - **当前 MVP 可玩性评估**：⭐☆☆☆☆（0 星：纯文档阶段）
 - **API 成本累计**：
-  - aiart 任务数：49（首批 22 + W04 重出 1 + R2 三张 3 + v3 rmbg 16 + v3 修复 4 + HR v4 + E01/E02 v2 共 3；内部服务，不计费）
-  - aiart /remove-backgrounds 调用：16 + 4 + 1 = 21（内部服务，不计费）
+  - aiart 任务数：65（v1.0 49 + v1.1 14 + E01/E02 v3 CEO 修订 2；内部服务，不计费）
+  - aiart /remove-backgrounds 调用：42（v1.0 21 + v1.1 13 + E01/E02 v3 不抠图 0；内部服务，不计费）
   - Gemini Flash 调用：0 次（$0.00）
   - Gemini Pro 调用：0 次（$0.00）
   - 06d 审核 token：$0.00
@@ -48,9 +48,9 @@
 - **数值文档**：design/balance.md **v0.1.2**（2026-05-19 按 design_review 🟡#3 修订：宵星「省钱攒学费」隐藏词条数值定义）
 - **策划评审报告**：design/design_review.md **v1.1**（2026-05-19 通过，无 🔴；4 条 🟡 中 #1/#2/#3 已修订落地，#4 入 Playtest 观察清单 KI-01）
 - **美术风格规范**：design/art_style_guide.md **v1.0**（2026-05-19 定稿；样品 tmp/style_sample/sample_hr_director.jpg + sample_xiaoxing_skull_mage.jpg 验证风格一致性通过）
-- **资产清单**：design/art_asset_list.md **v1.0**（2026-05-20 用户拍板，6 项裁剪全接受，38 → 22 条；20 🔴 / 1 🟡 / 0 🟢）
-- **资产提示词目录**：design/art_prompts/（2026-05-20 完成 22 张 prompt 全量落地）
-- **切图/落位建议**：design/art_layout.md **v1.0**（2026-05-20 由 06b 交付 3/3，467 行；含目录规划 / 切图规则 / Atoms 导入约定 / 06c post-process 规范 / placeholder 协议 / 尺寸校验清单 / 6·B.4-5 交接说明）
+- **资产清单**：design/art_asset_list.md **v1.1**（2026-06-02 用户「都补」决议，14 张增量；22 → 36 条；23 🔴 / 7 🟡 / 6 🟢）
+- **资产提示词目录**：design/art_prompts/（2026-06-02 36 张 prompt 全量落地：v1.0 22 张 + v1.1 增量 14 张）
+- **切图/落位建议**：design/art_layout.md **v1.1**（2026-06-02 由 06b 在 v1.0 基础上 append 14 张落位 + 切图规则 + 尺寸校验）
 - **Atoms 工程根**：atoms/（2026-05-20 创建骨架，落盘约定 `atoms/assets/art/<category>/<asset_id>.png`）
 - **测试报告**：—
 
@@ -62,6 +62,7 @@
 | 一 | 机制调整 | 战斗改为分段实时演算，自动推进+点击加速，突发事件限时10s超时选不利，每场最多3个随机触发 | 2026-04-22 |
 | 二 | 创意方向 | xiaolong-zhuo 草稿提出"渊净保洁服务有限公司"主题换皮方向（机制保留 concept，虚构层改为地牢保洁公司 + CL/SV/MD 三职业 + 前任经理 K. 失踪悬疑副线）。用户确认换皮路径，待融合阶段决定是否采纳 | 2026-04-24 |
 | 二/三 | 融合决策 | 主策划 + PD 联合签署 final-plan.md v1.0：以 zhiyu-qi 主干为基线，融合 chuwen-huang 5 项（P03 提前 L03 / 格鲁巴斯私信 / 宵星替换奥莫斯 / C01 事件 / 简历内心泄露句）；废弃 xiaolong-zhuo 全部内容（保洁换皮/三职业/K 系列副线移入 v2 候选）；C02–C05 推迟 v2 | 2026-04-27 |
+| 六·B | 资产扩展 | 用户 review v1.0 后发问"还需哪些图"，Producer 提议 14 张增量（A-UI-TITLE / A-UI-RESULT / A-CHR-GENERIC-1~3 / A-UI-ICO-{PAUSE,VOLUME,RESTART} / A-UI-TOAST / A-EMOTE-RANK-{S,A,B,C,D}），用户回"都补"全部采纳；art_asset_list 升级 v1.1（22 → 36 条），仅完成清单 + prompt 文本，**未启动 06c 出图**（等用户拍板再烧 API） | 2026-06-02 |
 
 ## 阻塞事项
 
@@ -81,15 +82,24 @@
 |---------|--------|------|---------|------|
 | — | — | — | — | — |
 
-## 当前状态
-
-- **当前阶段**：阶段六·B.4/B.5 ✅；v3 (rmbg) 重出全量 16 张 transparent 资产 + HR v4 + 结局 E01/E02 v2 已落盘；用户仅复核 HR/RESUME/CARD-EVENT/E01/E02 共 5 张，其余 13 张待后续优化
-- **阶段状态**：22 张 final PNG 落盘 atoms/assets/art/；hand-roll 色键挖洞问题彻底解决（改用 aiart 官方 `/remove-backgrounds` endpoint）；HR 已稳定到女性可爱 chibi 版（prompt 加强女性门控 + 禁忌身材曲线）；E01/E02 HR 描述同步修订为女性版
-- **下一步（后续优化）**：
-  - CARD-EVENT 仍有 "LOREM IPSUM" 文字残留：需加强反向 prompt
-  - 其余 13 张 v3 资产用户尚未逐一过眼
-  - rmbg 流程固化：把 `tmp/run_aiart_batch.js` 的 hand-roll 色键替换为 rmbg pipeline，作为以后任意重跑的默认管线
-  - 状态机：阶段七测试用例验收（Atoms 程序实现完成后触发）
+- **当前阶段**：阶段六·B v1.1 增量 14 张全量落盘 ✅ + E01/E02 v3 CEO 5 件套修订 ✅ + art_style_guide 角色 canonical 段落地 ✅ + art_layout §3.6 集成快查表落地 ✅；用户 2026-06-02 暂停（不 commit、暂不做 img2img 能力）
+- **阶段状态**：v1.0 22 张 + v1.1 14 张 + E01/E02 v3 = **36 张 final PNG 落盘 atoms/assets/art/**；文档体系（art_asset_list v1.1 / art_layout v1.1 / art_style_guide v1.0.1 / art_prompts 36 张）完整闭环；尚未 git commit
+- **下一步**：
+  - 用户回来后决策是否 commit v1.1 增量包（14 张图 + E01/E02 v3 + 4 份文档增量 + state 更新）
+  - 后续若要建 img2img 能力：先解决图床（公司内 OSS / 公网图床合规确认）
+  - v1.0 遗留收尾（CARD-EVENT "LOREM IPSUM" 残留 / 13 张 v3 未逐一复核 / rmbg 流程固化进 tmp/run_aiart_batch.js）— 与新工作并轨择期处理
+  - 阶段七测试用例验收（Atoms 程序实现完成后触发）
+- **今日进度（2026-06-02）**：
+  - v1.0 review：用户问"还需哪些图"
+  - 差距分析：跨 narrative/levels/asset_list 提议 14 张增量（2 必需 / 6 建议 / 6 可选）
+  - 用户决议"都补"，全部采纳
+  - 06b 一次性产出 v1.1：art_asset_list v1.0 → v1.1（22 → 36）/ art_layout v1.0 → v1.1 / 14 张新 prompt
+  - 用户决议"14 张一次全出"（不分批、不走 06d）
+  - 06c 一次跑通 14/14：14 张 aiart gen + 13 张 rmbg（A-UI-TITLE 不抠图）+ sharp post-process，全部落盘 atoms/assets/art/，§9 跟踪表回填完成
+- **历史**：
+  - 2026-05-27 第三轮：阶段六·B.4/B.5（22 张 v3 transparent + HR v4 + E01/E02 v2，全部 rmbg）
+  - 2026-05-27 第二轮：阶段六·B.4/B.5 22 张首批 + 06d 全量审核 14🟢/6🟡/2🔴
+  - 2026-05-20：阶段六·B.1/B.2/B.3 三步全量收口
 - **今日进度（2026-05-27 第三轮）**：
   - 诊断：hand-roll 色键算法（四角采样 + 全图色距）对含内部白色的资产挖洞 — HR 眼白/衣服、RESUME 纸张、CARD-EVENT 内框全中招
   - 验证：aiart 原生有 `/api/v1/ai-fusion-openapi/images/remove-backgrounds`（异步 taskId+poll），输入 imageURL，效果显著优于 hand-roll（保留所有内部细节）
@@ -100,4 +110,4 @@
 - **历史**：
   - 2026-05-27 第二轮：阶段六·B.4/B.5（22 张全量出图 + 06d 全量审核，14🟢/6🟡/2🔴）
   - 2026-05-20：阶段六·B.1/B.2/B.3 三步全量收口
-- **最后更新**：2026-05-27（第三轮）
+- **最后更新**：2026-06-02

@@ -95,6 +95,24 @@ photorealistic, 3D render, realistic human portrait, anime big sparkly eyes, man
 - **给 Unity 开发**：主辅色盘 8 个 HEX 配置到全局 `ColorPalette` ScriptableObject（命名建议 `DungeonHR_Palette`），UI/场景统一引用
 - **给 Playtest**：Playtest 报告的"美术观感"一节以本文档为对照基准，重点核查"莫兰迪低饱和"是否被 Gemini 跑偏
 
+## 角色 canonical 外观（cross-prompt 锚点，2026-06-02 v1.0.1 追加）
+
+> 同一角色在多张 prompt 中**必须用同一句完整描述**，避免 aiart 脑补出现风格漂移。资产提示词工程师写 CHR / END 类时必须复制粘贴。
+
+### 魔王 CEO（5 件套必锁）
+
+```
+the chibi Demon CEO (taller silhouette in chibi 2.5-head proportion, massive curved brass-gold #D4A574 demon horns sweeping back from forehead, charcoal #3D3A36 sharp-tailored business suit with crisp white collar and terracotta-orange #C97B5C silk necktie, wearing matte black aviator sunglasses covering eyes, holding a rolled blank financial report scroll in one hand)
+```
+
+- 5 件套：巨角(黄铜金) / 深色西装 / 陶土橘领带 / 矿黑墨镜 / 财报卷
+- 引用资产：A-END-E01 / A-END-E02（其它结局无 CEO；CARD-EVENT 等 UI 类不出 CEO 立绘，仅用 A-UI-MAIL-CEO + A-EMOTE-CEO-STAMP 替代）
+- 入选原因：v1.0 round 3 E01/E02 v2 出图时仅描述"taller silhouette + brass-gold horns + dark suit"，与 narrative §角色表 #2 的「巨角、西装革履、手持财报、墨镜」差距过大，造成两张 ending 中 CEO 风格不统一
+
+### HR 总监（已锁定，参考 E01/E02 现有 prompt 中"chibi female HR Director player character (...)"段落）
+
+引用资产：A-CHR-HR / A-END-E01 / A-END-E02。该角色在 v1.0 round 3 已修订为女性 chibi，描述已稳定，不再列举完整句于此（以 `A-CHR-HR.md` 为基准）。
+
 ## 自检清单（9 项）
 
 - [x] 色盘 HEX 齐全（主 3 + 辅 5，共 8 个 HEX）

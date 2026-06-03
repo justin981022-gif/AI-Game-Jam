@@ -1,7 +1,7 @@
 # 美术资产清单 — 地下城打工人 (Dungeon HR)
 
-**版本**：v1.1（用户 2026-06-02 拍板，14 张增量「都补」）
-**日期**：2026-06-02
+**版本**：v1.2（用户 2026-06-04 拍板，11 张半身像增量「11 张含 5 勇者」）
+**日期**：2026-06-04
 **负责人**：资产提示词工程师 (06b_art_prompt_engineer)
 **上游依赖**：
 - `design/concept.md`（已确认 2026-04-22）
@@ -260,9 +260,38 @@ atoms/assets/art/
 | A-CHR-HR-FACE | 立绘裁切兜底 | A-CHR-HR 头部裁切 |
 | A-CHR-GROOBAS-MSG | 立绘裁切兜底 | A-CHR-GROOBAS 头部裁切 |
 
+> 注：A-CHR-HR-FACE 与 A-CHR-GROOBAS-MSG 的需求已被 v1.2 §5.10 半身像（A-CHR-BUST-* / A-ENE-BUST-*）合理覆盖，**不再使用立绘裁切兜底**。
+
 ---
 
-## 6. 类别数量汇总（v1.1）
+## 5.10 半身像（Bust Portraits, 11 条，v1.2 新增）
+
+> 用于：招募简历头像槽 / 战斗 HUD 头像 / 对话条头像 / 下波勇者预告卡片。规格统一 256×256 透明 PNG，pivot=Center，head + neck + 上胸构图（mid-chest 裁切），下半身完全不可见。
+>
+> 与立绘版（A-CHR-* / A-ENE-*）共享同一 canonical 描述（见 art_style_guide.md §canonical），任何 canonical 修订须双向同步。
+
+| Asset ID | 名称 | 落位 | 优先级 | 引用场景 |
+|----------|------|------|--------|----------|
+| A-CHR-BUST-HR | HR 总监 半身像 | atoms/assets/art/characters/ | 🟡 | 招募时不出现，但用于对话条等 |
+| A-CHR-BUST-GROOBAS | 格鲁巴斯 半身像 | characters/ | 🔴 | L01 招募 + 战斗 HUD |
+| A-CHR-BUST-XIAOXING | 宵星 半身像 | characters/ | 🔴 | 中段招募 + L04 谈薪 + 战斗 HUD |
+| A-CHR-BUST-GENERIC-1 | 哥布林近战档 半身像 | characters/ | 🔴 | 招募 + 战斗 HUD |
+| A-CHR-BUST-GENERIC-2 | 小恶魔文员档 半身像 | characters/ | 🔴 | 招募 + 战斗 HUD |
+| A-CHR-BUST-GENERIC-3 | 触手怪杂工档 半身像 | characters/ | 🔴 | 招募 + 战斗 HUD |
+| A-ENE-BUST-W01 | 新手勇者 半身像 | atoms/assets/art/enemies/ | 🟡 | 战斗 HUD + 下波勇者预告 |
+| A-ENE-BUST-W02 | 初级勇者 半身像 | enemies/ | 🟡 | 同上 |
+| A-ENE-BUST-W03 | 初级勇者+ 半身像 | enemies/ | 🟡 | 同上 |
+| A-ENE-BUST-W04 | 中级勇者 半身像 | enemies/ | 🟡 | 同上 |
+| A-ENE-BUST-ELITE | 精英勇者 半身像 | enemies/ | 🟡 | L06 战斗 HUD + ELITE 预告 |
+
+**统一规格**：256×256 / 1:1 / 透明 PNG / pivot=Center / atlas 分别 `characters_bust_atlas` (6 张) + `enemies_bust_atlas` (5 张)，每个 atlas 总体积 ≤0.3MB
+**生成路径**：aiart 1024×1024 → rmbg → sharp resize 256×256 contain → 落盘
+**prompt 文件**：`design/art_prompts/A-{CHR,ENE}-BUST-*.md`（11 份）
+**降级兜底**：返回立绘头胸裁切（用立绘 768×1024 中央 512×512 区域 → resize 256×256），不阻塞
+
+---
+
+## 6. 类别数量汇总（v1.2）
 
 | 类别 | 总数 | 🔴 | 🟡 | 🟢 |
 |------|------|-----|-----|-----|
@@ -275,7 +304,10 @@ atoms/assets/art/
 | 道具 / 货币 | 1 | 1 | 0 | 0 |
 | 结局画面 | 4 | 4 | 0 | 0 |
 | 装饰贴 | 6（v1.0 1 + v1.1 5） | 0 | 1 | 5 |
-| **合计** | **36** | **23** | **7** | **6** |
+| 半身像（v1.2 新增） | 11（candidate 6 + enemy 5） | 5 | 6 | 0 |
+| **合计** | **47** | **28** | **13** | **6** |
+
+> v1.2 增量 11 张已全部 aiart 出图 + rmbg 完成（2026-06-04，aiartGen 11 + rmbg 11，173s 跑完）。
 
 > 注 1：v1.1 实际新增 14 张（🔴 2 + 🟡 6 + 🟢 6）。本表"🔴 合计 23"对应 v1.0 §6 历史"🔴 合计 20"加 v1.1 新增 🔴 ×2 + 此前 v1.0 表"UI 框/HUD 5" 全 🔴 与本次 UI 框新增 1 🔴（A-UI-TITLE & A-UI-RESULT 同列 UI 框，其中 🔴 ×2、🟢 ×1）合并后口径所致。
 >
@@ -378,6 +410,20 @@ atoms/assets/art/
 ---
 
 ## 10. 变更记录
+
+### v1.2（2026-06-04）— 用户拍板 11 张半身像增量「11 张含 5 勇者」
+
+- **决策来源**：用户在 03_recruit mockup 中发现简历头像槽用立绘头胸裁切效果差（构图比例不可控、肩部位置错位、文字超出卡片）。Producer 提议出独立的"半身像" asset，6 candidate + 5 enemy 双选项，用户口径「11 张（含 5 勇者）」拍板
+- **新增 11 张**（🔴 5 + 🟡 6）：
+  - 🔴×5：A-CHR-BUST-GROOBAS / -XIAOXING / -GENERIC-1/2/3（5 个 candidate 半身像，招募流程主路径必出）
+  - 🟡×1：A-CHR-BUST-HR（招募时不直接显示，但用于对话条/CEO 邮件 sub-portrait 等扩展）
+  - 🟡×5：A-ENE-BUST-W01/W02/W03/W04/ELITE（战斗 HUD 头像 + 下波勇者预告卡片）
+- **新增类别**：**半身像（§5.10）**，与立绘 (§5.2/§5.3) 共享同一 canonical 描述但 camera framing 不同（head + neck + 上胸 mid-chest 裁切）
+- **总量**：36 → 47（🔴 23→28 / 🟡 7→13 / 🟢 6→6）
+- **API 成本影响**：aiart 内部服务不计费；本批 aiartGen 11 + rmbg 11 = 22 调用，实际跑 173s 一次成功率 11/11
+- **生成方式**：`tmp/run_aiart_bust.js`（基于 v1.1 batch 模板，concurrency=10，gen poll 360s + rmbg poll 180s）
+- **canonical 同步约束**：BUST 与立绘版描述必须保持一致（已在 11 份 prompt 文件 §风格锚点 段写明"canonical 同步：与 X.md 立绘版描述一致"）
+- **降级兜底**：BUST 出图失败时，atoms 端可临时从立绘 768×1024 中央 512×512 区域裁切 → resize 256×256，不阻塞 MVP
 
 ### v1.1（2026-06-02）— 用户拍板 14 张增量「都补」
 

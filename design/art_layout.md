@@ -1,7 +1,7 @@
 # 美术切图与落位建议 — 地下城打工人 (Dungeon HR)
 
-**版本**：v1.1（v1.0 + 14 张增量同步，2026-06-02）
-**日期**：2026-06-02（v1.1） / 2026-05-20（v1.0）
+**版本**：v1.2（v1.1 + 11 张半身像增量同步，2026-06-04）
+**日期**：2026-06-04（v1.2） / 2026-06-02（v1.1） / 2026-05-20（v1.0）
 **负责人**：资产提示词工程师 (06b_art_prompt_engineer)
 **上游依赖**：
 - `design/art_asset_list.md` v1.0（22 条资产、命名规范、关键尺寸、落盘协议）
@@ -312,6 +312,23 @@ atoms/assets/art/
 | 视觉差异 | 5 档主色不同：S 黄铜金 / A 陶土橘 / B 灰薄荷绿 / C 雾紫 / D 砖红；中央"档位字符"以抽象几何剪影呈现，绝不可读拉丁字母；外圈小星数量从 5→4→3→2→0（D 档无星 + 警示三角） |
 | RANK-D 与 CEO-STAMP 区分 | 同砖红色但中央图形 + 装饰方式明显区分：CEO-STAMP 为恶魔角剪影 + "CEO" 占位；RANK-D 为半圆瓣剪影 + 警示三角，无小星 |
 | 06c 裁切策略 | Gemini 1024×1024 → 中央 1:1 → 双线性下采样到 256×256 → color-to-alpha |
+
+### 2.11 半身像（characters/ + enemies/，11 条，v1.2 新增）
+
+> 与立绘 (§2.2 / §2.3) 共享同一 canonical 描述，但相机框取从 full-body 改为 head-and-shoulders bust（mid-chest 裁切）。专用于：招募简历头像槽 / 战斗 HUD 头像 / 对话条头像 / 下波勇者预告卡片。
+
+| 维度 | 规则 |
+|------|------|
+| 尺寸 | 256×256（每张） |
+| 宽高比 | 1:1 |
+| 切图 | **不切片**（单张半身像直接用） |
+| pivot | **Center**（半身像几何中心，便于头像槽缩放对中） |
+| atlas 打包 | candidates 6 张共打 `characters_bust_atlas`（256×256 ×6 ≈ 0.2MB）；enemies 5 张共打 `enemies_bust_atlas`（256×256 ×5 ≈ 0.2MB） |
+| color-to-alpha | 是（rmbg 处理），背景 `#B8B5A8` 转 alpha |
+| 边距 | 头部居画面上 60%，下方留白充足，左右各 ≥16px 透明安全区 |
+| 06c 裁切策略 | aiart 1024×1024 → rmbg → sharp resize(256, 256, fit:'contain') 透明 PNG |
+| canonical 同步 | 必须与 `A-{CHR,ENE}-{原 ID}.md` 立绘版的人物外观、配饰、表情完全一致；任何修订须双向同步 |
+| 11 张清单 | A-CHR-BUST-{HR, GROOBAS, XIAOXING, GENERIC-1, GENERIC-2, GENERIC-3} + A-ENE-BUST-{W01, W02, W03, W04, ELITE} |
 
 ---
 

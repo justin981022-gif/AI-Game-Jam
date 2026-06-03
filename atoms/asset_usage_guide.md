@@ -89,19 +89,22 @@ A-PROP-*     → atoms/assets/art/props/<id>.png
 | Asset ID | 文件路径 | 用途 | 触发位置 |
 |----------|---------|------|---------|
 | `A-UI-RESUME` | [`ui/A-UI-RESUME.png`](assets/art/ui/A-UI-RESUME.png) | 简历卡片底框（公文体设计） | `RECRUIT_DIALOG` 子状态：3 选 1 简历池每张卡的底图 |
-| `A-CHR-GROOBAS` | [`characters/A-CHR-GROOBAS.png`](assets/art/characters/A-CHR-GROOBAS.png) | 格鲁巴斯·史莱姆立绘（B1 驻守，TANK 模板） | 简历卡片头像（若 RNG 抽到格鲁巴斯）/ 主屏怪物槽位 / EVAL 屏 / E01 与 E04 结局信中提及时 |
-| `A-CHR-XIAOXING` | [`characters/A-CHR-XIAOXING.png`](assets/art/characters/A-CHR-XIAOXING.png) | 宵星·骷髅法师立绘（远程，RANGE 模板）| 简历卡片头像（若 RNG 抽到宵星）/ 主屏怪物槽位 / L04 P02 谈薪弹窗 |
-| `A-CHR-GENERIC-1` | [`characters/A-CHR-GENERIC-1.png`](assets/art/characters/A-CHR-GENERIC-1.png) | 泛用怪物员工 #1（哥布林近战防御档，TANK 替补）| 简历池随机抽取 / 主屏怪物槽位 / EVAL 屏（非主角怪物动态对位）|
-| `A-CHR-GENERIC-2` | [`characters/A-CHR-GENERIC-2.png`](assets/art/characters/A-CHR-GENERIC-2.png) | 泛用怪物员工 #2（小恶魔文员中距支援档，DPS 替补）| 同上 |
-| `A-CHR-GENERIC-3` | [`characters/A-CHR-GENERIC-3.png`](assets/art/characters/A-CHR-GENERIC-3.png) | 泛用怪物员工 #3（触手怪杂工档，RANGE 替补）| 同上 |
+| `A-CHR-BUST-GROOBAS` | [`characters/A-CHR-BUST-GROOBAS.png`](assets/art/characters/A-CHR-BUST-GROOBAS.png) | 格鲁巴斯 半身像（B1 驻守，TANK 模板） | **简历卡片头像槽**（256×256 透明）/ 战斗 HUD 头像 / 对话条 |
+| `A-CHR-BUST-XIAOXING` | [`characters/A-CHR-BUST-XIAOXING.png`](assets/art/characters/A-CHR-BUST-XIAOXING.png) | 宵星 半身像（远程，RANGE 模板）| 同上 |
+| `A-CHR-BUST-GENERIC-1` | [`characters/A-CHR-BUST-GENERIC-1.png`](assets/art/characters/A-CHR-BUST-GENERIC-1.png) | 哥布林近战 半身像（TANK 替补）| 同上 |
+| `A-CHR-BUST-GENERIC-2` | [`characters/A-CHR-BUST-GENERIC-2.png`](assets/art/characters/A-CHR-BUST-GENERIC-2.png) | 小恶魔文员 半身像（DPS 替补）| 同上 |
+| `A-CHR-BUST-GENERIC-3` | [`characters/A-CHR-BUST-GENERIC-3.png`](assets/art/characters/A-CHR-BUST-GENERIC-3.png) | 触手怪杂工 半身像（RANGE 替补）| 同上 |
+| `A-CHR-BUST-HR` | [`characters/A-CHR-BUST-HR.png`](assets/art/characters/A-CHR-BUST-HR.png) | HR 总监 半身像（玩家） | 对话条头像 / CEO 邮件 sub-portrait（不出现在简历池） |
+| `A-CHR-GROOBAS` 等立绘 | `characters/A-CHR-*.png` | **全身立绘**，仍用于主屏怪物槽位 / 战斗角色槽 / EVAL 屏 / E01·E04 结局信中提及时 | 非头像位 |
 
 **Atoms 实现指引**：
-- 简历池 3 张卡片：每张卡背景用 A-UI-RESUME，头像位贴对应 A-CHR-* 立绘
-- 简历池随机生成时，按怪物模板（TANK/DPS/RANGE）从对应立绘集合抽：
-  - TANK 抽 [A-CHR-GROOBAS, A-CHR-GENERIC-1]
-  - DPS 抽 [A-CHR-GENERIC-2]
-  - RANGE 抽 [A-CHR-XIAOXING, A-CHR-GENERIC-3]
-- 玩家招募成功后，该立绘绑定到怪物 schema 的 `art_id` 字段，后续主屏 / 战斗 / EVAL 屏沿用
+- 简历池 3 张卡片：每张卡背景用 A-UI-RESUME，**头像槽位贴对应 A-CHR-BUST-* 半身像**（不再用立绘头胸裁切；v1.2 起的标准做法）
+- 简历池随机生成时，按怪物模板（TANK/DPS/RANGE）从对应集合抽：
+  - TANK 抽 [GROOBAS, GENERIC-1] → 头像用 A-CHR-BUST-{GROOBAS, GENERIC-1}；立绘用 A-CHR-{GROOBAS, GENERIC-1}
+  - DPS 抽 [GENERIC-2] → A-CHR-BUST-GENERIC-2 / A-CHR-GENERIC-2
+  - RANGE 抽 [XIAOXING, GENERIC-3] → A-CHR-BUST-{XIAOXING, GENERIC-3} / A-CHR-{XIAOXING, GENERIC-3}
+- 玩家招募成功后，怪物 schema 同时绑定 `art_id`（立绘）和 `bust_id`（半身像）两个字段，主屏/战斗用立绘，HUD 头像/对话条用 bust
+- 兜底：BUST 出图失败时降级用立绘 768×1024 中央 512×512 区域裁切 → resize 256×256，不阻塞
 
 ---
 

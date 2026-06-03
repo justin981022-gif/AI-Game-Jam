@@ -173,10 +173,11 @@ async function runOne(asset, stats) {
   log('rmbg png ' + fs.statSync(rmbgRaw).size + 'B');
 
   await sharp(rmbgRaw)
+    .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 1 })
     .resize(asset.tw, asset.th, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png({ compressionLevel: 9 })
     .toFile(finalDst);
-  log('final → ' + path.basename(finalDst) + ' (' + fs.statSync(finalDst).size + 'B)');
+  log('final → ' + path.basename(finalDst) + ' (' + fs.statSync(finalDst).size + 'B, trim+resize)');
 
   return { id: asset.id, genTid, rmbgTid, opaque: false,
            rawDst: path.relative(ROOT, rawDst), finalDst: path.relative(ROOT, finalDst),

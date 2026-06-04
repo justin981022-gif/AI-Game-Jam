@@ -125,4 +125,14 @@
 - **历史**：
   - 2026-05-27 第二轮：阶段六·B.4/B.5（22 张全量出图 + 06d 全量审核，14🟢/6🟡/2🔴）
   - 2026-05-20：阶段六·B.1/B.2/B.3 三步全量收口
-- **最后更新**：2026-06-04
+- **最后更新**：2026-06-04（R3-R8 六轮 TITLE 迭代收尾）
+- **TITLE 资产 R3→R8 六轮迭代记录（2026-06-04，aiart 计数 +6）**：
+  - **R3** 塔楼改良：圆牌人形 icon 已修但塔退化为细瓶状 + contain padding 接缝 → 驳回
+  - **R4** 双主角 + 3 探头员工 ensemble + cover-crop 16:9：构图正但静态不戏剧 → 驳回
+  - **R5** HR 被 CEO 职场欺负双人 chibi gag：戏剧到位但 cover-crop 削掉 banner/button + HR 风格漂移 → 驳回
+  - **R6** 单 HR 忙碌 + 明确 banner/button 留位 + sample-pad pipeline（resize 1080² + 4 角采样色 extend 左右 420px 至 1920×1080，根除接缝）：布局 OK 但眼球纯黑实心圆无瞳孔 + blazer 画成深炭灰非米色 + 长发非低盘 → 驳回
+  - **R7** 强化眼球结构 / blazer 颜色 / 盘发：眼球白+黑瞳+高光修复 / blazer 改回米色 / 嘴改闭嘴笑；用户要求更囧更接近 canonical A-CHR-HR
+  - **R8 ✅ 通过** 强化 canonical 匹配：半垂困倦眼 + 囧波浪嘴 + 薄荷绿裤 + 侧后盘发 + 微缩肩；A-UI-TITLE.png 落盘 1920×1080
+  - 关键工程教训（沉淀 memory `feedback_aiart_pad_must_sample_edge.md`）：opaque 资产从 1024 pad 到 16:9 时必须 **4 角采样中位数补色**，硬填规范色 #B8B5A8 必出接缝（R3 根因）
+  - aiart 限制实测：正向 prompt 长度上限约 4500 chars（5354 报错 / 4264 通过）；出图仅接受 1024×1024（720/576 报 Height invalid）
+  - cover-crop vs sample-pad：cover-crop 简单但削内容（R5 banner/button 被裁），sample-pad 保留全部内容但需采样色（R6+ 起 opaque 资产标准做法）

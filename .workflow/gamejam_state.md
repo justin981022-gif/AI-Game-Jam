@@ -18,8 +18,8 @@
 - **剩余时间**：—
 - **当前 MVP 可玩性评估**：⭐☆☆☆☆（0 星：纯文档阶段）
 - **API 成本累计**：
-  - aiart 任务数：76（v1.0 49 + v1.1 14 + E01/E02 v3 CEO 修订 2 + v1.2 BUST 11；内部服务，不计费）
-  - aiart /remove-backgrounds 调用：53（v1.0 21 + v1.1 13 + E01/E02 v3 不抠图 0 + v1.2 BUST 11；内部服务，不计费）
+  - aiart 任务数：83（v1.0 49 + v1.1 14 + E01/E02 v3 CEO 修订 2 + v1.2 BUST 11 + R2 CARD-EVENT/RESULT/RESUME/TOAST/MAIL-CEO/TITLE 修订 6 + R2 aiart-only 路径 TITLE 1；内部服务，不计费；注：实际 R2 共 6 次 aiart gen + 5 次 rmbg）
+  - aiart /remove-backgrounds 调用：58（v1.0 21 + v1.1 13 + E01/E02 v3 不抠图 0 + v1.2 BUST 11 + R2 修订 5 张走 rmbg；内部服务，不计费）
   - Gemini Flash 调用：0 次（$0.00）
   - Gemini Pro 调用：0 次（$0.00）
   - 06d 审核 token：$0.00
@@ -72,7 +72,10 @@
 | 四/五 | 战斗 ROUND_TICK ≥10 硬性约束（再上调）| 用户硬性要求"每关战斗回合数不小于 10"。balance v0.5.0 上调勇者 HP ~100%（W01-ELITE 50/80/115/180/280 → 110/220/330/440/600）+ ATK 同步降低（10/13/17/22/29 → 5/7/10/13/18）保证玩家 survive 长战斗 + DPS_UNIT 30→80 让提成坡度变缓。战斗 ROUND_TICK 由 4-9 提升到 11-13 全部 ≥10 ✓。提成总额 193→187（-6 微减），P03 触发链稳定（L03 战后 44 < 45 不变）。**B04 在 L05 由"激进策略"升级为"基本盘"**——玩家未发 B04 几乎必败 L05。balance v0.5.0、levels v1.6、atoms_spec v0.6、design_review v1.5 同步落地；新增 KI-02 长战斗专注度观察项 | 2026-06-03 |
 | 四/五 | 再次取消招募成本，恢复招募免费 | 用户决策再次取消差异化招募成本（v0.5.0 沿用 v0.3.0 引入的 6/12/10），恢复 v0.2.0 招募免费规则。balance v0.6.0 启动碎片 70→50（净启动资金等同：v0.5.0 70 - 招募 24 ≈ v0.6.0 50），招募成本列归零，账户曲线刷新（终值 75→79，最低点 7→11，更宽容）。P03 触发链稳定保留（L03 战后 42 < 45，裕度 3 比 v0.5.0 裕度 1 略宽）。爆发流 L01-L03 起步压力大幅缓解（v1.5"更紧"→ v1.6"中等"），均衡流变得"最稳"。balance v0.6.0、concept v1.3、narrative v1.6、atoms_spec v0.7、design_review v1.6 同步落地；levels 不变（招募是数值层）；勇者强度 / ROUND_TICK 11-13 / DPS_UNIT 80 全部 v0.5.0 保留 |
 | 六·B | 11 张半身像增量（v1.2） | 用户在 03_recruit mockup 中发现简历头像槽用立绘头胸裁切效果差（构图不可控、文字超出）。Producer 提议出独立"半身像" asset，用户口径「11 张（含 5 勇者）」拍板：6 candidate (HR/GROOBAS/XIAOXING/GENERIC-1/2/3) + 5 enemy (W01-W04+ELITE)，规格统一 256×256 透明 PNG。aiart 11 + rmbg 11 全量成功（173s 一次跑通，11/11）。art_asset_list v1.1→v1.2、art_layout v1.1→v1.2 同步落地，新增 §5.10 / §2.11 章节；mockup 03_recruit 切换到 BUST 头像验证布局命中。canonical 同步约束写入 11 份 prompt 文件（与立绘版 cross-prompt 一致） | 2026-06-04 |
-| 六·B | 透明资产 trim 修复（全量 40 张） | 用户反馈"atoms 中无法正确显示，是不是因为图片真实尺寸和 size 不同"。诊断：v1.0/v1.1/v1.2 batch 脚本对 rmbg 输出（1024×1024 透明 + 主体居中）直接 `resize(target, fit:'contain')`，主体只占 texture 21-47%，外围全透明 padding，Unity 等按 texture size 摆放时尺寸/对位错乱。修法：`tmp/run_trim_all.js` 对全部 40 张透明资产先 `sharp.trim({alpha:0, threshold:1})` 切除透明边再 resize。修后填充率 27%→74%（立绘）/ 45%→88%（BUST）/ 10%→90%（A-UI-BTN）/ 39-71%→98-100%（emote/icon）；canvas 尺寸不变保留 atlas 约定；同步把 trim 步骤补到 `run_aiart_v1_1.js` / `run_aiart_bust.js` 模板，避免后续出图重蹈覆辙 | 2026-06-04 | 2026-06-03 |
+| 六·B | 透明资产 trim 修复（全量 40 张） | 用户反馈"atoms 中无法正确显示，是不是因为图片真实尺寸和 size 不同"。诊断：v1.0/v1.1/v1.2 batch 脚本对 rmbg 输出（1024×1024 透明 + 主体居中）直接 `resize(target, fit:'contain')`，主体只占 texture 21-47%，外围全透明 padding，Unity 等按 texture size 摆放时尺寸/对位错乱。修法：`tmp/run_trim_all.js` 对全部 40 张透明资产先 `sharp.trim({alpha:0, threshold:1})` 切除透明边再 resize。修后填充率 27%→74%（立绘）/ 45%→88%（BUST）/ 10%→90%（A-UI-BTN）/ 39-71%→98-100%（emote/icon）；canvas 尺寸不变保留 atlas 约定；同步把 trim 步骤补到 `run_aiart_v1_1.js` / `run_aiart_bust.js` 模板，避免后续出图重蹈覆辙 | 2026-06-04 |
+| 六·B | CARD-EVENT + RESULT R2 重出去 LOREM IPSUM | 用户提交 atoms 主界面截图（tmp/screenshot/GameScene.jpeg），8 项问题之一：动作按钮 + 槽位贴的资产里中央"LOREM IPSUM/DREM IPSUM"占位文字泄漏到游戏 UI。溯源：v1 正向 prompt 自身要求"only LOREM IPSUM placeholder text shown as light grey horizontal bars"。修法：两份 prompt 删除该句，改为"ABSOLUTELY NO TEXT...pure flat cream surface ready for code-side text overlay"；反向加 LOREM IPSUM / placeholder text / latin words / chinese chars / grey text bars 等强禁忌。aiart 2 + rmbg 2 跑 219s 成功 2/2，trim 后填充率 84% (CARD-EVENT) / 66% (RESULT)。两份 prompt §审核结论 段已写入 R2 修订记录；__v2__aiart.png 历史保留 | 2026-06-04 |
+| 六·B | RESUME R2 重出去灰横条 | 用户追问"简历的 ui 是不是也需要改"。回查 A-UI-RESUME v1 同样反模式：prompt 自身要求"五条灰横条 LOREM IPSUM 占位 + 两条头部灰带"，与代码层叠加文字打架（且旧 06d 审核曾记录"RESUME"单词泄漏）。修法同 CARD-EVENT/RESULT：正向改"ONE brass header stripe ONLY + body COMPLETELY EMPTY"，反向强禁忌全套。aiart 1 + rmbg 1 跑 79s 成功 1/1。验收：干净 RESUME 模板（brass 顶带 + 白色头像槽 + 空白 body + 签名线 + 圆章位 + 4 角铜装饰），mockup 03 三张简历验证通过 | 2026-06-04 |
+| 六·B | TOAST + MAIL-CEO + TITLE R2 重出 | RESUME 修完后系统性 grep 全 prompt（`LOREM\|placeholder text\|grey bars`），扫到剩 3 张 UI 框资产同反模式：A-UI-TOAST 右侧 2 灰条；A-UI-MAIL-CEO 抬头 2+ body 4 共 6 灰条（最严重）；A-UI-TITLE 直接印可读"LOREM IPSUM"英文字（比灰条更糟）。3 份 prompt 同时修：正向改"COMPLETELY EMPTY"；反向加全套强禁忌；TITLE 显式约束"Dungeon HR is a CONCEPT, NOT to be drawn as readable text"。aiart 3 + rmbg 2（TITLE opaque 无 rmbg）= 5 调用，228s 一次成功 3/3。验收：TOAST 空白 body + 左侧 icon 槽；MAIL-CEO 空白 body + brass 分隔 + terracotta 圆章位；TITLE 副标题带空白 + 无字 Start 钮 + 魔王城塔保留 | 2026-06-04 | 2026-06-03 |
 
 ## 阻塞事项
 
@@ -98,7 +101,7 @@
   - 用户回来后决策是否 commit 数值机制 5 轮重作的 7 个文档变更（balance v0.2.0→v0.3.0→v0.4.0→v0.5.0→v0.6.0 / concept v1.1→v1.2→v1.3 / narrative v1.4→v1.5→v1.6 / levels v1.4→v1.5→v1.6 / atoms_spec v0.3→v0.4→v0.5→v0.6→v0.7 / design_review v1.2→v1.3→v1.4→v1.5→v1.6 / state.md）
   - 用户回来后决策是否 commit v1.1 增量包（14 张图 + E01/E02 v3 + 4 份美术文档增量 + state 更新）
   - 后续若要建 img2img 能力：先解决图床（公司内 OSS / 公网图床合规确认）
-  - v1.0 遗留收尾（CARD-EVENT "LOREM IPSUM" 残留 / 13 张 v3 未逐一复核 / rmbg 流程固化进 tmp/run_aiart_batch.js）— 与新工作并轨择期处理
+  - v1.0 遗留收尾（**CARD-EVENT / RESULT "LOREM IPSUM" 残留已 R2 修复 2026-06-04 ✅**；13 张 v3 未逐一复核 / rmbg 流程固化进 tmp/run_aiart_batch.js）— 与新工作并轨择期处理
   - 阶段七测试用例验收（Atoms 程序实现完成后触发；本次重作不影响 atoms 骨架）
   - Playtest 期重点观察 KI-02（长战斗 11-13 ROUND_TICK 对玩家专注度的考验，必要时调 ROUND_TICK_DURATION 1.3s→1.0s）
 - **今日进度（2026-06-02）**：

@@ -174,7 +174,7 @@ async function runOne(asset, stats) {
 
   await sharp(rmbgRaw)
     .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 1 })
-    .resize(asset.tw, asset.th, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .resize(asset.tw, asset.th, { fit: 'contain', position: 'bottom', background: { r: 0, g: 0, b: 0, alpha: 0 } })
     .png({ compressionLevel: 9 })
     .toFile(finalDst);
   log('final → ' + path.basename(finalDst) + ' (' + fs.statSync(finalDst).size + 'B, trim+resize)');

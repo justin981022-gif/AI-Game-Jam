@@ -91,9 +91,13 @@ const SPEC = {
       continue;
     }
 
-    // resize trimmed → canonical 尺寸 with fit:contain
+    // UI 类：fit:'inside' 不加 padding，输出尺寸 = 内容缩放后尺寸（≤ tw×th）
+    // 其他类：fit:'contain' + bottom，缺差按透明 padding 顶部补齐
+    const resizeOpts = cat === 'ui'
+      ? { fit: 'inside', background: { r:0, g:0, b:0, alpha:0 } }
+      : { fit: 'contain', position: 'bottom', background: { r:0, g:0, b:0, alpha:0 } };
     const out = await sharp(buf1)
-      .resize(tw, th, { fit: 'contain', background: { r:0, g:0, b:0, alpha:0 } })
+      .resize(tw, th, resizeOpts)
       .png({ compressionLevel: 9 })
       .toBuffer();
     const m2 = await sharp(out).metadata();

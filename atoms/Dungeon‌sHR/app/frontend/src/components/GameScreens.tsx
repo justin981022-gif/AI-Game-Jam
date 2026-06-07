@@ -350,26 +350,47 @@ export function PrepScreen({ g }: { g: UseGameApi }) {
           <div className="mt-auto pt-2">
             {nextLevel?.hasBattle ? (
               <>
-                <GameBtn
+                <button
                   onClick={g.startBattle}
                   disabled={g.monsters.length === 0}
-                  className={`w-full text-sm h-[60px] ${g.ap === 0 ? "animate-pulse" : ""}`}
+                  className={`relative w-full text-sm h-[70px] text-[#3D3A36] font-bold transition-all
+                    active:brightness-90 active:scale-95 disabled:opacity-50 disabled:grayscale-[0.3] disabled:cursor-not-allowed
+                    hover:brightness-110 hover:scale-[1.02] hover:-translate-y-[1px]
+                    ${g.ap === 0 ? "animate-pulse" : ""}`}
+                  style={{
+                    borderStyle: "solid",
+                    borderColor: "transparent",
+                    borderWidth: "16px 32px",
+                    borderImage: `url(${ART.btn}) 36 fill / 16px 32px / 0 stretch`,
+                    background: "transparent",
+                    outline: "none",
+                  }}
                 >
-                  ⚔️ 开战 →
-                </GameBtn>
+                  ⚔️ 开战
+                </button>
                 <div className="text-[11px] text-[#3D3A36]/60 text-center mt-1">
                   准备就绪？点击开战开始勇者突袭
                 </div>
               </>
             ) : (
               <>
-                <GameBtn
+                <button
                   onClick={g.advanceLevel}
-                  disabled={false}
-                  className={`w-full text-sm h-[60px] ${g.ap === 0 ? "animate-pulse" : ""}`}
+                  className={`relative w-full text-sm h-[70px] text-[#3D3A36] font-bold transition-all
+                    active:brightness-90 active:scale-95
+                    hover:brightness-110 hover:scale-[1.02] hover:-translate-y-[1px]
+                    ${g.ap === 0 ? "animate-pulse" : ""}`}
+                  style={{
+                    borderStyle: "solid",
+                    borderColor: "transparent",
+                    borderWidth: "16px 32px",
+                    borderImage: `url(${ART.btn}) 36 fill / 16px 6px / 0 stretch`,
+                    background: "transparent",
+                    outline: "none",
+                  }}
                 >
-                  ✅ 结束准备 →
-                </GameBtn>
+                  ✅ 准备完毕
+                </button>
                 <div className="text-[11px] text-[#3D3A36]/60 text-center mt-1">
                   本关无战斗，完成准备后进入下一关
                 </div>

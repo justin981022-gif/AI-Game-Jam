@@ -58,9 +58,24 @@ export function StoryDialog({ g }: { g: UseGameApi }) {
             {displayBody}
           </div>
           <div className="px-5 pb-4 flex justify-end">
-            <GameBtn onClick={g.closeStory}>
+            <button
+              onClick={g.closeStory}
+              className="relative px-5 py-3 text-[#3D3A36] font-bold text-base transition-all
+                active:brightness-90 active:scale-95
+                hover:brightness-110 hover:scale-[1.02] hover:-translate-y-[1px]"
+              style={{
+                minWidth: 240,
+                marginRight: -75,
+                borderStyle: "solid",
+                borderColor: "transparent",
+                borderWidth: "16px 32px",
+                borderImage: `url(${ART.btn}) 26 fill / 16px 32px / 0 stretch`,
+                background: "transparent",
+                outline: "none",
+              }}
+            >
               继续
-            </GameBtn>
+            </button>
           </div>
         </div>
       </div>
@@ -177,7 +192,7 @@ function ResumeCard({ r, onChoose }: { r: ResumeCandidate; onChoose: () => void 
               应聘者签名
             </div>
             {/* R8: 圆章位留空装饰 */}
-            <div className="w-7 h-7 rounded-full border border-[#C97A4F]/40 flex items-center justify-center text-[10px] text-[#C97A4F]/60">
+            <div className="w-[4.25rem] h-[4.25rem] rounded-full border border-[#C97A4F]/40 flex items-center justify-center text-[30px] text-[#C97A4F]/60">
               ★
             </div>
           </div>
@@ -202,7 +217,7 @@ export function RecruitDialog({ g }: { g: UseGameApi }) {
         {/* R9: 顶部信息栏 — 字号 1.6em 加粗 */}
         <div className="flex items-center justify-between shrink-0 mb-3">
           <div className={`flex items-center gap-2 text-white font-semibold ${TXT}`}>
-            <ShardIcon size={20} />
+            <ShardIcon size={36} />
             <span>× {g.shards} 灵魂碎片</span>
           </div>
           <h2 className={`font-black text-white ${TXT}`} style={{ fontSize: "1.6em" }}>
@@ -220,15 +235,26 @@ export function RecruitDialog({ g }: { g: UseGameApi }) {
           ))}
         </div>
 
-        {/* 刷新按钮 — 花费2碎片，每关最多2次 */}
+        {/* 刷新按钮 — 花费2碎片，每关最多2次；底图 ART.btn (A-UI-BTN) 用 9-slice 撑满整个按钮 div */}
         <div className="shrink-0 flex justify-center py-2">
-          <GameBtn
+          <button
             onClick={g.refreshRecruitPool}
             disabled={g.recruitRefreshLeft <= 0 || g.shards < 2}
-            style={{ minWidth: 180 }}
+            className="relative px-5 py-3 text-[#3D3A36] font-bold text-base transition-all
+              active:brightness-90 active:scale-95 disabled:opacity-50 disabled:grayscale-[0.3] disabled:cursor-not-allowed
+              hover:brightness-110 hover:scale-[1.02] hover:-translate-y-[1px]"
+            style={{
+              minWidth: 620,
+              borderStyle: "solid",
+              borderColor: "transparent",
+              borderWidth: "16px 32px",
+              borderImage: `url(${ART.btn}) 32 fill / 16px 32px / 0 stretch`,
+              background: "transparent",
+              outline: "none",
+            }}
           >
-            🔄 换一批（2💎）剩{g.recruitRefreshLeft}次
-          </GameBtn>
+            换一批（2<ShardIcon size={26} />） 剩{g.recruitRefreshLeft}次
+          </button>
         </div>
       </div>
     </div>

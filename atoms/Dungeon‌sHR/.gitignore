@@ -1,0 +1,47 @@
+# ===================================================================
+# atoms/Dungeon‌sHR 工程级 .gitignore
+# 保留打包工具源（build.bat / dev.bat / scripts/ / vite.config.singlefile.mjs / BUILD.md）
+# 排除一切中间产物 / 依赖 / 缓存 / 日志
+# 注：dist-html/Dungeon-HR.html 是要追踪的最终交付物，不在忽略列表
+# ===================================================================
+
+# ---- Vite 生产构建中间产物 ----
+/app/frontend/dist/
+/app/frontend/dist-ssr/
+
+# ---- Node 依赖（首次运行 build.bat / dev.bat 自动 npm install 生成）----
+/app/frontend/node_modules/
+/app/frontend/.pnpm-store/
+
+# ---- Vite / esbuild / 各种构建缓存 ----
+/app/frontend/.vite/
+/app/frontend/node_modules/.vite/
+/app/frontend/.cache/
+/app/frontend/.turbo/
+
+# ---- 编辑器 / OS 杂项 ----
+/app/frontend/.vscode/
+/app/frontend/.idea/
+**/.DS_Store
+**/Thumbs.db
+
+# ---- 日志 ----
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ---- 环境变量（避免误传密钥）----
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ---- TypeScript / ESLint 缓存 ----
+*.tsbuildinfo
+.eslintcache
+
+# ---- Atoms 平台运行时上传 / 临时目录（如有）----
+/uploads/

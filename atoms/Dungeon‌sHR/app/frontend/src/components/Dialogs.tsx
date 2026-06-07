@@ -21,26 +21,41 @@ function Overlay({ children }: { children: React.ReactNode }) {
 export function StoryDialog({ g }: { g: UseGameApi }) {
   if (!g.storyText) return null;
   const isEmail = g.storyText.title.includes("收件箱");
-  const bgImg = isEmail ? ART.mailCeo : ART.cardEvent;
+  // 邮件模式：body 第一行作为主题，剩余按 \n 拼回作为正文
+  const emailLines = isEmail ? g.storyText.body.split("\n") : [];
+  const emailSubject = emailLines[0] ?? "";
+  const displayBody = isEmail ? emailLines.slice(1).join("\n") : g.storyText.body;
 
   return (
     <Overlay>
       <div
         className="relative w-full max-w-lg rounded-2xl overflow-hidden"
-        style={{
-          backgroundImage: `url(${bgImg})`,
+        style={isEmail ? {
+          backgroundImage: `url(${ART.mailCeo})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
+        } : {
+          backgroundColor: "rgba(0,0,0,0.7)",
         }}
       >
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+        {/* 邮件模式：CEO 印章作为右下角装饰，与 mailCeo 背景的圆圈位对齐；层级低于 z-10 文本 */}
+        {isEmail && (
+          <img
+            src={ART.ceoStamp}
+            alt="CEO"
+            className="absolute w-[12.5rem] h-[12.5rem] rounded-full object-cover pointer-events-none"
+            style={{ bottom: 5, right: -38 }}
+          />
+        )}
         <div className="relative z-10">
-          <div className="px-5 py-3 flex items-center gap-2">
-            {isEmail && <img src={ART.ceoStamp} alt="CEO" className="w-9 h-9 rounded-full object-cover" />}
-            <div className={`text-sm font-bold text-amber-100 ${TXT}`}>{g.storyText.title}</div>
+          <div className={`${isEmail ? "pl-16 pr-5 pt-5 pb-3 flex flex-col gap-3" : "px-5 py-3 flex items-center gap-2"}`}>
+            <div className={`text-sm font-bold ${isEmail ? "text-slate-900" : "text-amber-100"} ${TXT}`}>{g.storyText.title}</div>
+            {isEmail && (
+              <div className={`text-sm font-semibold text-slate-800 ${TXT_SM}`}>{emailSubject}</div>
+            )}
           </div>
-          <div className={`px-5 py-4 text-white text-sm leading-relaxed whitespace-pre-line min-h-[80px] ${TXT_SM}`}>
-            {g.storyText.body}
+          <div className={`px-5 py-4 ${isEmail ? "text-slate-900" : "text-white"} text-sm leading-relaxed whitespace-pre-line min-h-[80px] ${TXT_SM}`}>
+            {displayBody}
           </div>
           <div className="px-5 pb-4 flex justify-end">
             <GameBtn onClick={g.closeStory}>
@@ -58,15 +73,21 @@ export function StoryDialog({ g }: { g: UseGameApi }) {
 function ResumeCard({ r, onChoose }: { r: ResumeCandidate; onChoose: () => void }) {
   return (
     <div
-      className="flex flex-col h-full cursor-pointer group"
+      className="flex flex-col h-full min-h-0 items-center justify-center cursor-pointer group"
       onClick={onChoose}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => { if (e.key === "Enter") onChoose(); }}
     >
-      {/* 卡片主容器 — 559:800 比例匹配简历图 */}
-      <div className="relative w-full overflow-hidden rounded-2xl group-hover:ring-3 group-hover:ring-[#C97A4F] group-hover:scale-[1.03] group-hover:shadow-lg group-hover:shadow-[#C97A4F]/30 transition-all duration-200"
-        style={{ backgroundColor: "#F5F0E8", aspectRatio: "559/800" }}
+      {/* 卡片主容器 — 559:800 比例匹配简历图，高度优先缩放，宽度由比例推导 + maxWidth 防超列 */}
+      <div className="relative overflow-hidden rounded-2xl group-hover:ring-3 group-hover:ring-[#C97A4F] group-hover:scale-[1.03] group-hover:shadow-lg group-hover:shadow-[#C97A4F]/30 transition-all duration-200"
+        style={{
+          backgroundColor: "#F5F0E8",
+          aspectRatio: "559/800",
+          height: "100%",
+          maxWidth: "100%",
+          width: "auto",
+        }}
       >
         {/* 简历背景图 — 容器与图片同比例，完整填充 */}
         <img
@@ -229,7 +250,6 @@ export function BonusDialog({ g }: { g: UseGameApi }) {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         <div className="relative z-10">
           <div className="px-5 py-3 flex items-center justify-between">
             <div className={`text-sm font-bold text-amber-100 flex items-center gap-2 ${TXT}`}>
@@ -241,7 +261,7 @@ export function BonusDialog({ g }: { g: UseGameApi }) {
           <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
             {active.map((m) => (
               <div key={m.id} className="relative rounded-xl p-3 overflow-hidden"
-                style={{ backgroundImage: `url(${ART.cardEvent})`, backgroundSize: "cover", backgroundPosition: "center" }}
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
               >
                 <div className="absolute inset-0 bg-black/30 pointer-events-none" />
                 <div className="relative z-10">
@@ -302,7 +322,6 @@ export function EventDialog({ g }: { g: UseGameApi }) {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         <div className="relative z-10">
           <div className="px-5 py-3 flex items-center justify-between">
             <div className={`text-sm font-bold text-violet-100 ${TXT}`}>突发事件</div>
@@ -355,15 +374,14 @@ export function NegotiateDialog({ g }: { g: UseGameApi }) {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         <div className="relative z-10">
-          <div className="px-5 py-3">
+          <div className="px-9 pt-6 pb-3">
             <div className={`text-sm font-bold text-amber-100 flex items-center gap-2 ${TXT}`}>
               <ShardIcon size={16} />
               谈薪请求
             </div>
           </div>
-          <div className="px-5 py-4">
+          <div className="px-9 py-4">
             <div className="flex items-center gap-3 mb-3">
               <img src={m.artUrl} alt={m.name} className="w-12 h-12 rounded-lg object-cover" />
               <div>
@@ -419,7 +437,7 @@ export function EvalDialog({ g }: { g: UseGameApi }) {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-black/50 pointer-events-none" />
+        <div className="absolute inset-0 bg-black/0 pointer-events-none" />
         <div className="relative z-10">
           <div className="px-5 py-3 flex items-center justify-between mt-[55px] mx-auto mb-[0px] pt-[12px] pr-[20px] pb-[12px] pl-[20px] rounded-none font-normal text-left text-[#FFFFFF] bg-[#00000000] opacity-100 w-[412px] h-[50px]">
             <div className={`drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] mt-[0px] mr-[0px] mb-[0px] ml-[30px] pt-[0px] pr-[0px] pb-[0px] pl-[0px] rounded-none text-[14px] font-bold text-[#FFFFFF] bg-[#00000000] opacity-100`}>绩效考评 (EVAL)</div>
@@ -428,7 +446,7 @@ export function EvalDialog({ g }: { g: UseGameApi }) {
           <div className="p-5 space-y-4">
             {dead.length > 0 && (
               <div className="relative rounded-xl p-3 overflow-hidden"
-                style={{ backgroundImage: `url(${ART.cardEvent})`, backgroundSize: "cover", backgroundPosition: "center" }}
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
               >
                 <div className="absolute inset-0 bg-black/40 pointer-events-none" />
                 <div className="relative z-10">
@@ -451,7 +469,7 @@ export function EvalDialog({ g }: { g: UseGameApi }) {
 
             {survived.length > 0 && (
               <div className="relative p-3 overflow-hidden mt-[0px] mr-auto mb-[0px] ml-auto pt-[12px] pr-[0px] pb-[12px] pl-[0px] rounded-xl text-[16px] font-normal text-[#FFFFFF] bg-[#00000000] opacity-100 w-[372px]"
-                style={{ backgroundImage: `url(${ART.cardEvent})`, backgroundSize: "cover", backgroundPosition: "center" }}
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
               >
                 <div className="absolute inset-0 bg-black/40 pointer-events-none" />
                 <div className="relative z-10">
@@ -473,7 +491,7 @@ export function EvalDialog({ g }: { g: UseGameApi }) {
 
             {/* 通关绩效提成明细 */}
             <div className="relative rounded-xl p-3 overflow-hidden w-[372px] mx-auto"
-              style={{ backgroundImage: `url(${ART.cardEvent})`, backgroundSize: "cover", backgroundPosition: "center" }}
+              style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
             >
               <div className="absolute inset-0 bg-black/40 pointer-events-none" />
               <div className="relative z-10 mt-[0px] mr-auto mb-[0px] ml-auto pt-[0px] pr-[0px] pb-[0px] pl-[0px] rounded-none text-[16px] font-normal text-[#FFFFFF] bg-[#00000000] opacity-100 w-[372px]">
@@ -532,7 +550,6 @@ export function DismissDialog({ g }: { g: UseGameApi }) {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
         <div className="relative z-10">
           <div className="px-5 py-3 flex items-center justify-between">
             <div className={`text-sm font-bold text-white ${TXT}`}>解雇员工</div>
@@ -542,7 +559,7 @@ export function DismissDialog({ g }: { g: UseGameApi }) {
             {active.length === 0 && <div className={`text-sm text-slate-300 text-center py-4 ${TXT_SM}`}>暂无在岗员工</div>}
             {active.map((m) => (
               <div key={m.id} className="relative flex items-center gap-3 rounded-lg p-2 overflow-hidden"
-                style={{ backgroundImage: `url(${ART.cardEvent})`, backgroundSize: "cover", backgroundPosition: "center" }}
+                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
               >
                 <div className="absolute inset-0 bg-black/30 pointer-events-none" />
                 <img src={m.artUrl} alt={m.name} className="relative z-10 w-10 h-10 rounded object-cover" />
@@ -587,7 +604,6 @@ export function EndingDialog({ g }: { g: UseGameApi }) {
           backgroundPosition: "center",
         }}
       >
-        <div className="absolute inset-0 bg-black/50 pointer-events-none" />
         <div className="relative z-10 px-5 py-6 text-center">
           <div className={`text-lg font-bold mb-3 text-amber-100 ${TXT}`}>
             {ending.title}

@@ -215,20 +215,13 @@ function LevelProgress({ idx }: { idx: number }) {
 /* ─── AP Tooltip ─── */
 function ApTooltip({ ap, apMax }: { ap: number; apMax: number }) {
   return (
-    <div className="relative group inline-flex items-center gap-1.5">
+    <div
+      className="inline-flex items-center gap-1.5 cursor-help"
+      title="行动点每关刷新。招募、发奖金、打零工各消耗 1 行动点。"
+    >
       <span className="text-lg">{"\u26A1"}</span>
       <span>行动点 {ap}/{apMax}</span>
-      <span className="cursor-help text-xs opacity-70">❓</span>
-      <div
-        className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block z-50 w-48 p-2 rounded-lg text-[11px] text-white text-center pointer-events-none"
-        style={{
-          backgroundImage: `url(${ART.toast})`,
-          backgroundSize: "100% 100%",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
-        行动点每关刷新。招募、发奖金、打零工各消耗 1 行动点。
-      </div>
+      <span className="text-xs opacity-70">❓</span>
     </div>
   );
 }
@@ -388,8 +381,7 @@ export function PrepScreen({ g }: { g: UseGameApi }) {
             <div
               className="relative mt-2 rounded-lg p-2 overflow-hidden"
               style={{
-                backgroundImage: `url(${ART.cardEvent})`,
-                backgroundSize: "100% 100%",
+                backgroundColor: "rgba(0,0,0,0.5)",
               }}
             >
               <div className="absolute inset-0 bg-black/40 pointer-events-none" />
@@ -450,9 +442,7 @@ export function BattleScreen({ g }: { g: UseGameApi }) {
       <div
         className="relative lg:col-span-2 rounded-2xl p-4 flex flex-col overflow-hidden"
         style={{
-          backgroundImage: `url(${ART.cardEvent})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundColor: "rgba(0,0,0,0.7)",
         }}
       >
         <div className="absolute inset-0 bg-black/50 pointer-events-none" />
@@ -488,9 +478,7 @@ export function BattleScreen({ g }: { g: UseGameApi }) {
         <div
           className="relative rounded-2xl p-4 overflow-hidden"
           style={{
-            backgroundImage: `url(${ART.cardEvent})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
+            backgroundColor: "rgba(0,0,0,0.7)",
           }}
         >
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />
@@ -520,9 +508,7 @@ export function BattleScreen({ g }: { g: UseGameApi }) {
         <div
           className="relative rounded-2xl p-4 overflow-hidden"
           style={{
-            backgroundImage: `url(${ART.cardEvent})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
+            backgroundColor: "rgba(0,0,0,0.7)",
           }}
         >
           <div className="absolute inset-0 bg-black/40 pointer-events-none" />

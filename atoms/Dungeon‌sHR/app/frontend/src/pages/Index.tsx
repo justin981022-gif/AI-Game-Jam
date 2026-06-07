@@ -63,9 +63,9 @@ function StartScreen({ onStart }: { onStart: () => void }) {
             onClick={onStart}
             className="absolute flex items-center justify-center cursor-pointer hover:brightness-110 transition-all duration-200 active:brightness-90"
             style={{
-              left: "54%",
+              left: "55%",
               right: "27%",
-              top: "63%",
+              top: "67%",
               bottom: "20%",
               background: "transparent",
               border: "none",

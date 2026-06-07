@@ -1,0 +1,80 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "purpose": "招募 candidate BUST 与种族/职业的映射，用于 RecruitGenerator 'BUST → name' 流程",
+    "source": "design/art_prompts/A-CHR-BUST-*.md canonical 描述提取",
+    "date": "2026-06-04",
+    "usage": "招募时先 random 抽 BUST → 读 race/role → 在 recruit_name_pool.json 对应 race 池里抽前缀拼名"
+  },
+  "candidates": {
+    "GROOBAS": {
+      "asset_id": "A-CHR-BUST-GROOBAS",
+      "asset_path": "atoms/assets/art/characters/A-CHR-BUST-GROOBAS.png",
+      "race": "史莱姆",
+      "race_en": "slime",
+      "role": "TANK",
+      "applied_position": "B1 驻守",
+      "canonical_name_locked": "格鲁巴斯",
+      "is_named_character": true,
+      "note": "narrative 主线角色，名字锁定，应聘语保留 §10 示例文案"
+    },
+    "XIAOXING": {
+      "asset_id": "A-CHR-BUST-XIAOXING",
+      "asset_path": "atoms/assets/art/characters/A-CHR-BUST-XIAOXING.png",
+      "race": "骷髅法师",
+      "race_en": "skeleton_mage",
+      "role": "RANGE",
+      "applied_position": "远程输出",
+      "canonical_name_locked": "宵星",
+      "is_named_character": true,
+      "note": "narrative 主线角色，名字锁定，应聘语保留 §10 示例文案"
+    },
+    "GENERIC-1": {
+      "asset_id": "A-CHR-BUST-GENERIC-1",
+      "asset_path": "atoms/assets/art/characters/A-CHR-BUST-GENERIC-1.png",
+      "race": "哥布林",
+      "race_en": "goblin",
+      "role": "DPS",
+      "applied_position": "近战输出",
+      "canonical_name_locked": null,
+      "is_named_character": false,
+      "note": "通用候选；prompt canonical: 安全帽 + 工装背带 + 维护锤（裁切外）；近战维护工"
+    },
+    "GENERIC-2": {
+      "asset_id": "A-CHR-BUST-GENERIC-2",
+      "asset_path": "atoms/assets/art/characters/A-CHR-BUST-GENERIC-2.png",
+      "race": "小恶魔",
+      "race_en": "imp",
+      "role": "RANGE",
+      "applied_position": "远程输出",
+      "canonical_name_locked": null,
+      "is_named_character": false,
+      "note": "通用候选；prompt canonical: 砖红皮肤 + 两小角 + 折叠蝙蝠翅 + 办公背心 + 领结；翅膀=飞行=远程"
+    },
+    "GENERIC-3": {
+      "asset_id": "A-CHR-BUST-GENERIC-3",
+      "asset_path": "atoms/assets/art/characters/A-CHR-BUST-GENERIC-3.png",
+      "race": "触手怪",
+      "race_en": "tentacle",
+      "role": "TANK",
+      "applied_position": "B1 驻守",
+      "canonical_name_locked": null,
+      "is_named_character": false,
+      "note": "通用候选；prompt canonical: 雾紫圆头 + O 形小嘴 + 清洁围裙；杂工/驻守类"
+    }
+  },
+  "role_distribution": {
+    "TANK": ["GROOBAS", "GENERIC-3"],
+    "DPS": ["GENERIC-1"],
+    "RANGE": ["XIAOXING", "GENERIC-2"]
+  },
+  "recruit_pool_rules": {
+    "candidates_per_draw": 3,
+    "draw_without_replacement": true,
+    "named_character_unlock_rules": {
+      "GROOBAS": "L01 招募池保底出现一次（narrative 钩子）",
+      "XIAOXING": "L02+ 招募池可出"
+    },
+    "fallback_when_named_locked": "如 GROOBAS/XIAOXING 已被招/已被跳过，则从 GENERIC-1/2/3 补足 3 张"
+  }
+}

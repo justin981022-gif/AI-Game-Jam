@@ -1,0 +1,188 @@
+{
+  "status": "success",
+  "results": [
+    {
+      "status": "failed",
+      "path": "",
+      "absolute_path": "",
+      "url": "",
+      "message": "Image generation failed: Image creation failed: HTTP 400 error: {\"error\":{\"message\":\"Transparent background is not supported for this model. (request id: 202606012252401804139390146964)\",\"type\":\"image_generation_user_error\",\"param\":\"background\",\"code\":\"invalid_value\"}}",
+      "description": "Cute cartoon blue slime monster wearing a tiny business suit, employee ID badge, holding a small briefcase, tired office-worker expression, centered character portrait, dungeon office vibe",
+      "style": "cartoon",
+      "filename": "monster_slime_blue.png"
+    },
+    {
+      "status": "failed",
+      "path": "",
+      "absolute_path": "",
+      "url": "",
+      "message": "Image generation failed: Image creation failed: HTTP 400 error: {\"error\":{\"message\":\"Transparent background is not supported for this model. (request id: 202606012252402020848402961475)\",\"type\":\"image_generation_user_error\",\"param\":\"background\",\"code\":\"invalid_value\"}}",
+      "description": "Cartoon skeleton mage wearing an oversized wizard robe with a loosened necktie, books stuffed in a satchel, casting a faint purple glow, weary scholarly expression, centered character portrait",
+      "style": "cartoon",
+      "filename": "monster_skeleton_mage.png"
+    },
+    {
+      "status": "failed",
+      "path": "",
+      "absolute_path": "",
+      "url": "",
+      "message": "Image generation failed: Image creation failed: HTTP 400 error: {\"error\":{\"message\":\"Transparent background is not supported for this model. (request id: 202606012252401799136577106333)\",\"type\":\"image_generation_user_error\",\"param\":\"background\",\"code\":\"invalid_value\"}}",
+      "description": "Cartoon green goblin monster office worker with a small tie, friendly nervous look, centered character portrait, fantasy dungeon corporate style",
+      "style": "cartoon",
+      "filename": "monster_generic_a.png"
+    },
+    {
+      "status": "failed",
+      "path": "",
+      "absolute_path": "",
+      "url": "",
+      "message": "Image generation failed: Image creation failed: HTTP 400 error: {\"error\":{\"message\":\"Transparent background is not supported for this model. (request id: 202606012252401922384205664247)\",\"type\":\"image_generation_user_error\",\"param\":\"background\",\"code\":\"invalid_value\"}}",
+      "description": "Cartoon orange imp monster with small horns wearing a work vest, mischievous tired expression, centered character portrait, fantasy dungeon corporate style",
+      "style": "cartoon",
+      "filename": "monster_generic_b.png"
+    },
+    {
+      "status": "failed",
+      "path": "",
+      "absolute_path": "",
+      "url": "",
+      "message": "Image generation failed: Image creation failed: HTTP 400 error: {\"error\":{\"message\":\"Transparent background is not supported for this model. (request id: 2026060122524115326806087685709)\",\"type\":\"image_generation_user_error\",\"param\":\"background\",\"code\":\"invalid_value\"}}",
+      "description": "Cartoon purple mushroom monster with a lanyard badge, calm bored expression, centered character portrait, fantasy dungeon corporate style",
+      "style": "cartoon",
+      "filename": "monster_generic_c.png"
+    },
+    {
+      "status": "failed",
+      "path": "",
+      "absolute_path": "",
+      "url": "",
+      "message": "Image generation failed: Image creation failed: HTTP 400 error: {\"error\":{\"message\":\"Transparent background is not supported for this model. (request id: 2026060122524115357240580937262)\",\"type\":\"image_generation_user_error\",\"param\":\"background\",\"code\":\"invalid_value\"}}",
+      "description": "Cartoon heroic adventurer knight with sword and shield, standard fantasy hero armor, determined pose, centered full character, bright heroic colors",
+      "style": "cartoon",
+      "filename": "hero_warrior.png"
+    },
+    {
+      "status": "failed",
+      "path": "",
+      "absolute_path": "",
+      "url": "",
+      "message": "Image generation failed: Image creation failed: HTTP 400 error: {\"error\":{\"message\":\"Transparent background is not supported for this model. (request id: 2026060122524115418412068413435)\",\"type\":\"image_generation_user_error\",\"param\":\"background\",\"code\":\"invalid_value\"}}",
+      "description": "Cartoon elite champion hero in golden ornate armor with glowing legendary sword, intimidating powerful pose, centered full character, epic fantasy boss style",
+      "style": "cartoon",
+      "filename": "hero_elite.png"
+    },
+    {
+      "status": "failed",
+      "path": "",
+      "absolute_path": "",
+      "url": "",
+      "message": "Image generation failed: Image creation failed: HTTP 400 error: {\"error\":{\"message\":\"Transparent background is not supported for this model. (request id: 2026060122524115411610606209811)\",\"type\":\"image_generation_user_error\",\"param\":\"background\",\"code\":\"invalid_value\"}}",
+      "description": "Cartoon demon lord CEO with large curved horns, dark sunglasses, sharp business suit, holding a financial report, confident corporate villain, centered portrait headshot",
+      "style": "cartoon",
+      "filename": "char_ceo.png"
+    },
+    {
+      "status": "success",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxee2jaaahgq/bg_office_b1.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxee2jaaahgq/bg_office_b1.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxee2jaaahgq/bg_office_b1.png",
+      "message": "Image generated successfully.\n\nNote: The image is on CDN and will be displayed automatically. Just describe what you created briefly, no need to mention filenames or URLs.",
+      "description": "Dark fantasy dungeon office interior background, stone walls with modern office desks cubicles and torches, moody cinematic lighting, wide game scene, no characters",
+      "style": "cartoon",
+      "filename": "bg_office_b1.jpg"
+    },
+    {
+      "status": "success",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxee2oqaahha/bg_battle_b1.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxee2oqaahha/bg_battle_b1.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxee2oqaahha/bg_battle_b1.png",
+      "message": "Image generated successfully.\n\nNote: The image is on CDN and will be displayed automatically. Just describe what you created briefly, no need to mention filenames or URLs.",
+      "description": "Dark fantasy dungeon battle arena entrance background, dramatic torchlit stone corridor with glowing runes, cinematic moody atmosphere, wide game scene, no characters",
+      "style": "cartoon",
+      "filename": "bg_battle_b1.jpg"
+    },
+    {
+      "status": "success",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxeftdqaahhq/monster_slime_blue.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxeftdqaahhq/monster_slime_blue.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxeftdqaahhq/monster_slime_blue.png",
+      "message": "Image generated successfully.\n\nNote: The image is on CDN and will be displayed automatically. Just describe what you created briefly, no need to mention filenames or URLs.",
+      "description": "Cute cartoon blue slime monster wearing a tiny business suit and employee ID badge, holding a small briefcase, tired office-worker expression, centered character on a plain soft dark studio background, dungeon office vibe",
+      "style": "cartoon",
+      "filename": "monster_slime_blue.png"
+    },
+    {
+      "status": "success",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxeftiiaahga/monster_skeleton_mage.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxeftiiaahga/monster_skeleton_mage.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxeftiiaahga/monster_skeleton_mage.png",
+      "message": "Image generated successfully.\n\nNote: The image is on CDN and will be displayed automatically. Just describe what you created briefly, no need to mention filenames or URLs.",
+      "description": "Cartoon skeleton mage wearing an oversized wizard robe with a loosened necktie, books stuffed in a satchel, faint purple glow, weary scholarly expression, centered character on a plain soft dark studio background",
+      "style": "cartoon",
+      "filename": "monster_skeleton_mage.png"
+    },
+    {
+      "status": "success",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxefteiaahgq/monster_generic_a.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxefteiaahgq/monster_generic_a.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxefteiaahgq/monster_generic_a.png",
+      "message": "Image generated successfully.\n\nNote: The image is on CDN and will be displayed automatically. Just describe what you created briefly, no need to mention filenames or URLs.",
+      "description": "Cartoon green goblin monster office worker with a small tie, friendly nervous look, centered character on a plain soft dark studio background, fantasy dungeon corporate style",
+      "style": "cartoon",
+      "filename": "monster_generic_a.png"
+    },
+    {
+      "status": "success",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxefsfyaahfq/monster_generic_b.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxefsfyaahfq/monster_generic_b.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxefsfyaahfq/monster_generic_b.png",
+      "message": "Image generated successfully.\n\nNote: The image is on CDN and will be displayed automatically. Just describe what you created briefly, no need to mention filenames or URLs.",
+      "description": "Cartoon orange imp monster with small horns wearing a work vest, mischievous tired expression, centered character on a plain soft dark studio background, fantasy dungeon corporate style",
+      "style": "cartoon",
+      "filename": "monster_generic_b.png"
+    },
+    {
+      "status": "success",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxegfwaaahga/monster_generic_c.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxegfwaaahga/monster_generic_c.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxegfwaaahga/monster_generic_c.png",
+      "message": "Image generated successfully.\n\nNote: The image is on CDN and will be displayed automatically. Just describe what you created briefly, no need to mention filenames or URLs.",
+      "description": "Cartoon purple mushroom monster with a lanyard badge, calm bored expression, centered character on a plain soft dark studio background, fantasy dungeon corporate style",
+      "style": "cartoon",
+      "filename": "monster_generic_c.png"
+    },
+    {
+      "status": "success",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxegfcyaahfq/hero_warrior.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxegfcyaahfq/hero_warrior.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxegfcyaahfq/hero_warrior.png",
+      "message": "Image generated successfully.\n\nNote: The image is on CDN and will be displayed automatically. Just describe what you created briefly, no need to mention filenames or URLs.",
+      "description": "Cartoon heroic adventurer knight with sword and shield, standard fantasy hero armor, determined pose, centered character on a plain soft light studio background, bright heroic colors",
+      "style": "cartoon",
+      "filename": "hero_warrior.png"
+    },
+    {
+      "status": "success",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxeggoiaahgq/hero_elite.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxeggoiaahgq/hero_elite.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxeggoiaahgq/hero_elite.png",
+      "message": "Image generated successfully.\n\nNote: The image is on CDN and will be displayed automatically. Just describe what you created briefly, no need to mention filenames or URLs.",
+      "description": "Cartoon elite champion hero in golden ornate armor with glowing legendary sword, intimidating powerful pose, centered character on a plain soft dark studio background, epic fantasy boss style",
+      "style": "cartoon",
+      "filename": "hero_elite.png"
+    },
+    {
+      "status": "success",
+      "path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxegeqqaahha/char_ceo.png",
+      "absolute_path": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxegeqqaahha/char_ceo.png",
+      "url": "https://mgx-backend-cdn.metadl.com/generate/images/1305315/2026-06-01/pxegeqqaahha/char_ceo.png",
+      "message": "Image generated successfully.\n\nNote: The image is on CDN and will be displayed automatically. Just describe what you created briefly, no need to mention filenames or URLs.",
+      "description": "Cartoon demon lord CEO with large curved horns, dark sunglasses, sharp business suit, holding a financial report, confident corporate villain, centered portrait headshot on a plain soft dark studio background",
+      "style": "cartoon",
+      "filename": "char_ceo.png"
+    }
+  ],
+  "success_count": 8,
+  "failed_count": 0,
+  "message": "Generated 8/8 images"
+}

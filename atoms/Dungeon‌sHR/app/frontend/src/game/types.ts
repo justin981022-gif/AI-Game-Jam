@@ -1,0 +1,207 @@
+// 《地下城打工人 (Dungeon HR)》全部类型与枚举定义
+
+export type GameState =
+  | "GAME_INIT"
+  | "MAIN_PREP"
+  | "BATTLE"
+  | "EVAL"
+  | "ENDING"
+  | "GAME_OVER";
+
+export type MonsterStateTag = "active" | "negative" | "quit" | "dead";
+
+// 怪物模板类型
+export type MonsterTemplate = "MON_TANK" | "MON_DPS" | "MON_RANGE";
+
+// 词条 ID
+export type TraitId =
+  | "tough" // 吃苦耐劳
+  | "glass" // 易燃体质
+  | "team_player" // 团队协作
+  | "cancer" // 团队毒瘤
+  | "lone_wolf" // 社恐
+  | "cheap_skate" // 省钱攒学费
+  | "loyalty" // 怀旧情绪
+  | "nostalgic" // 末位淘汰恐惧
+  | "slacker" // 消极怠工
+  | "contract_pending"; // 合同未签
+
+export interface TraitDef {
+  id: TraitId;
+  name: string;
+  type: "positive" | "neutral" | "negative";
+  desc: string;
+  hidden: boolean;
+}
+
+export interface Monster {
+  id: string;
+  name: string;
+  species: string;
+  template: MonsterTemplate;
+  role: string;
+  artUrl: string;
+  baseHpMax: number;
+  baseAtk: number;
+  hp: number;
+  hpMax: number;
+  atk: number;
+  speed: number;
+  critRate: number;
+  level: number;
+  battlesSurvived: number;
+  salary: number;
+  traitsVisible: TraitId[];
+  traitHidden: TraitId | null;
+  traitHiddenRevealed: boolean;
+  // 本场战斗运行期附加词条（如 contract_pending / slacker）
+  runtimeTraits: TraitId[];
+  personalNote: string;
+  state: MonsterStateTag;
+  hasFoughtOnce: boolean;
+  bonusAtkMult: number; // 发奖金本场 ATK 倍率（1.0 = 无奖金）
+  // 本场临时效果
+  tempAtkMult: number; // 倍率（事件用）
+  skipNextRound: boolean;
+  nextRoundAtkPct: number;
+  // 消极怠工持续追踪
+  slackerBattlesLeft: number; // 消极怠工剩余场次（0=无效果）
+  // 统计
+  damageDealt: number;
+  hits: number;
+  attempts: number;
+  noDamageStreak: number;
+}
+
+export interface ResumeCandidate {
+  id: string;
+  name: string;
+  species: string;
+  template: MonsterTemplate;
+  artUrl: string;
+  bustAsset: string; // BUST 半身像路径
+  position: string; // 应聘岗位显示文本（B1 驻守 / 近战输出 / 远程输出）
+  tenureYears: number;
+  performanceRecord: string;
+  salaryExpectation: string;
+  personalNote: string; // 内心泄露句
+  hp: number;
+  atk: number;
+  speed: number;
+  critRate: number;
+  salary: number; // 日薪
+  traitsVisible: TraitId[];
+  traitHidden: TraitId | null;
+}
+
+export interface HeroDef {
+  id: string;
+  name: string;
+  hp: number;
+  atk: number;
+  critRate: number;
+}
+
+export interface Hero extends HeroDef {
+  hpMax: number;
+  // 临时效果
+  atkPctThisRound: number;
+  atkPctNextRound: number;
+  forcedSkip: boolean; // 被迫暂停一回合
+  hasCritOnce: boolean;
+}
+
+export type EventEffect = Record<string, number | string | boolean>;
+
+export interface EventOption {
+  label: string;
+  sub?: string;
+  effect: EventEffect;
+}
+
+export interface GameEvent {
+  id: string;
+  triggerCondition: string;
+  triggerProbability: number;
+  availableLevels: string[];
+  cardText: string;
+  options: [EventOption, EventOption];
+  timeoutDefault: 0 | 1;
+}
+
+export interface LevelDef {
+  id: string;
+  title: string;
+  hasBattle: boolean;
+  heroId: string | null;
+  eventPool: string[];
+  difficulty: number;
+  apBonus: number;
+  forcedCasualty: boolean; // L03 强制阵亡（数值阈值+兜底）
+}
+
+export interface LogEntry {
+  id: number;
+  text: string;
+  kind: "info" | "monster" | "hero" | "crit" | "death" | "event" | "system";
+}
+
+export interface BattleLogTemplates {
+  monsterHit: string[];
+  heroHit: string[];
+  monsterMiss: string[];
+  heroMiss: string[];
+  crit: string[];
+  death: string[];
+}
+
+export interface TriggerText {
+  id: string;
+  title: string;
+  body: string;
+}
+
+export interface EndingDef {
+  id: string;
+  title: string;
+  body: string;
+  tone: "good" | "bad";
+}
+
+export interface PendingEvent {
+  event: GameEvent;
+  monsterId?: string; // 与该事件相关的怪物
+}
+
+// 谈薪请求
+export interface NegotiateRequest {
+  monsterId: string;
+  delta: number;
+}
+
+// 奖金等级
+export type BonusTier = "small" | "medium" | "large";
+
+export interface BonusTierDef {
+  cost: number;
+  atkMult: number;
+  label: string;
+}
+
+// 通关绩效提成明细
+export interface RewardBreakdown {
+  completionBase: number;
+  surviveReward: number;
+  surviveCount: number;
+  dpsReward: number;
+  totalDamage: number;
+  total: number;
+}
+
+export interface EvalReport {
+  survived: Monster[];
+  dead: Monster[];
+  pensionPaid: number;
+  leveledUp: string[];
+  reward: RewardBreakdown;
+}

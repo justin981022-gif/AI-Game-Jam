@@ -1,0 +1,15 @@
+{
+  "feature_id": "narrative_v1.3",
+  "title": "narrative.md v1.2 → v1.3 修订（按 final-plan.md v1.0 融合方案）",
+  "created_by": "chuwen-huang",
+  "created_at": "2026-05-09",
+  "narrative": "confirmed",
+  "confirmed_at": "2026-05-09",
+  "self_check": {
+    "all_red_done": true,
+    "all_yellow_done": true,
+    "changelog_added": true,
+    "version_bumped": "v1.2 -> v1.3",
+    "no_out_of_scope_content": true
+  }
+}

@@ -2,36 +2,45 @@
 chcp 65001 > nul
 setlocal
 
-REM Windows 一键启动 Vite dev server（带 HMR 热更新）
-REM 用法：双击 dev.bat
-REM 默认浏览器自动打开 http://localhost:3000
-
 cd /d "%~dp0app\frontend"
 
 where node > nul 2>&1
 if errorlevel 1 (
-    echo [dev] 错误：未检测到 Node.js，请先装 Node 18+
+    echo.
+    echo [ERROR] Node.js not found in PATH.
+    echo Install Node 20+ from https://nodejs.org/
+    echo.
     pause
     exit /b 1
 )
 
 if not exist node_modules (
-    echo [dev] node_modules 缺失，先装依赖（约 3-5 分钟）...
+    echo [dev] node_modules missing, installing dependencies. First run takes 3-5 min...
     where pnpm > nul 2>&1
-    if not errorlevel 1 (
-        pnpm install
-    ) else (
+    if errorlevel 1 (
         npm install --no-audit --no-fund --legacy-peer-deps
+    ) else (
+        pnpm install
+    )
+    if errorlevel 1 (
+        echo.
+        echo [ERROR] Dependency install failed.
+        pause
+        exit /b 1
     )
 )
 
-echo [dev] 启动 Vite dev server...
-echo [dev] 浏览器将自动打开 http://localhost:3000
-echo [dev] 改 src/ 下任何 .tsx / .ts / .css 文件保存后浏览器自动刷新
-echo [dev] 按 Ctrl+C 停止
+echo.
+echo [dev] Starting Vite dev server...
+echo [dev] Browser will open http://localhost:3000 in 5 seconds.
+echo [dev] Edit any .tsx / .ts / .css under src/ and save - browser auto reloads.
+echo [dev] Press Ctrl+C to stop.
 echo.
 
-REM 5 秒后自动开浏览器（让 vite 先把端口监听起来）
 start /b "" cmd /c "timeout /t 5 /nobreak > nul && start http://localhost:3000"
 
 npx vite --host 0.0.0.0 --port 3000
+
+echo.
+echo [dev] Server stopped.
+pause

@@ -163,9 +163,10 @@ atoms/assets/art/
 
 | Asset ID | 尺寸 | 9-slice 横向（左/中/右） | 9-slice 纵向（上/中/下） | 圆角 | 关键约束 |
 |----------|------|-------------------------|-------------------------|-----|---------|
-| A-UI-CARD-EVENT | 900×600 | **32 / 836 / 32** | **32 / 536 / 32** | 24px | 顶部黄铜金细装饰条限制在上 80px 标题区；四角装饰限制在 32×32 安全区内 |
+| A-UI-CARD-EVENT | 900×600 | **32 / 836 / 32** | **32 / 536 / 32** | 24px | 顶部黄铜金细装饰条限制在上 96px 标题区；底部预留两个纵向排列按钮槽；四角装饰限制在 32×32 安全区内 |
 | A-UI-MAIL-CEO | 800×500 | **40 / 720 / 40** | **40 / 420 / 40** | 16px | 折角与红章预留圆位置于中央可拉伸区时**禁止 9-slice 拉伸**，由 Atoms 端按相对锚点叠加 |
 | A-UI-RESUME | 600×800 | **32 / 536 / 32** | **32 / 736 / 32** | 16px | 头像预留位与签名印章位禁止参与拉伸；A4 比例公文 |
+| A-UI-NEGOTIATE | 700×420 | **32 / 636 / 32** | **32 / 356 / 32** | 18px | 谈薪专用小面板：顶部标题带 + 中部员工/薪资信息区 + 底部左右双按钮槽；无事件倒计时圆 / 无结算分区 |
 
 **通用规则**：
 
@@ -394,7 +395,7 @@ atoms/assets/art/
 | A-ENE-W03 | L04 | 同上 | 同上 |
 | A-ENE-W04 | L05 | 同上 | 同上 |
 | A-ENE-ELITE | L06 | 同上 | 同上 |
-| A-UI-CARD-EVENT | T04 教学 / B01–B07 战斗突发事件 / C01 入职 / T05 绩效备忘录 / BATTLELOG | **9-slice 三段**：上 80px 标题 + 中 360px 正文 + 下 120px 双选项；文案来自 narrative §战斗突发事件表 / §剧情触发点 | `EventCardPanel` + `EventCardConfig` |
+| A-UI-CARD-EVENT | T04 教学 / B01–B07 战斗突发事件 / C01 入职 / T05 绩效备忘录 / BATTLELOG | **9-slice 三段**：上 96px 标题 + 中 284px 正文 + 下 220px 双选项；两个选项按钮必须上下纵向排列；当前落盘为单层扁平面板，无投影/无右下偏移层；文案来自 narrative §战斗突发事件表 / §剧情触发点 | `EventCardPanel` + `EventCardConfig` |
 | A-UI-MAIL-CEO | T01 入职欢迎 / P04 中期审计 / T06 路演倒计时 / T07 上市钟邮件 | 全屏邮件公文体；文案来自 narrative T01/P04/T06/T07 | `CEOMailPanel` |
 | A-UI-RESUME | L01 招募 / 各关补员；3 选 1 时并排 3 张 | 简历正文（姓名/年限/期望/隐藏词条占位/内心泄露句）；生成规则见 narrative §简历语气规范 §随机生成规则 | `ResumeCardPanel` + `ResumeGenerator` |
 | A-UI-HPBAR | L02–L06 战斗 HUD（每个怪物 + 每个勇者各一根） | 中央可叠数字 HP 文本（可选） | `HPBarView` |
@@ -407,8 +408,9 @@ atoms/assets/art/
 | A-END-E04 | L07 失败②：碎片归零无法付薪 | 下方字幕带；文案 narrative E04 + 格鲁巴斯最后留言 | 同上 |
 | A-EMOTE-CEO-STAMP | A-UI-MAIL-CEO 右下角装饰（每封 CEO 邮件都贴） | 无（图本体含 "CEO" 占位形状，不再叠字） | `CEOMailPanel` 子层 |
 | A-UI-TITLE | 游戏启动 splash / 主菜单背景 | **下方留白可叠**：副标题 / "点击开始" CTA / 制作人滚动 | `TitleScene` |
-| A-UI-RESULT | 每波战斗结束的结算弹窗 / P05 净亏损提示 | **三段式**：上 100px 标题（"第 N 波结算"）+ 中部行项（灵魂碎片收支 / 阵亡名单 / 各员工绩效评级章贴位）+ 底部 CTA（"继续"） | `WaveResultPanel` |
-| A-UI-TOAST | T02 / T03 / T04 教学浮层 / 其它教学性瞬时提示 | 9-slice 内单行短文本（≤ 20 汉字），含一个指向 anchor 的小三角 | `ToastTutorialView` |
+| A-UI-RESULT | 每波战斗结束的结算弹窗 / P05 净亏损提示 | **四区固定排版**：顶部标题 + 右上评级章；中上存活/阵亡员工滚动 roster；中部 KPI 奖金明细滚动区（净收支并入末行）；底部仅保留单个继续按钮槽。当前落盘为程序化单层扁平面板，前端按底图坐标绝对定位文字 | `WaveResultPanel` |
+| A-UI-NEGOTIATE | P02 谈薪请求弹窗 | 顶部标题；中部员工头像 / 当前日薪 / 加薪幅度 / 拒绝后果；底部左右两个按钮槽（批准加薪 / 拒绝） | `NegotiateDialog` |
+| A-UI-TOAST | 历史教学浮层底图（当前游戏内 toast 不再挂载图片） | 当前实现统一为 CSS 透明黑底：`bg-black/70` + 白字 + 轻边框；T04 教学提示在事件面板上方，普通 toast 在右下角队列 | `ToastTutorialView` / `ToastContainer` |
 | A-UI-ICO-PAUSE | 全局 HUD 右上角 / 暂停按钮 | 无 | `SystemBtn`（按 id 切图） |
 | A-UI-ICO-VOLUME | 全局 HUD 右上角 / 音量按钮（点击切静音状态由代码 tint） | 无 | 同上 |
 | A-UI-ICO-RESTART | 失败结局 / 暂停菜单的"重开本关" | 无 | 同上 |

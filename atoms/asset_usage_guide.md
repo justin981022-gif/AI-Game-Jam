@@ -148,7 +148,7 @@ A-PROP-*     → atoms/assets/art/props/<id>.png
   2. A-UI-CARD-EVENT 作为卡片底
   3. A-UI-TIMER 在卡片顶部居中（按 10s 减少）
   4. 卡片中间放事件文本（来自 narrative B01-B07/C01 的 `card_text`）
-  5. 卡片底部两个 A-UI-BTN（选项 A / 选项 B）
+  5. 卡片底部两个 A-UI-BTN，上下纵向排列（选项 A 在上 / 选项 B 在下）
 
 ---
 
@@ -159,6 +159,7 @@ A-PROP-*     → atoms/assets/art/props/<id>.png
 | Asset ID | 文件路径 | 用途 | 触发位置 |
 |----------|---------|------|---------|
 | `A-UI-RESULT` | [`ui/A-UI-RESULT.png`](assets/art/ui/A-UI-RESULT.png) | 波次结算面板底图 | 状态机 `EVAL` 进入时显示 |
+| `A-UI-NEGOTIATE` | [`ui/A-UI-NEGOTIATE.png`](assets/art/ui/A-UI-NEGOTIATE.png) | 谈薪请求专用面板底图 | `P02` / 谈薪请求弹窗，含员工信息区与批准/拒绝双按钮槽 |
 | `A-EMOTE-RANK-S` | [`emotes/A-EMOTE-RANK-S.png`](assets/art/emotes/A-EMOTE-RANK-S.png) | 绩效评级章 S（最高档·黄铜金）| EVAL 屏存活分加权高 + 全员存活时的盖章位 |
 | `A-EMOTE-RANK-A` | [`emotes/A-EMOTE-RANK-A.png`](assets/art/emotes/A-EMOTE-RANK-A.png) | 绩效评级章 A（次高档·陶土橘）| EVAL 屏：good 路径（少阵亡 + 高 DPS）|
 | `A-EMOTE-RANK-B` | [`emotes/A-EMOTE-RANK-B.png`](assets/art/emotes/A-EMOTE-RANK-B.png) | 绩效评级章 B（中档·灰薄荷绿）| EVAL 屏：中位通关（默认主线 1 阵亡）|
@@ -168,7 +169,8 @@ A-PROP-*     → atoms/assets/art/props/<id>.png
 | `A-PROP-SHARD-ICON` | （已列出）| 抚恤金 / 通关绩效提成的碎片图标 | EVAL 每条 +/- 数值前缀 |
 
 **Atoms 实现指引**：
-- A-UI-RESULT 作为面板底，atoms 在其上渲染：阵亡名单 / KPI 达成奖金分项 / 存活表现 / 评级章 / 继续按钮
+- A-UI-RESULT 作为面板底，atoms 在其上按固定坐标渲染：顶部标题 + 评级章、存活/阵亡员工滚动 roster、KPI 奖金分项滚动区（净收支并入末行）、继续按钮；避免再用半透明大黑块覆盖底图分区
+- A-UI-NEGOTIATE 作为谈薪专用小面板，atoms 在其上渲染发起员工头像、当前日薪、加薪幅度、拒绝后果、批准/拒绝两个按钮
 - 绩效评级章选择规则（建议公式）：
   - **S**：全员存活 + DPS 项 ≥ 主线期望 130%
   - **A**：全员存活 + DPS 项 ≥ 100% / 或 1 阵亡 + DPS ≥ 130%
@@ -202,11 +204,11 @@ A-PROP-*     → atoms/assets/art/props/<id>.png
 
 | Asset ID | 文件路径 | 用途 | 触发位置 |
 |----------|---------|------|---------|
-| `A-UI-TOAST` | [`ui/A-UI-TOAST.png`](assets/art/ui/A-UI-TOAST.png) | 教学浮层气泡底图 | **T02 招募提示**（L01 首次打开招募界面）/ **T04 突发卡片教学**（L02 首次触发突发事件，附"超时=不利"提示）/ **打零工教学引导**（L01 末，levels.md v1.4 教学表新增）|
+| `A-UI-TOAST` | [`ui/A-UI-TOAST.png`](assets/art/ui/A-UI-TOAST.png) | 历史教学浮层底图（当前游戏内 toast 已改为纯 CSS 透明黑底，不再挂载图片） | 保留作美术历史 / 兜底资源 |
 
 **Atoms 实现指引**：
-- 浮层 toast，从相关按钮指向气泡指针，atoms 在 A-UI-TOAST 上叠加教学文本
-- T02 指向"招募"按钮；T04 指向倒计时圆环；打零工教学指向"打零工"按钮
+- 游戏内 toast 统一使用 CSS：`bg-black/70` + `border-white/10` + 白字，不再叠 `A-UI-TOAST`
+- T04 突发教学提示显示在事件面板上方；普通瞬时提示显示在右下角 toast 队列
 
 ---
 
@@ -417,6 +419,7 @@ A-PROP-*     → atoms/assets/art/props/<id>.png
 | `A-CHR-*` 立绘 | 256×256 头像圆框纯色 + 角色名首字 |
 | `A-ENE-W01-W04` | 5 张梯度可降级为 1 张 + 头顶等级数字标签（W01/W02 等）|
 | `A-UI-CARD-EVENT` | 9-slice 纯色矩形 + 描边 |
+| `A-UI-TOAST` | CSS 透明黑底 toast（`bg-black/70` + 白字） |
 | `A-END-E01-E04` | **不可降级**（叙事关键收割点）；若加载失败建议直接 abort 并提示 |
 | `A-EMOTE-CEO-STAMP` | 纯 `#C97B5C` 印章圆 + "CEO" 文字 |
 | 其他 UI / 图标 | 用 atoms 默认 UI 风格代替（不影响游戏可玩性）|

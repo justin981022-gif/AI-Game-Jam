@@ -41,7 +41,7 @@ export const ART = {
   mailCeo: "/art/ui/A-UI-MAIL-CEO.png",
   resume: "/art/ui/A-UI-RESUME.png",
   result: "/art/ui/A-UI-RESULT.png",
-  toast: "/art/ui/A-UI-TOAST.png",
+  negotiate: "/art/ui/A-UI-NEGOTIATE.png",
   hpbar: "/art/ui/A-UI-HPBAR.png",
   timer: "/art/ui/A-UI-TIMER.png",
   btn: "/art/ui/A-UI-BTN.png",

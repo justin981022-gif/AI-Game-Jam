@@ -82,6 +82,18 @@ photograph, 3D perspective, drop shadows, neon colors, fantasy parchment, ornate
   - pipeline 同步：`run_aiart_repair_v2.js` 已包含 trim 步骤（rmbg → trim → resize 900×700 contain）
 - 验收：图本体完全无文字；4 角铜色装饰 + 标题带 + 三段子分区（mint/brick 角标 + 圆形 RANK 章位 dashed outline）+ 底部 2 按钮位结构清晰；用户 2026-06-04 在 mockup 07 验证通过
 
+### codegen-R3 @ 2026-06-10（胜利结算界面重新排版）
+- 触发：用户实机截图反馈胜利结算界面内容拥挤，半透明黑块与底图分区/底部按钮区互相覆盖。
+- 修订点：
+  - 不再继续消耗 aiart；直接用程序化 SVG → PNG 生成 900×700 单层扁平结算面板。
+  - 布局改为四区固定排版：顶部标题 + 右上评级章；中上存活/阵亡员工区；中部 KPI 奖金明细；底部净收支 + 单个继续按钮槽。
+  - 去除旧版右下巨大虚线评级章位和底部分栏线，避免与前端内容冲突。
+- 落盘文件：
+  - `atoms/assets/art/ui/A-UI-RESULT.png`
+  - `atoms/Dungeon‌sHR/app/frontend/public/art/ui/A-UI-RESULT.png`
+  - `atoms/Dungeon‌sHR/assets/art/ui/A-UI-RESULT.png`
+- 前端同步：`EvalDialog` 改为 `aspect-[9/7]` 固定面板，内容按底图坐标绝对定位，移除大面积半透明黑底内容块。
+
 ### Flash#1 @ <时间戳>
 - 模型：`gemini-2.5-flash-image`
 - 文件：`atoms/assets/art/ui/A-UI-RESULT__v1__flash.png`

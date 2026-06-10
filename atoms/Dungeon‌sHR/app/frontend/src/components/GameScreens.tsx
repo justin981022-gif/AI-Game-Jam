@@ -239,9 +239,7 @@ export function TopBar({ g }: { g: UseGameApi }) {
           <ShardIcon size={36} />
           <span>灵魂碎片 {g.shards}</span>
           {g.economyWarning && (
-            <span className={`text-[10px] text-rose-100 px-1.5 py-0.5 rounded ${TXT_SM}`}
-              style={{ backgroundImage: `url(${ART.toast})`, backgroundSize: "100% 100%" }}
-            >储备告急</span>
+            <span className="rounded border border-rose-200/25 bg-black/70 px-1.5 py-0.5 text-[10px] text-rose-100 backdrop-blur-[1px]">储备告急</span>
           )}
         </div>
         <div className={`flex items-center gap-2 text-sky-200 font-semibold text-lg ${TXT}`}>

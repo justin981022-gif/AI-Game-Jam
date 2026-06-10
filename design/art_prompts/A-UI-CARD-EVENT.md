@@ -23,8 +23,8 @@
 - 色盘偏重：辅 2 米白 `#E8E2D5`（纸面主体）+ 主 1 莫兰迪雾灰米 `#B8B5A8`（描边外晕 / 阴影侧）+ 辅 1 描边深炭灰 `#3D3A36`（粗描边）+ 辅 4 黄铜金 `#D4A574`（角标 / 顶部装饰条极少量点缀）
 - 特殊注意：
   - **9-slice 友好**：四角装饰需限制在 32×32 内不超出，中央大面积扁平米白纸面便于横纵双向拉伸
-  - 仅出空白卡片底，**正文标题 / 正文 / 选项按钮** 由代码叠加；卡片内仅以 `LOREM IPSUM placeholder` 兜底示意分区
-  - 顶部留 80px 标题区（黄铜金细装饰条）+ 中部 360px 正文区 + 底部 120px 双选项区（两个浅色矩形预留位）
+  - 仅出空白卡片底，**标题 / 正文 / 选项按钮文字** 由代码叠加；卡片内绝不出现任何文字或灰条占位
+  - 顶部留 96px 标题区（标题最上方 + 右侧倒计时小槽）+ 中部 284px 正文区 + 底部 220px 双选项区（两个上下纵向排列的浅色矩形预留位）
   - 公文体质感：米白纸面 + 雾灰描边 + 黄铜金细线，不要羊皮卷 / 中世纪华丽花纹
 
 ## 正向 Prompt（可直接拷贝到 Gemini）
@@ -32,7 +32,7 @@
 ```
 flat corporate illustration style, muted Morandi color palette dominated by foggy beige #B8B5A8, terracotta orange #C97B5C and dusty mint green #8FA89B, accent colors include charcoal outline #3D3A36 and warm cream #E8E2D5, chibi 2.5-head proportion characters with oversized round eyes and minimalist geometric bodies, thick uniform 5px charcoal outline (never pure black), pure flat color fills with no gradients and no brush texture, hard-edged single-tone shadow blocks, soft even diffuse cool office lighting like ambient fluorescent daylight, plain neutral solid grey background for easy compositing, all monster characters wear corporate office attire (lanyards, suits, ties, briefcases, badges) blending dungeon fantasy with white-collar workplace humor, 2D front-facing portrait composition with generous negative space, inspired by Reigns: Her Majesty card art, Two Point Hospital character design, BoJack Horseman flat color animation and restrained Corporate Memphis illustration, consistent line weight and consistent flat shading across all assets, deadpan office-comedy mood, clean vector-like finish suitable for H5 WebGL game UI
 
-flat 2D UI element, corporate paperwork aesthetic, centered composition, 9-slice border layout, an empty rectangular event-card frame in 3:2 ratio occupying about 75 percent of the canvas centered, NO characters anywhere, NO chibi monsters, NO figures of any kind around or inside the card frame, ABSOLUTELY no mascots flanking the panel, ONLY the empty card frame itself, warm cream #E8E2D5 paper-like fill across the entire card body, surrounded by a uniform 5px charcoal #3D3A36 hand-drawn outline with gently rounded 24px corners, a thin brass-gold #D4A574 horizontal accent stripe just below the top edge separating a small title bar zone from the main body, a subtle foggy-beige #B8B5A8 hard-edged drop block on the right and bottom inner edge to suggest paper thickness without photographic shadow, the body interior is divided into three flat zones from top to bottom: a slim title strip area at top, a large central body area, and a bottom area sized for two side-by-side option buttons, all internal divisions are drawn as faint hairline charcoal rules at low opacity, decorative corner ornaments kept minimal as tiny brass-gold corporate-memo brackets in the upper-left and lower-right within a 32px corner safe zone, ABSOLUTELY NO TEXT of any kind anywhere on the card, NO Latin letters, NO Chinese characters, NO lorem ipsum, NO placeholder words, NO readable glyphs, NO calligraphy, NO writing whatsoever, the interior text zones must be COMPLETELY EMPTY with plain cream texture only (no grey bars, no lines suggesting text, just pure flat cream surface ready for code-side text overlay), the area outside the card frame is pure flat foggy-beige #B8B5A8 grey negative space with absolutely nothing in it, clean isolated UI on a flat neutral solid grey #B8B5A8 background, ample empty space around subject for easy cutout, vector-flat finish, no perspective, deadpan corporate office-document mood
+flat 2D UI element, corporate paperwork aesthetic, centered composition, 9-slice border layout, an empty WIDE LANDSCAPE HORIZONTAL event-card frame in exact 3:2 ratio, the card is clearly wider than tall, target output feels like 900 by 600 pixels, occupying about 78 percent of the canvas centered, NOT a portrait document, NOT a vertical resume, NO characters anywhere, NO chibi monsters, NO figures of any kind around or inside the card frame, ABSOLUTELY no mascots flanking the panel, ONLY the empty wide horizontal event-card frame itself, warm cream #E8E2D5 paper-like fill across the entire card body, surrounded by a uniform 5px charcoal #3D3A36 hand-drawn outline with gently rounded 24px corners, a subtle foggy-beige #B8B5A8 hard-edged drop block on the right and bottom inner edge to suggest paper thickness without photographic shadow, the body interior is clearly divided into three vertical zones from top to bottom inside this wide horizontal card: FIRST a top title bar zone about 16 percent of the card height, positioned at the very top across the full card width, separated by one thin brass-gold #D4A574 horizontal accent stripe, with a small empty circular timer reservation slot in the upper-right corner; SECOND a large central content zone about 47 percent of the card height, completely plain and empty for event description text; THIRD a bottom choices zone about 37 percent of the card height containing TWO vertically stacked empty rounded-rectangle button reservation slots, one above the other, each spanning most of the card width, with generous gap between them, the two button slots must NOT be side-by-side and must NOT sit on one horizontal row, all internal divisions are drawn as faint hairline charcoal rules at low opacity, decorative corner ornaments kept minimal as tiny brass-gold corporate-memo brackets in the upper-left and lower-right within a 32px corner safe zone, ABSOLUTELY NO TEXT of any kind anywhere on the card, NO Latin letters, NO Chinese characters, NO lorem ipsum, NO placeholder words, NO readable glyphs, NO calligraphy, NO writing whatsoever, the interior text zones must be COMPLETELY EMPTY with plain cream texture only (no grey bars, no lines suggesting text, just pure flat cream surface ready for code-side text overlay), the area outside the card frame is pure flat foggy-beige #B8B5A8 grey negative space with absolutely nothing in it, clean isolated UI on a flat neutral solid grey #B8B5A8 background, ample empty space around subject for easy cutout, vector-flat finish, no perspective, deadpan corporate office-document mood
 ```
 
 ## 反向 Prompt / 禁忌
@@ -40,7 +40,7 @@ flat 2D UI element, corporate paperwork aesthetic, centered composition, 9-slice
 ```
 photorealistic, 3D render, realistic human portrait, anime big sparkly eyes, manga style, watercolor wash, oil painting brush strokes, crayon scribble, pixel art, cyberpunk neon, oversaturated colors, high contrast dramatic lighting, rim light, volumetric god rays, gradient fills, soft airbrush shading, blood, gore, wounds, severed limbs, weapons piercing flesh, traditional fantasy orcs with tusks, muscular barbarians, half-naked warriors, sharp fangs, scary horror faces, cluttered dungeon background, stone walls, torches, fire pits, complex scenery, modern brand logos, real-world tech products, smartphones, cars, text, watermark, signature, low quality, blurry, jpeg artifacts, anatomically incorrect, extra limbs, deformed hands, NSFW
 
-photograph, 3D perspective, drop shadows, neon colors, fantasy parchment, ornate medieval frames, characters, portraits, real readable letters, full sentences, calligraphy, scrolls, wax seals, leather book texture, ribbon banners, gemstones, glowing magical borders, paper tearing, bloodstains on paper, ornate baroque corners, gilded filigree, holographic effects, chibi monsters surrounding frame, characters around card, multiple figures next to UI, mascots flanking the panel, creatures peeking from behind frame, any human or monster figures in the scene, ANY TEXT, ANY LETTERS, ANY GLYPHS, ANY WORDS, lorem ipsum, LOREM IPSUM, dummy text, placeholder text, latin words, chinese characters, japanese kana, korean hangul, alphabet, numerals, digits, numbers, faux text, scribbled writing, grey horizontal text bars, lines suggesting paragraphs, typography of any sort, watermark text, signature text, label text
+photograph, 3D perspective, portrait page, portrait document, vertical resume, tall narrow sheet, A4 resume layout, mobile phone screen aspect ratio, drop shadows, neon colors, fantasy parchment, ornate medieval frames, characters, portraits, real readable letters, full sentences, calligraphy, scrolls, wax seals, leather book texture, ribbon banners, gemstones, glowing magical borders, paper tearing, bloodstains on paper, ornate baroque corners, gilded filigree, holographic effects, chibi monsters surrounding frame, characters around card, multiple figures next to UI, mascots flanking the panel, creatures peeking from behind frame, any human or monster figures in the scene, two buttons arranged side-by-side, horizontal pair of option buttons, left-right choice buttons, ANY TEXT, ANY LETTERS, ANY GLYPHS, ANY WORDS, lorem ipsum, LOREM IPSUM, dummy text, placeholder text, latin words, chinese characters, japanese kana, korean hangul, alphabet, numerals, digits, numbers, faux text, scribbled writing, grey horizontal text bars, lines suggesting paragraphs, typography of any sort, watermark text, signature text, label text
 ```
 
 ## 参考艺术家 / 作品（可选）
@@ -62,7 +62,7 @@ photograph, 3D perspective, drop shadows, neon colors, fantasy parchment, ornate
 
 ## 回填验收 Checklist
 
-- [ ] Gemini 出图符合正向 prompt：3:2 卡片 + 公文体 + 三段式分区 + 9-slice 友好
+- [ ] Gemini 出图符合正向 prompt：3:2 卡片 + 公文体 + 标题最上 / 正文中间 / 底部两个纵向按钮槽 + 9-slice 友好
 - [ ] 未出现反向 prompt 禁忌：无真实文字、无华丽中世纪花纹、无角色
 - [ ] 尺寸落盘 900×600（post-process 后）
 - [ ] 已按 atoms 落位路径 `atoms/assets/art/ui/A-UI-CARD-EVENT.png` 保存
@@ -80,6 +80,33 @@ photograph, 3D perspective, drop shadows, neon colors, fantasy parchment, ornate
   - 反向 prompt：增加"ANY TEXT, ANY LETTERS, lorem ipsum, LOREM IPSUM, dummy text, placeholder text, latin words, chinese characters, faux text, grey horizontal text bars..."等强禁忌
   - pipeline 同步：`run_aiart_repair_v2.js` 已包含 trim 步骤（rmbg → trim → resize 900×600 contain）
 - 验收：图本体完全无文字；4 角铜色装饰 + 标题带 + 中央正文区 + 底部 2 按钮位结构清晰；用户 2026-06-04 在 mockup 05 验证通过
+
+### aiart-R3 @ 2026-06-10（用户反馈突发事件底图布局需改为纵向按钮）
+- 触发：用户提交实机截图，指出理想状态为“标题最上方，中间是内容，下方两个按钮由纵向排列”。
+- 修订点：
+  - 正向 prompt：底部选项区从“two side-by-side option buttons”改为“TWO vertically stacked empty rounded-rectangle button reservation slots”。
+  - 分区比例：顶部标题区约 16%，中部正文区约 47%，底部双选项区约 37%。
+  - 反向 prompt：追加 side-by-side / horizontal pair / left-right choice buttons 禁忌。
+- 验收目标：新图本体无文字；标题区在最上方；正文区完整留白；底部两个按钮槽上下排列，且与前端 `EventDialog` 的纵向按钮叠加一致。
+
+### aiart-R4 @ 2026-06-10（R3 竖版化，强化横向 3:2 面板）
+- 触发：R3 命中纵向按钮结构，但 aiart 将卡片理解为竖版简历/公文，输出接近 portrait document，不适合作为当前 3:2 横向事件弹窗。
+- 修订点：
+  - 正向 prompt 开头强化 `WIDE LANDSCAPE HORIZONTAL event-card frame in exact 3:2 ratio`、`card is clearly wider than tall`、`NOT a portrait document, NOT a vertical resume`。
+  - 反向 prompt 追加 portrait page / portrait document / vertical resume / tall narrow sheet / A4 resume layout / mobile phone screen aspect ratio。
+- 验收目标：900×600 横向固定画布；卡片横向 3:2；按钮仍为底部上下纵排。
+
+### codegen-R5 @ 2026-06-10（去除双层感 / 阴影，改为单层扁平面板）
+- 触发：用户在实机截图中反馈突发事件底图有“两层”的感觉，右下存在类似阴影/偏移板，不需要这些视觉负担。
+- 修订点：
+  - 不再继续消耗 aiart 迭代；直接用程序化 SVG → PNG 生成 900×600 单层扁平面板。
+  - 保留三段结构：顶部标题区 / 中部正文留白 / 底部两个纵向按钮槽。
+  - 明确去除：drop shadow、右下偏移层、纸张叠层、AI 纹理噪声。
+- 落盘文件：
+  - `atoms/assets/art/ui/A-UI-CARD-EVENT.png`
+  - `atoms/Dungeon‌sHR/app/frontend/public/art/ui/A-UI-CARD-EVENT.png`
+  - `atoms/Dungeon‌sHR/assets/art/ui/A-UI-CARD-EVENT.png`
+- 前端同步：`EventDialog` 去掉额外圆角裁切，文字改为深色以匹配浅色单层面板；T04 教学 toast 改为 CSS 透明黑底。
 
 ### Flash#1 @ <时间戳>
 - 模型：`gemini-2.5-flash-image`

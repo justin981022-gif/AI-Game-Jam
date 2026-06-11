@@ -406,9 +406,9 @@ export function NegotiateDialog({ g }: { g: UseGameApi }) {
         <div className="absolute left-[14%] top-[7.5%] flex h-[18%] items-center">
           <div className="text-[16px] font-black text-[#3D3A36]">谈薪请求</div>
         </div>
-        <section className="absolute left-[8%] top-[32%] h-[33%] w-[84%] px-5 py-3 text-[#3D3A36]">
+        <section className="absolute left-[8%] top-[31%] flex h-[34%] w-[84%] flex-col justify-center px-5 py-2 text-[#3D3A36]">
           <div className="flex items-center gap-3">
-            <img src={m.artUrl} alt={m.name} className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+            <img src={m.artUrl} alt={m.name} className="h-10 w-10 shrink-0 rounded-lg object-cover" />
             <div className="min-w-0">
               <div className="truncate text-[15px] font-black">{m.name}</div>
               <div className="flex items-center gap-1 text-[11px] font-semibold text-[#3D3A36]/75">
@@ -416,10 +416,10 @@ export function NegotiateDialog({ g }: { g: UseGameApi }) {
               </div>
             </div>
           </div>
-          <div className="mt-3 text-[14px] font-semibold">
+          <div className="mt-2 flex items-center gap-1 text-[14px] font-semibold leading-tight">
             请求加薪 <span className="font-black text-amber-700">+{g.negotiate.delta}</span> <ShardIcon size={14} />/天（+20%）
           </div>
-          <div className="mt-1 text-[11px] font-semibold text-rose-700">
+          <div className="mt-1 text-[10px] font-semibold leading-tight text-rose-700">
             拒绝：本场攻击 x0.75，下场攻击 x0.85，1场后清除
           </div>
         </section>

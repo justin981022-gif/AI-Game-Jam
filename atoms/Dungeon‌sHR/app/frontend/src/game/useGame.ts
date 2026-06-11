@@ -1,8 +1,9 @@
 // 状态管理 hook：驱动 UI 的核心状态机
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BALANCE, BONUS_TIERS, EVENTS, LEVELS, TRAITS } from "./data";
+import { BALANCE, BOARD_POLICIES, BONUS_TIERS, EVENTS, GROWTH_CHOICES, LEVELS, PREP_EVENTS, TRAITS } from "./data";
 import {
   allActiveTraits,
+  applyHeroVariant,
   applyBonusTier,
   applyLevelUp,
   calcPension,
@@ -12,19 +13,24 @@ import {
   decideEnding,
   generateResumePool,
   pick,
+  randomHeroVariant,
   resumeToMonster,
   runRoundTick,
 } from "./engine";
 import type {
   BonusTier,
   BonusTierDef,
+  BoardPolicy,
   GameEvent,
   GameState,
+  GrowthChoice,
+  GrowthRequest,
   Hero,
   LogEntry,
   Monster,
   NegotiateRequest,
   PendingEvent,
+  PrepEvent,
   ResumeCandidate,
   RewardBreakdown,
   TraitId,
@@ -69,9 +75,14 @@ export interface UseGameApi {
   recruitRefreshLeft: number;
   refreshRecruitPool: () => void;
   bonusOpen: boolean;
+  bonusTargetId: string | null;
   pendingEvent: PendingEvent | null;
   eventTimeLeft: number;
   eventIsTutorial: boolean;
+  prepEvent: PrepEvent | null;
+  dailyPolicyChoices: BoardPolicy[];
+  activePolicy: BoardPolicy | null;
+  growth: GrowthRequest | null;
   negotiate: NegotiateRequest | null;
   evalOpen: boolean;
   evalData: EvalView | null;
@@ -87,13 +98,16 @@ export interface UseGameApi {
   closeRecruit: () => void;
   chooseResume: (r: ResumeCandidate) => void;
   doBuild: () => void;
-  openBonus: () => void;
+  openBonus: (monsterId?: string) => void;
   closeBonus: () => void;
   applyBonus: (monsterId: string, tier: BonusTier) => void;
   doLabor: () => void;
   startBattle: () => void;
   toggleSpeed: () => void;
   chooseEventOption: (idx: 0 | 1) => void;
+  choosePrepEventOption: (idx: 0 | 1) => void;
+  choosePolicy: (policy: BoardPolicy) => void;
+  chooseGrowth: (choice: GrowthChoice) => void;
   proceedEval: () => void;
   openDismiss: () => void;
   closeDismiss: () => void;
@@ -125,9 +139,14 @@ export function useGame(): UseGameApi {
   const [resumeShowHint, setResumeShowHint] = useState(false);
   const [recruitRefreshLeft, setRecruitRefreshLeft] = useState(2);
   const [bonusOpen, setBonusOpen] = useState(false);
+  const [bonusTargetId, setBonusTargetId] = useState<string | null>(null);
   const [pendingEvent, setPendingEvent] = useState<PendingEvent | null>(null);
   const [eventTimeLeft, setEventTimeLeft] = useState(BALANCE.EVENT_TIMEOUT_S);
   const [eventIsTutorial, setEventIsTutorial] = useState(false);
+  const [prepEvent, setPrepEvent] = useState<PrepEvent | null>(null);
+  const [dailyPolicyChoices, setDailyPolicyChoices] = useState<BoardPolicy[]>([]);
+  const [activePolicy, setActivePolicy] = useState<BoardPolicy | null>(null);
+  const [growth, setGrowth] = useState<GrowthRequest | null>(null);
   const [negotiate, setNegotiate] = useState<NegotiateRequest | null>(null);
   const [evalOpen, setEvalOpen] = useState(false);
   const [evalData, setEvalData] = useState<EvalView | null>(null);
@@ -149,6 +168,10 @@ export function useGame(): UseGameApi {
   const eventTimerRef = useRef<number | null>(null);
   const pausedRef = useRef(false);
   const anyDeadThisBattleRef = useRef(false);
+  const activePolicyRef = useRef<BoardPolicy | null>(null);
+  const prepRewardMultRef = useRef(1);
+  const prepPensionMultRef = useRef(1);
+  const prepTeamAtkPctRef = useRef(0);
 
   // ───────── 准备阶段快照（用于撤销本回合操作） ─────────
   const prepSnapshotRef = useRef<{
@@ -162,9 +185,25 @@ export function useGame(): UseGameApi {
 
   monstersRef.current = monsters;
   heroRef.current = hero;
+  activePolicyRef.current = activePolicy;
 
   const level = LEVELS[levelIndex];
-  const apMax = BALANCE.AP_MAX + (level?.apBonus ?? 0);
+  const apMax = BALANCE.AP_MAX + (level?.apBonus ?? 0) + (activePolicy?.extraAp ?? 0);
+
+  const chooseUniquePolicies = useCallback(() => {
+    const pool = [...BOARD_POLICIES];
+    const out: BoardPolicy[] = [];
+    while (out.length < 3 && pool.length > 0) {
+      const idx = Math.floor(Math.random() * pool.length);
+      out.push(pool.splice(idx, 1)[0]);
+    }
+    return out;
+  }, []);
+
+  const prepEventForLevel = useCallback((idx: number) => {
+    if (idx <= 0 || idx >= lastLevelIdx) return null;
+    return PREP_EVENTS[(idx - 1) % PREP_EVENTS.length];
+  }, []);
 
   const pushLog = useCallback((text: string, kind: LogEntry["kind"]) => {
     setLogs((prev) => [...prev, { id: logIdRef.current++, text, kind }]);
@@ -229,14 +268,24 @@ export function useGame(): UseGameApi {
       setAp(newAp);
       setResumePool(newResumes);
       setRecruitRefreshLeft(2);
+      setPrepEvent(null);
+      setActivePolicy(null);
+      prepRewardMultRef.current = 1;
+      prepPensionMultRef.current = 1;
+      prepTeamAtkPctRef.current = 0;
       setGameState("MAIN_PREP");
+      if (lvl.hasBattle) {
+        setDailyPolicyChoices(chooseUniquePolicies());
+      } else {
+        setDailyPolicyChoices([]);
+      }
 
       // 保存快照（扣薪后、行动前的状态）
       saveSnapshot(newShards, newAp, slots, monstersRef.current, newResumes);
 
       // L06 无独立过场卡片（T06 已迁至 L07）
     },
-    [shards, slots, saveSnapshot]
+    [shards, slots, saveSnapshot, chooseUniquePolicies]
   );
 
   // ───────── 开始游戏 ─────────
@@ -248,6 +297,12 @@ export function useGame(): UseGameApi {
     const initResumes = generateResumePool(3, "L01");
     setResumePool(initResumes);
     setRecruitRefreshLeft(2);
+    setPrepEvent(null);
+    setDailyPolicyChoices([]);
+    setActivePolicy(null);
+    prepRewardMultRef.current = 1;
+    prepPensionMultRef.current = 1;
+    prepTeamAtkPctRef.current = 0;
     // 保存 L01 初始快照
     saveSnapshot(BALANCE.SHARD_INIT, BALANCE.AP_MAX, BALANCE.SLOT_INIT, [], initResumes);
   }, [saveSnapshot]);
@@ -341,22 +396,32 @@ export function useGame(): UseGameApi {
   }, [slots, shards, ap, showToast]);
 
   // ───────── 发奖金（三档） ─────────
-  const openBonus = useCallback(() => {
+  const openBonus = useCallback((monsterId?: string) => {
     if (ap <= 0) return;
     const active = monsters.filter((m) => m.state === "active" || m.state === "negative");
     if (active.length === 0) {
       showToast("暂无可发奖金的在岗怪物。");
       return;
     }
+    if (monsterId && !active.some((m) => m.id === monsterId)) {
+      showToast("该员工当前不可发奖金。");
+      return;
+    }
+    setBonusTargetId(monsterId ?? null);
     setBonusOpen(true);
   }, [ap, monsters, showToast]);
 
-  const closeBonus = useCallback(() => setBonusOpen(false), []);
+  const closeBonus = useCallback(() => {
+    setBonusOpen(false);
+    setBonusTargetId(null);
+  }, []);
 
   const applyBonusAction = useCallback(
     (monsterId: string, tier: BonusTier) => {
       const tierDef = BONUS_TIERS[tier] as BonusTierDef;
-      if (shards < tierDef.cost) {
+      const discount = activePolicyRef.current?.bonusDiscount ?? 0;
+      const cost = Math.max(1, Math.round(tierDef.cost * (1 - discount)));
+      if (shards < cost) {
         showToast("灵魂碎片不足。");
         return;
       }
@@ -365,15 +430,17 @@ export function useGame(): UseGameApi {
           if (m.id === monsterId) {
             const updated = { ...m };
             applyBonusTier(tier, updated, tierDef.atkMult);
+            updated.receivedBonusThisBattle = true;
             return updated;
           }
           return m;
         })
       );
-      setShards((s) => s - tierDef.cost);
+      setShards((s) => s - cost);
       setAp((a) => a - 1);
       setBonusOpen(false);
-      showToast(`${tierDef.label}已发放（-${tierDef.cost} 碎片），本场 ATK ×${tierDef.atkMult.toFixed(2)}。`);
+      setBonusTargetId(null);
+      showToast(`${tierDef.label}已发放（-${cost} 碎片），本场 ATK ×${tierDef.atkMult.toFixed(2)}。`);
     },
     [shards, showToast]
   );
@@ -386,6 +453,55 @@ export function useGame(): UseGameApi {
     showToast(`打零工完成，获得 +${BALANCE.AP_TO_SHARD_RATE} 碎片。`);
   }, [ap, showToast]);
 
+  // ───────── 本日经营方针 / 日常突发事件 ─────────
+  const choosePolicy = useCallback(
+    (policy: BoardPolicy) => {
+      setActivePolicy(policy);
+      activePolicyRef.current = policy;
+      setDailyPolicyChoices([]);
+      if (policy.extraAp) {
+        setAp((a) => a + policy.extraAp!);
+        showToast(`已选择「${policy.title}」，本关行动点 +${policy.extraAp}。`);
+      } else {
+        showToast(`已选择「${policy.title}」。`);
+      }
+      const dailyEvent = prepEventForLevel(levelIndex);
+      if (dailyEvent) setPrepEvent(dailyEvent);
+    },
+    [levelIndex, prepEventForLevel, showToast]
+  );
+
+  const choosePrepEventOption = useCallback(
+    (idx: 0 | 1) => {
+      if (!prepEvent) return;
+      const effect = prepEvent.options[idx].effect;
+      const cost = typeof effect.cost === "number" ? effect.cost : 0;
+      if (cost > 0 && shards < cost) {
+        showToast("灵魂碎片不足，日常事件选项未生效。");
+        setPrepEvent(null);
+        return;
+      }
+      if (cost > 0) setShards((s) => s - cost);
+      if (typeof effect.shards === "number") setShards((s) => s + (effect.shards as number));
+      if (typeof effect.ap === "number") setAp((a) => a + (effect.ap as number));
+      if (typeof effect.recruit_refresh === "number") setRecruitRefreshLeft((n) => n + (effect.recruit_refresh as number));
+      if (typeof effect.team_hp_pct === "number") {
+        setMonsters((prev) =>
+          prev.map((m) => ({
+            ...m,
+            hp: Math.min(m.hpMax, Math.round(m.hp * (1 + (effect.team_hp_pct as number)))),
+          }))
+        );
+      }
+      if (typeof effect.prep_team_atk_pct === "number") prepTeamAtkPctRef.current += effect.prep_team_atk_pct as number;
+      if (typeof effect.prep_reward_mult === "number") prepRewardMultRef.current += effect.prep_reward_mult as number;
+      if (typeof effect.prep_pension_mult === "number") prepPensionMultRef.current += effect.prep_pension_mult as number;
+      showToast(`日常事件已处理：${prepEvent.options[idx].label}`);
+      setPrepEvent(null);
+    },
+    [prepEvent, shards, showToast]
+  );
+
   // ───────── 战斗 ─────────
   const clearTick = () => {
     if (tickRef.current !== null) {
@@ -396,11 +512,20 @@ export function useGame(): UseGameApi {
 
   const startBattle = useCallback(() => {
     if (!level.hasBattle || !level.heroId) return;
-    const h = createHero(level.heroId);
+    const variant = randomHeroVariant(level.id);
+    const h = applyHeroVariant(createHero(level.heroId), variant);
+    const policy = activePolicyRef.current;
+    if (policy?.heroHpPct) {
+      h.hpMax = Math.max(1, Math.round(h.hpMax * (1 + policy.heroHpPct)));
+      h.hp = h.hpMax;
+    }
+    if (policy?.heroAtkPct) h.atk = Math.max(1, Math.round(h.atk * (1 + policy.heroAtkPct)));
     const battleMonsters = monsters
       .filter((m) => m.state === "active" || m.state === "negative")
       .map((m) => ({
         ...m,
+        hp: Math.round(m.hp * (1 + (policy?.monsterHpPct ?? 0))),
+        bonusAtkMult: m.bonusAtkMult * (1 + prepTeamAtkPctRef.current + (policy?.monsterAtkPct ?? 0)),
         tempAtkMult: 1,
         skipNextRound: false,
         nextRoundAtkPct: 0,
@@ -442,6 +567,8 @@ export function useGame(): UseGameApi {
 
     // T03 战斗开场日志
     pushLog(TRIGGERS.T03.body, "system");
+    if (variant) pushLog(`本波勇者词缀：${variant.title}（${variant.desc}）`, "system");
+    if (policy) pushLog(`本日经营方针：${policy.title}。`, "system");
 
     // 启动循环
     window.setTimeout(() => doTick(), 600 / speed);
@@ -491,7 +618,23 @@ export function useGame(): UseGameApi {
           case "hero_first_crit":
             cond = h.hasCritOnce && !triggeredEventsRef.current.has("B07");
             break;
+          case "round_2_random":
+            cond = round === 2;
+            break;
+          case "round_4_random":
+            cond = round === 4;
+            break;
+          case "monster_count_3_round4":
+            cond = round === 4 && aliveM.length >= 3;
+            break;
+          case "hero_hp_below_50":
+            cond = h.hp / h.hpMax < 0.5;
+            break;
+          case "late_battle_random":
+            cond = round >= 6;
+            break;
         }
+        if (cond && !relMonster && ev.cardText.includes("[怪物名]")) relMonster = pick(aliveM);
         if (cond && Math.random() <= ev.triggerProbability) {
           if (ev.id === "C01") usedFlagsRef.current.add("C01");
           return { ...ev, _relMonsterId: relMonster?.id } as GameEvent & { _relMonsterId?: string };
@@ -607,14 +750,18 @@ export function useGame(): UseGameApi {
       const relM = monsterId ? ms.find((m) => m.id === monsterId) : undefined;
 
       // 费用检查
+      let costPaid = true;
       if (typeof effect.cost === "number") {
         if (shards >= (effect.cost as number)) {
           setShards((s) => s - (effect.cost as number));
         } else {
           showToast("灵魂碎片不足，效果未生效。");
+          costPaid = false;
         }
       }
+      if (!costPaid) return;
 
+      if (typeof effect.shards === "number") setShards((s) => s + (effect.shards as number));
       if (typeof effect.team_hp_pct === "number") {
         for (const m of ms) {
           if (m.state !== "dead") m.hp = Math.min(m.hpMax, Math.round(m.hp * (1 + (effect.team_hp_pct as number))));
@@ -637,7 +784,7 @@ export function useGame(): UseGameApi {
           for (const m of ms) m.tempAtkMult *= 1.5;
         }
       }
-      if (typeof effect.team_atk_pct_battle === "number" && shards >= 0) {
+      if (typeof effect.team_atk_pct_battle === "number") {
         for (const m of ms) m.bonusAtkMult *= 1 + (effect.team_atk_pct_battle as number);
       }
       if (effect.psy_war) {
@@ -755,13 +902,30 @@ export function useGame(): UseGameApi {
 
         let pension = 0;
         for (const m of dead) pension += calcPension(m);
+        pension = Math.round(pension * prepPensionMultRef.current * (activePolicyRef.current?.pensionMult ?? 1));
 
         // 存活者升级（条件：存活且有效伤害>0）
         const leveledUp: string[] = [];
+        const goalCompleted: string[] = [];
+        let goalReward = 0;
         const totalDamage = ms.reduce((s, m) => s + m.damageDealt, 0);
         for (const m of survived) {
           m.battlesSurvived += 1;
+          m.careerDamage += m.damageDealt;
+          if (!m.goalCompleted) {
+            const goalDone =
+              (m.personalGoal.id === "survive_2" && m.battlesSurvived >= 2) ||
+              (m.personalGoal.id === "deal_200" && m.careerDamage >= 200) ||
+              (m.personalGoal.id === "no_bonus_survive" && !m.receivedBonusThisBattle) ||
+              (m.personalGoal.id === "reach_level_3" && m.level >= 3);
+            if (goalDone) {
+              m.goalCompleted = true;
+              goalReward += m.personalGoal.rewardShards;
+              goalCompleted.push(`${m.name} 完成个人目标「${m.personalGoal.title}」(+${m.personalGoal.rewardShards} 碎片)`);
+            }
+          }
           m.bonusAtkMult = 1.0; // 奖金本场结束
+          m.receivedBonusThisBattle = false;
           m.runtimeTraits = [];
           // 消极怠工场次递减
           if (m.slackerBattlesLeft > 0) {
@@ -771,13 +935,22 @@ export function useGame(): UseGameApi {
             applyLevelUp(m);
             leveledUp.push(m.id);
           }
+          if (!m.goalCompleted && m.personalGoal.id === "reach_level_3" && m.level >= 3) {
+            m.goalCompleted = true;
+            goalReward += m.personalGoal.rewardShards;
+            goalCompleted.push(`${m.name} 完成个人目标「${m.personalGoal.title}」(+${m.personalGoal.rewardShards} 碎片)`);
+          }
+          m.hp = Math.min(m.hp, m.hpMax);
         }
 
         // 通关绩效提成
         const reward = calcRewardOnClear(survived.length, totalDamage);
+        reward.total = Math.round(reward.total * prepRewardMultRef.current * (activePolicyRef.current?.rewardMult ?? 1));
+        if (goalReward > 0) reward.total += goalReward;
 
         // 扣抚恤金 + 加绩效提成
         setShards((s) => Math.max(0, s - pension + reward.total));
+        goalCompleted.forEach(showToast);
 
         // 更新怪物列表：移除阵亡
         const remaining = ms.filter((m) => m.state === "active" || m.state === "negative");
@@ -798,9 +971,18 @@ export function useGame(): UseGameApi {
   );
 
   // ───────── EVAL 继续 ─────────
-  const proceedEval = useCallback(() => {
-    setEvalOpen(false);
+  function buildGrowthChoices(m: Monster): GrowthChoice[] {
+    const pool = GROWTH_CHOICES.filter((c) => c.id !== "reveal_trait" || (!!m.traitHidden && !m.traitHiddenRevealed));
+    const out: GrowthChoice[] = [];
+    const copy = [...pool];
+    while (out.length < 3 && copy.length > 0) {
+      const idx = Math.floor(Math.random() * copy.length);
+      out.push(copy.splice(idx, 1)[0]);
+    }
+    return out;
+  }
 
+  function openNegotiationOrFinish() {
     // 谈薪检查（升级后≥2级时60%概率，非 cheap_skate）
     const leveled = evalData?.leveledUp ?? [];
     const ms = monstersRef.current;
@@ -829,8 +1011,54 @@ export function useGame(): UseGameApi {
     }
 
     finishEval();
+  }
+
+  const proceedEval = useCallback(() => {
+    setEvalOpen(false);
+    const ms = monstersRef.current;
+    const preferredId = evalData?.leveledUp[0] ?? evalData?.survived[0]?.id;
+    const growthTarget = (preferredId ? ms.find((m) => m.id === preferredId) : undefined) ?? ms.find((m) => m.state === "active");
+    if (growthTarget) {
+      setGrowth({ monsterId: growthTarget.id, choices: buildGrowthChoices(growthTarget) });
+      return;
+    }
+
+    openNegotiationOrFinish();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [evalData, level]);
+
+  const chooseGrowth = useCallback(
+    (choice: GrowthChoice) => {
+      if (!growth) return;
+      const ms = monstersRef.current;
+      const m = ms.find((x) => x.id === growth.monsterId);
+      if (!m) {
+        setGrowth(null);
+        openNegotiationOrFinish();
+        return;
+      }
+      if (choice.id === "atk_training") {
+        m.baseAtk += 2;
+        m.atk += 2;
+      } else if (choice.id === "hp_benefits") {
+        m.baseHpMax += 10;
+        m.hpMax += 10;
+        m.hp = Math.min(m.hpMax, m.hp + 10);
+      } else if (choice.id === "salary_review") {
+        m.salary = Math.max(1, m.salary - 1);
+      } else if (choice.id === "reveal_trait" && m.traitHidden) {
+        m.traitHiddenRevealed = true;
+      } else if (choice.id === "crit_drill") {
+        m.critRate = Math.min(BALANCE.LEVELUP_CRIT_CAP, Math.round((m.critRate + 0.03) * 100) / 100);
+      }
+      setMonsters([...ms]);
+      setGrowth(null);
+      showToast(`${m.name} 完成成长项目：${choice.title}`);
+      openNegotiationOrFinish();
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [growth, showToast]
+  );
 
   const checkEconomyAndAdvance = useCallback(() => {
     // P03 经济警告（L03 起，碎片 < 45）
@@ -915,7 +1143,12 @@ export function useGame(): UseGameApi {
       setRecruitOpen(false);
       setResumeShowHint(false);
       setBonusOpen(false);
+      setBonusTargetId(null);
       setDismissOpen(false);
+      setPrepEvent(null);
+      setDailyPolicyChoices([]);
+      setActivePolicy(null);
+      setGrowth(null);
       setToasts([]);
       showToast("已撤销本回合操作。");
       return;
@@ -937,7 +1170,12 @@ export function useGame(): UseGameApi {
     setRecruitOpen(false);
     setResumePool([]);
     setBonusOpen(false);
+    setBonusTargetId(null);
     setPendingEvent(null);
+    setPrepEvent(null);
+    setDailyPolicyChoices([]);
+    setActivePolicy(null);
+    setGrowth(null);
     setNegotiate(null);
     setEvalOpen(false);
     setEvalData(null);
@@ -948,6 +1186,9 @@ export function useGame(): UseGameApi {
     usedFlagsRef.current = new Set();
     triggeredEventsRef.current = new Set();
     prepSnapshotRef.current = null;
+    prepRewardMultRef.current = 1;
+    prepPensionMultRef.current = 1;
+    prepTeamAtkPctRef.current = 0;
   }, [gameState, showToast]);
 
   // 清理
@@ -975,9 +1216,14 @@ export function useGame(): UseGameApi {
     recruitRefreshLeft,
     refreshRecruitPool,
     bonusOpen,
+    bonusTargetId,
     pendingEvent,
     eventTimeLeft,
     eventIsTutorial,
+    prepEvent,
+    dailyPolicyChoices,
+    activePolicy,
+    growth,
     negotiate,
     evalOpen,
     evalData,
@@ -999,6 +1245,9 @@ export function useGame(): UseGameApi {
     startBattle,
     toggleSpeed,
     chooseEventOption,
+    choosePrepEventOption,
+    choosePolicy,
+    chooseGrowth,
     proceedEval,
     openDismiss,
     closeDismiss,

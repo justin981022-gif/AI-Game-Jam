@@ -4,12 +4,14 @@ import {
   BALANCE,
   BATTLE_LOG_TEMPLATES,
   HEROES,
+  HERO_VARIANTS,
   HIDDEN_TRAIT_POOL,
   MONSTER_TEMPLATES,
+  PERSONAL_GOALS,
   RESUME_DATA,
   TRAITS,
 } from "./data";
-import type { BonusTier, Hero, Monster, MonsterTemplate, ResumeCandidate, RewardBreakdown, TraitId } from "./types";
+import type { BonusTier, Hero, HeroVariant, Monster, MonsterTemplate, ResumeCandidate, RewardBreakdown, TraitId } from "./types";
 import bustMetaRaw from "./bust_meta.json";
 import namePoolRaw from "./recruit_name_pool.json";
 
@@ -63,8 +65,8 @@ const ROLE_TO_TEMPLATE: Record<string, MonsterTemplate> = {
 // Role → base stats (from balance)
 const ROLE_BASE_STATS: Record<string, { hp: number; atk: number; speed: number; critRate: number; salary: number }> = {
   TANK: { hp: 75, atk: 10, speed: 9, critRate: 0.03, salary: 8 },
-  DPS: { hp: 50, atk: 16, speed: 11, critRate: 0.08, salary: 12 },
-  RANGE: { hp: 45, atk: 14, speed: 12, critRate: 0.10, salary: 10 },
+  DPS: { hp: 50, atk: 16, speed: 11, critRate: 0.08, salary: 10 },
+  RANGE: { hp: 45, atk: 14, speed: 12, critRate: 0.10, salary: 9 },
 };
 
 // Role → monster art (for battle display, not bust)
@@ -235,10 +237,14 @@ export function resumeToMonster(r: ResumeCandidate): Monster {
     state: "active",
     hasFoughtOnce: false,
     bonusAtkMult: 1.0,
+    receivedBonusThisBattle: false,
     tempAtkMult: 1,
     skipNextRound: false,
     nextRoundAtkPct: 0,
     slackerBattlesLeft: 0,
+    personalGoal: pick(PERSONAL_GOALS),
+    goalCompleted: false,
+    careerDamage: 0,
     damageDealt: 0,
     hits: 0,
     attempts: 0,
@@ -258,6 +264,24 @@ export function createHero(heroId: string): Hero {
     forcedSkip: false,
     hasCritOnce: false,
   };
+}
+
+export function applyHeroVariant(hero: Hero, variant?: HeroVariant): Hero {
+  if (!variant) return hero;
+  const hpMax = Math.max(1, Math.round(hero.hpMax * variant.hpMult));
+  return {
+    ...hero,
+    name: `${hero.name}·${variant.title}`,
+    hp: hpMax,
+    hpMax,
+    atk: Math.max(1, Math.round(hero.atk * variant.atkMult)),
+    critRate: Math.max(0, Math.min(0.5, Math.round((hero.critRate + variant.critDelta) * 100) / 100)),
+  };
+}
+
+export function randomHeroVariant(levelId: string): HeroVariant | undefined {
+  if (["L01", "L02", "L03"].includes(levelId)) return undefined;
+  return pick(HERO_VARIANTS);
 }
 
 // 全部怪物的所有词条（可见 + 已揭示隐藏 + 运行期）

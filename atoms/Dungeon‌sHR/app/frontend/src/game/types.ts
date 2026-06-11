@@ -13,6 +13,19 @@ export type MonsterStateTag = "active" | "negative" | "quit" | "dead";
 // 怪物模板类型
 export type MonsterTemplate = "MON_TANK" | "MON_DPS" | "MON_RANGE";
 
+export type PersonalGoalId =
+  | "survive_2"
+  | "deal_200"
+  | "no_bonus_survive"
+  | "reach_level_3";
+
+export interface PersonalGoal {
+  id: PersonalGoalId;
+  title: string;
+  desc: string;
+  rewardShards: number;
+}
+
 // 词条 ID
 export type TraitId =
   | "tough" // 吃苦耐劳
@@ -60,12 +73,16 @@ export interface Monster {
   state: MonsterStateTag;
   hasFoughtOnce: boolean;
   bonusAtkMult: number; // 发奖金本场 ATK 倍率（1.0 = 无奖金）
+  receivedBonusThisBattle: boolean;
   // 本场临时效果
   tempAtkMult: number; // 倍率（事件用）
   skipNextRound: boolean;
   nextRoundAtkPct: number;
   // 消极怠工持续追踪
   slackerBattlesLeft: number; // 消极怠工剩余场次（0=无效果）
+  personalGoal: PersonalGoal;
+  goalCompleted: boolean;
+  careerDamage: number;
   // 统计
   damageDealt: number;
   hits: number;
@@ -127,6 +144,53 @@ export interface GameEvent {
   cardText: string;
   options: [EventOption, EventOption];
   timeoutDefault: 0 | 1;
+}
+
+export interface PrepEventOption {
+  label: string;
+  sub?: string;
+  effect: EventEffect;
+}
+
+export interface PrepEvent {
+  id: string;
+  title: string;
+  cardText: string;
+  options: [PrepEventOption, PrepEventOption];
+}
+
+export interface GrowthChoice {
+  id: "atk_training" | "hp_benefits" | "salary_review" | "reveal_trait" | "crit_drill";
+  title: string;
+  desc: string;
+}
+
+export interface GrowthRequest {
+  monsterId: string;
+  choices: GrowthChoice[];
+}
+
+export interface BoardPolicy {
+  id: "cost_control" | "roadshow_sprint" | "employee_care" | "aggressive_hiring";
+  title: string;
+  desc: string;
+  bonusDiscount?: number;
+  rewardMult?: number;
+  monsterAtkPct?: number;
+  monsterHpPct?: number;
+  heroHpPct?: number;
+  heroAtkPct?: number;
+  pensionMult?: number;
+  extraAp?: number;
+}
+
+export interface HeroVariant {
+  id: string;
+  title: string;
+  desc: string;
+  hpMult: number;
+  atkMult: number;
+  critDelta: number;
 }
 
 export interface LevelDef {

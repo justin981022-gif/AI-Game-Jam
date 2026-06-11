@@ -1,12 +1,17 @@
 // 数据层：全部 JSON 化数据内嵌为常量，便于策划调参
 import type {
   BattleLogTemplates,
+  BoardPolicy,
   BonusTierDef,
   EndingDef,
   GameEvent,
+  GrowthChoice,
   HeroDef,
+  HeroVariant,
   LevelDef,
   MonsterTemplate,
+  PersonalGoal,
+  PrepEvent,
   TraitDef,
   TraitId,
   TriggerText,
@@ -59,11 +64,11 @@ export const ART = {
   shardIcon: "/art/props/A-PROP-SHARD-ICON.png",
 };
 
-// 全局数值常量（balance v0.6.0 → v0.7: 招募免费恢复, SHARD_INIT 70→50）
+// 全局数值常量（balance v0.7: 扩展轮次后补强前期经济缓冲）
 export const BALANCE = {
-  SHARD_INIT: 50, // v0.7: 70 → 50（配合招募免费再次恢复）
+  SHARD_INIT: 65, // 扩到 8 场战斗后，前期经济缓冲略上调
   SAFE_LINE: 45,
-  BUILD_COST: { 3: 30, 4: 45, 5: 60 } as Record<number, number>,
+  BUILD_COST: { 3: 25, 4: 40, 5: 55 } as Record<number, number>,
   AP_MAX: 3,
   SLOT_INIT: 2,
   SLOT_MAX: 5,
@@ -88,12 +93,12 @@ export const BALANCE = {
   B04_COST: 17,
   B06_COST: 16,
   // 打零工
-  AP_TO_SHARD_RATE: 4,
+  AP_TO_SHARD_RATE: 5,
   // 通关绩效提成（v0.4 + v0.6）
-  COMPLETION_BASE: 8,
+  COMPLETION_BASE: 10,
   SURVIVE_REWARD: 10, // v0.4: 8 → 10
   DPS_REWARD: 3,
-  DPS_UNIT: 80, // v0.6: 25 → 80
+  DPS_UNIT: 90,
   // L03 强制阵亡脚本路径（v0.5: hero.HP < 0.4×HP_MAX && ROUND≥3 → 强制最低HP怪物HP=0）
   FORCE_DEATH_HERO_HP_RATIO: 0.4,
   FORCE_DEATH_MIN_ROUND: 3, // v0.5: 4 → 3
@@ -128,17 +133,23 @@ export const HEROES: Record<string, HeroDef> = {
   HERO_W02: { id: "HERO_W02", name: "勇者·小有名气", hp: 220, atk: 7, critRate: 0.04 },
   HERO_W03: { id: "HERO_W03", name: "勇者·身经百战", hp: 330, atk: 10, critRate: 0.08 },
   HERO_W04: { id: "HERO_W04", name: "勇者·声名远扬", hp: 440, atk: 13, critRate: 0.13 },
-  HERO_ELITE: { id: "HERO_ELITE", name: "精英勇者", hp: 600, atk: 18, critRate: 0.22 },
+  HERO_W05: { id: "HERO_W05", name: "勇者·银牌审计员", hp: 540, atk: 15, critRate: 0.16 },
+  HERO_ELITE: { id: "HERO_ELITE", name: "精英勇者", hp: 660, atk: 18, critRate: 0.22 },
+  HERO_ELITE_2: { id: "HERO_ELITE_2", name: "勇者·路演破坏者", hp: 780, atk: 21, critRate: 0.25 },
+  HERO_FINAL: { id: "HERO_FINAL", name: "最终勇者·IPO 终审官", hp: 920, atk: 24, critRate: 0.28 },
 };
 
 export const LEVELS: LevelDef[] = [
   { id: "L01", title: "入职第一天", hasBattle: false, heroId: null, eventPool: [], difficulty: 1, apBonus: 0, forcedCasualty: false },
   { id: "L02", title: "首次突袭", hasBattle: true, heroId: "HERO_W01", eventPool: ["B01", "C01"], difficulty: 2, apBonus: 0, forcedCasualty: false },
   { id: "L03", title: "第一次阵亡", hasBattle: true, heroId: "HERO_W02", eventPool: ["B01", "B02"], difficulty: 2, apBonus: 0, forcedCasualty: true },
-  { id: "L04", title: "怪物谈薪", hasBattle: true, heroId: "HERO_W03", eventPool: ["B01", "B02", "B05"], difficulty: 3, apBonus: 0, forcedCasualty: false },
-  { id: "L05", title: "IPO 中期警告", hasBattle: true, heroId: "HERO_W04", eventPool: ["B01", "B02", "B03", "B04", "B05", "B06"], difficulty: 3, apBonus: 0, forcedCasualty: false },
-  { id: "L06", title: "最终总突袭前夜", hasBattle: true, heroId: "HERO_ELITE", eventPool: ["B01", "B02", "B03", "B04", "B05", "B06", "B07"], difficulty: 4, apBonus: 1, forcedCasualty: false },
-  { id: "L07", title: "结局·上市钟声", hasBattle: false, heroId: null, eventPool: [], difficulty: 0, apBonus: 0, forcedCasualty: false },
+  { id: "L04", title: "怪物谈薪", hasBattle: true, heroId: "HERO_W03", eventPool: ["B01", "B02", "B05", "B08"], difficulty: 3, apBonus: 0, forcedCasualty: false },
+  { id: "L05", title: "IPO 中期警告", hasBattle: true, heroId: "HERO_W04", eventPool: ["B01", "B02", "B03", "B04", "B05", "B06", "B08", "B09"], difficulty: 3, apBonus: 0, forcedCasualty: false },
+  { id: "L06", title: "审计加压", hasBattle: true, heroId: "HERO_W05", eventPool: ["B01", "B02", "B03", "B04", "B05", "B06", "B08", "B09", "B10"], difficulty: 4, apBonus: 1, forcedCasualty: false },
+  { id: "L07", title: "路演前夜", hasBattle: true, heroId: "HERO_ELITE", eventPool: ["B02", "B03", "B04", "B05", "B06", "B07", "B10", "B11"], difficulty: 4, apBonus: 1, forcedCasualty: false },
+  { id: "L08", title: "媒体日突袭", hasBattle: true, heroId: "HERO_ELITE_2", eventPool: ["B02", "B03", "B04", "B05", "B06", "B07", "B10", "B11", "B12"], difficulty: 5, apBonus: 1, forcedCasualty: false },
+  { id: "L09", title: "最终压力测试", hasBattle: true, heroId: "HERO_FINAL", eventPool: ["B02", "B03", "B04", "B05", "B06", "B07", "B10", "B11", "B12", "B13"], difficulty: 5, apBonus: 2, forcedCasualty: false },
+  { id: "L10", title: "结局·上市钟声", hasBattle: false, heroId: null, eventPool: [], difficulty: 0, apBonus: 0, forcedCasualty: false },
 ];
 
 export const EVENTS: Record<string, GameEvent> = {
@@ -226,6 +237,78 @@ export const EVENTS: Record<string, GameEvent> = {
     ],
     timeoutDefault: 1,
   },
+  B08: {
+    id: "B08",
+    triggerCondition: "round_2_random",
+    triggerProbability: 0.8,
+    availableLevels: ["L04", "L05", "L06"],
+    cardText: "审计部门突然上线旁听：『请解释一下本场战斗预算的合理性。』",
+    options: [
+      { label: "立刻补材料", sub: "流程拖住勇者：勇者下回合 ATK -10%", effect: { hero_atk_pct_next_round: -0.1 } },
+      { label: "先打完再报销", sub: "我方本场 ATK +8%，但立刻支出 6 碎片", effect: { cost: 6, team_atk_pct_battle: 0.08 } },
+    ],
+    timeoutDefault: 0,
+  },
+  B09: {
+    id: "B09",
+    triggerCondition: "round_4_random",
+    triggerProbability: 0.7,
+    availableLevels: ["L05", "L06", "L07"],
+    cardText: "勇者开启直播，弹幕开始嘲笑魔王城福利待遇。",
+    options: [
+      { label: "切断直播信号", sub: "双方本回合各跳过一次攻击", effect: { both_skip: true } },
+      { label: "反向营销", sub: "获得 5 碎片赞助，但勇者下回合 ATK +10%", effect: { shards: 5, hero_atk_pct_next_round: 0.1 } },
+    ],
+    timeoutDefault: 1,
+  },
+  B10: {
+    id: "B10",
+    triggerCondition: "monster_count_3_round4",
+    triggerProbability: 1.0,
+    availableLevels: ["L06", "L07", "L08", "L09"],
+    cardText: "员工互助群刷屏：『一线同事需要紧急补给，财务批不批？』",
+    options: [
+      { label: "批准互助红包", sub: "消耗 10 碎片，存活怪物 HP +15%", effect: { cost: 10, alive_hp_pct: 0.15 } },
+      { label: "让大家自我调节", sub: "本回合勇者 ATK -10%，但没有治疗", effect: { hero_atk_pct_this_round: -0.1 } },
+    ],
+    timeoutDefault: 1,
+  },
+  B11: {
+    id: "B11",
+    triggerCondition: "hero_hp_below_50",
+    triggerProbability: 0.9,
+    availableLevels: ["L07", "L08", "L09"],
+    cardText: "CEO 在群里发送 60 秒语音：『各位，上市以后什么都会有的。』",
+    options: [
+      { label: "转发并置顶", sub: "我方本场 ATK +10%", effect: { team_atk_pct_battle: 0.1 } },
+      { label: "别打扰一线", sub: "存活怪物 HP +10%", effect: { alive_hp_pct: 0.1 } },
+    ],
+    timeoutDefault: 1,
+  },
+  B12: {
+    id: "B12",
+    triggerCondition: "late_battle_random",
+    triggerProbability: 0.65,
+    availableLevels: ["L08", "L09"],
+    cardText: "工会临检抵达前台：『听说这里存在连续作战与超时加班。』",
+    options: [
+      { label: "补齐加班流程", sub: "消耗 8 碎片，勇者下回合暂停", effect: { cost: 8, hero_forced_skip: true } },
+      { label: "请他们先喝茶", sub: "我方全体 HP +5%，勇者下回合 ATK +10%", effect: { alive_hp_pct: 0.05, hero_atk_pct_next_round: 0.1 } },
+    ],
+    timeoutDefault: 1,
+  },
+  B13: {
+    id: "B13",
+    triggerCondition: "monster_hp_below_30",
+    triggerProbability: 0.8,
+    availableLevels: ["L09"],
+    cardText: "[怪物名] 看着上市倒计时，突然认真起来：『最后一场了，对吧？』",
+    options: [
+      { label: "允许超常发挥", sub: "该怪物本回合 ATK ×2.0", effect: { monster_atk_mult: 2.0 } },
+      { label: "稳住，活着上市", sub: "该怪物 HP +20%", effect: { monster_hp_pct: 0.2 } },
+    ],
+    timeoutDefault: 1,
+  },
   C01: {
     id: "C01",
     triggerCondition: "monster_first_battle",
@@ -239,6 +322,107 @@ export const EVENTS: Record<string, GameEvent> = {
     timeoutDefault: 0,
   },
 };
+
+export const PREP_EVENTS: PrepEvent[] = [
+  {
+    id: "P-E01",
+    title: "日常突发 · 财务报销窗口",
+    cardText: "财务窗口今天只开 15 分钟，HR 可以抢一笔历史报销。",
+    options: [
+      { label: "亲自排队", sub: "立刻获得 8 碎片", effect: { shards: 8 } },
+      { label: "留在办公室排班", sub: "本关行动点 +1", effect: { ap: 1 } },
+    ],
+  },
+  {
+    id: "P-E02",
+    title: "日常突发 · 猎头来电",
+    cardText: "外包猎头发来一批候选简历，但语气听起来非常像群发。",
+    options: [
+      { label: "买下名单", sub: "消耗 3 碎片，简历刷新次数 +2", effect: { cost: 3, recruit_refresh: 2 } },
+      { label: "让他先发免费样例", sub: "简历刷新次数 +1", effect: { recruit_refresh: 1 } },
+    ],
+  },
+  {
+    id: "P-E03",
+    title: "日常突发 · 员工关怀日",
+    cardText: "行政部突然记起今天是员工关怀日，士气窗口期很短。",
+    options: [
+      { label: "发放补给包", sub: "全员 HP +10%", effect: { team_hp_pct: 0.1 } },
+      { label: "举办五分钟晨会", sub: "本关全员 ATK +5%", effect: { prep_team_atk_pct: 0.05 } },
+    ],
+  },
+  {
+    id: "P-E04",
+    title: "日常突发 · 临时预算口子",
+    cardText: "CEO 转来一封没有正文的邮件，附件名叫《临时预算最终最终版.xlsx》。",
+    options: [
+      { label: "申请战备预算", sub: "本关通关奖励 +15%", effect: { prep_reward_mult: 0.15 } },
+      { label: "申请防损预算", sub: "本关抚恤金 -20%", effect: { prep_pension_mult: -0.2 } },
+    ],
+  },
+  {
+    id: "P-E05",
+    title: "日常突发 · 建筑队有空",
+    cardText: "地下城维修队今天正好路过，可以顺手改一间休息室。",
+    options: [
+      { label: "压价扩建", sub: "获得 10 碎片，适合立刻扩建", effect: { shards: 10 } },
+      { label: "让他们修训练场", sub: "本关全员 ATK +5%", effect: { prep_team_atk_pct: 0.05 } },
+    ],
+  },
+];
+
+export const BOARD_POLICIES: BoardPolicy[] = [
+  {
+    id: "cost_control",
+    title: "节流经营",
+    desc: "奖金费用 -30%，但本关怪物 ATK -5%。",
+    bonusDiscount: 0.3,
+    monsterAtkPct: -0.05,
+  },
+  {
+    id: "roadshow_sprint",
+    title: "路演冲刺",
+    desc: "通关绩效 +25%，但本关勇者 HP +10%。",
+    rewardMult: 1.25,
+    heroHpPct: 0.1,
+  },
+  {
+    id: "employee_care",
+    title: "员工关怀",
+    desc: "怪物 HP +15%，但本关抚恤成本 +20%。",
+    monsterHpPct: 0.15,
+    pensionMult: 1.2,
+  },
+  {
+    id: "aggressive_hiring",
+    title: "激进排班",
+    desc: "本关行动点 +1，但勇者 ATK +5%。",
+    extraAp: 1,
+    heroAtkPct: 0.05,
+  },
+];
+
+export const HERO_VARIANTS: HeroVariant[] = [
+  { id: "shield", title: "持盾", desc: "HP +20%，ATK -10%。", hpMult: 1.2, atkMult: 0.9, critDelta: 0 },
+  { id: "berserker", title: "狂热", desc: "ATK +20%，HP -10%。", hpMult: 0.9, atkMult: 1.2, critDelta: 0.02 },
+  { id: "auditor", title: "审计", desc: "HP +10%，暴击 +3%。", hpMult: 1.1, atkMult: 1, critDelta: 0.03 },
+  { id: "tired", title: "疲惫", desc: "HP -10%，ATK -5%。", hpMult: 0.9, atkMult: 0.95, critDelta: -0.01 },
+];
+
+export const PERSONAL_GOALS: PersonalGoal[] = [
+  { id: "survive_2", title: "稳定就业", desc: "累计存活 2 场战斗。", rewardShards: 8 },
+  { id: "deal_200", title: "绩效样板", desc: "累计造成 200 点伤害。", rewardShards: 10 },
+  { id: "no_bonus_survive", title: "不靠奖金", desc: "不领取战前奖金并存活一场。", rewardShards: 7 },
+  { id: "reach_level_3", title: "骨干员工", desc: "升到 3 级。", rewardShards: 12 },
+];
+
+export const GROWTH_CHOICES: GrowthChoice[] = [
+  { id: "atk_training", title: "专项训练", desc: "永久 ATK +2。" },
+  { id: "hp_benefits", title: "健康福利", desc: "永久 HP 上限 +10，并立即恢复 10 HP。" },
+  { id: "salary_review", title: "薪酬复盘", desc: "日薪 -1（最低 1），略微缓解长期经济压力。" },
+  { id: "reveal_trait", title: "背景调查", desc: "立刻揭示隐藏词条。" },
+  { id: "crit_drill", title: "暴击演练", desc: "永久暴击率 +3%。" },
+];
 
 export const BATTLE_LOG_TEMPLATES: BattleLogTemplates = {
   monsterHit: [

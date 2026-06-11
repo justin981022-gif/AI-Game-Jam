@@ -1,7 +1,7 @@
 // 主屏组件：准备阶段 / 战斗界面 / EVAL 绩效屏的内容区
 // 所有视觉装饰使用 art 图片驱动，CSS 仅用于布局
 import { useEffect, useRef } from "react";
-import { ART, BALANCE, LEVELS, TRAITS } from "@/game/data";
+import { ART, BALANCE, HEROES, LEVELS, TRAITS } from "@/game/data";
 import type { Hero, LogEntry, Monster } from "@/game/types";
 import type { UseGameApi } from "@/game/useGame";
 
@@ -59,7 +59,7 @@ function ActionBtn({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="relative flex flex-col justify-center w-full h-[60px] px-4 rounded-lg text-left transition-all
+      className="relative flex flex-col justify-center w-full h-[54px] px-3 rounded-lg text-left transition-all sm:h-[60px] sm:px-4
         active:brightness-90 active:scale-95 disabled:opacity-50 disabled:grayscale-[0.3] disabled:cursor-not-allowed
         hover:brightness-110 hover:scale-[1.02] hover:-translate-y-[1px] hover:shadow-md"
       style={{
@@ -69,11 +69,11 @@ function ActionBtn({
       }}
     >
       <div className="relative z-10 flex items-center justify-between w-full">
-        <span className="text-[16px] font-bold text-[#3D3A36]">{icon} {name}</span>
-        <span className="text-[14px] text-[#3D3A36]/90">{cost}</span>
+        <span className="min-w-0 truncate text-[14px] font-bold text-[#3D3A36] sm:text-[16px]">{icon} {name}</span>
+        <span className="shrink-0 text-[12px] text-[#3D3A36]/90 sm:text-[14px]">{cost}</span>
       </div>
       <div className="relative z-10">
-        <span className="text-[12px] text-[#3D3A36]/60">{sub}</span>
+        <span className="block truncate text-[11px] text-[#3D3A36]/60 sm:text-[12px]">{sub}</span>
       </div>
     </button>
   );
@@ -114,25 +114,64 @@ export function ShardIcon({ size = 20 }: { size?: number }) {
 }
 
 /* ─── 怪物槽位卡片 ─── */
-export function MonsterCard({ m, showHidden = false, compact = false }: { m: Monster; showHidden?: boolean; compact?: boolean }) {
+export function MonsterCard({
+  m,
+  showHidden = false,
+  compact = false,
+  onBonus,
+  bonusDisabled = false,
+}: {
+  m: Monster;
+  showHidden?: boolean;
+  compact?: boolean;
+  onBonus?: () => void;
+  bonusDisabled?: boolean;
+}) {
   const dead = m.state === "dead";
   return (
     <div
-      className={`relative rounded-xl overflow-hidden transition-all h-full ${dead ? "opacity-50 grayscale" : ""} ${compact ? "p-2" : "p-3 min-w-[160px]"} flex flex-col`}
+      className={`relative rounded-xl overflow-hidden transition-all h-full ${dead ? "opacity-50 grayscale" : ""} ${compact ? "p-2" : "p-2.5 sm:p-3 sm:min-w-[160px]"} flex flex-col`}
       style={{
         backgroundColor: "#F2EDE0",
         border: "1px solid rgba(61,58,54,0.5)",
         boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
       }}
     >
-      <div className="relative z-10 flex flex-col items-center gap-1 flex-1 overflow-hidden">
+      {!compact && onBonus && (
+        <button
+          onClick={onBonus}
+          disabled={bonusDisabled}
+          className="absolute right-2 top-2 z-20 rounded-full border border-amber-300 bg-amber-100 px-2 py-1 text-[10px] font-bold leading-none text-amber-800 shadow-sm transition hover:bg-amber-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
+          title="发奖金：消耗 1 行动点，选择一档临时提升本场攻击"
+        >
+          💰 奖金
+        </button>
+      )}
+      <div className="relative z-10 flex flex-1 flex-col items-center gap-1 overflow-hidden">
         {/* BUST 头像 */}
-        <img src={m.artUrl} alt={m.name} className={`${compact ? "w-12 h-12" : "w-16 h-16"} rounded-lg object-cover flex-shrink-0`} />
+        <img src={m.artUrl} alt={m.name} className={`${compact ? "h-12 w-12" : "h-12 w-12 sm:h-14 sm:w-14"} flex-shrink-0 rounded-lg object-cover`} />
         {/* 名字 + LV */}
-        <div className="text-sm font-bold text-[#3D3A36] text-center truncate w-full">{m.name}</div>
+        <div
+          className="flex min-h-[1.6rem] w-full items-center justify-center break-words text-center text-[13px] font-bold leading-tight text-[#3D3A36] [overflow-wrap:anywhere] sm:text-sm"
+          title={m.name}
+        >
+          {m.name}
+        </div>
         <div className="text-[10px] text-[#3D3A36]/70">
           Lv.{m.level} · {m.role}
         </div>
+        {!compact && (
+          <div
+            className={`w-full rounded-md px-2 py-1 text-center text-[10px] font-semibold leading-tight ${
+              m.goalCompleted ? "bg-emerald-100 text-emerald-800" : "bg-sky-50 text-slate-700"
+            }`}
+            title={`${m.personalGoal.desc} 完成奖励：${m.personalGoal.rewardShards} 碎片。`}
+          >
+            目标：{m.personalGoal.title} · 奖励 +{m.personalGoal.rewardShards} 碎片{m.goalCompleted ? "（已领取）" : ""}
+          </div>
+        )}
+        {/* 词条 chips */}
+        {!compact && <SlotTraitChips m={m} showHidden={showHidden} />}
         {/* HP 条 */}
         <div className="w-full">
           <HpBar hp={m.hp} max={m.hpMax} />
@@ -142,8 +181,6 @@ export function MonsterCard({ m, showHidden = false, compact = false }: { m: Mon
           <span>攻击 {m.atk}</span>
           <span className="text-amber-700">CRIT {Math.round(m.critRate * 100)}%</span>
         </div>
-        {/* 词条 chips */}
-        {!compact && <SlotTraitChips m={m} showHidden={showHidden} />}
       </div>
     </div>
   );
@@ -156,24 +193,24 @@ function SlotTraitChips({ m, showHidden }: { m: Monster; showHidden: boolean }) 
   const runtime = m.runtimeTraits || [];
   if (visible.length === 0 && !hidden && runtime.length === 0 && m.slackerBattlesLeft <= 0) return null;
   return (
-    <div className="flex flex-wrap gap-1 mt-1 justify-center">
+    <div className="flex max-h-[3rem] flex-wrap justify-center gap-1 overflow-hidden">
       {visible.map((t) => (
-        <span key={t} title={TRAITS[t]?.desc ?? ""} className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 cursor-help">
+        <span key={t} title={TRAITS[t]?.desc ?? ""} className="cursor-help rounded-full border border-emerald-300 bg-emerald-100 px-1.5 py-0.5 text-[10px] leading-none text-emerald-800">
           {TRAITS[t]?.name ?? t}
         </span>
       ))}
       {showHidden && hidden && (
-        <span title={TRAITS[hidden]?.desc ?? ""} className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 cursor-help">
+        <span title={TRAITS[hidden]?.desc ?? ""} className="cursor-help rounded-full border border-amber-300 bg-amber-100 px-1.5 py-0.5 text-[10px] leading-none text-amber-800">
           🔒 {TRAITS[hidden]?.name ?? hidden}
         </span>
       )}
       {runtime.map((t) => (
-        <span key={t} title={TRAITS[t]?.desc ?? ""} className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-300 cursor-help">
+        <span key={t} title={TRAITS[t]?.desc ?? ""} className="cursor-help rounded-full border border-indigo-300 bg-indigo-100 px-1.5 py-0.5 text-[10px] leading-none text-indigo-800">
           {TRAITS[t]?.name ?? t}
         </span>
       ))}
       {m.slackerBattlesLeft > 0 && (
-        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-800 border border-rose-300">
+        <span className="rounded-full border border-rose-300 bg-rose-100 px-1.5 py-0.5 text-[10px] leading-none text-rose-800">
           消极怠工({m.slackerBattlesLeft}场)
         </span>
       )}
@@ -184,9 +221,10 @@ function SlotTraitChips({ m, showHidden }: { m: Monster; showHidden: boolean }) 
 function LevelProgress({ idx }: { idx: number }) {
   return (
     <div
-      className="flex items-center justify-center gap-0 px-3 py-1.5 rounded-lg"
+      className="max-w-full overflow-x-auto rounded-lg px-2 py-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-3"
       style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
     >
+      <div className="flex min-w-max items-center justify-center gap-0">
       {LEVELS.map((lv, i) => {
         const nodeColor = i === idx ? "#C97B5C" : i < idx ? "#8FA89B" : "#B8B5A8";
         // Line color: if both sides are passed, use dark; otherwise light
@@ -194,20 +232,21 @@ function LevelProgress({ idx }: { idx: number }) {
         return (
           <div key={lv.id} className="flex items-center">
             <div
-              className="w-8 h-8 rounded-full flex items-center justify-center shrink-0"
+              className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
               style={{
                 backgroundColor: nodeColor,
                 border: "2px solid #3D3A36",
               }}
             >
-              <span className={`text-[10px] font-bold text-white ${TXT_SM}`}>{lv.id}</span>
+              <span className={`text-[7px] font-bold text-white sm:text-[10px] ${TXT_SM}`}>{lv.id}</span>
             </div>
             {i < LEVELS.length - 1 && (
-              <div className="w-6 h-1" style={{ backgroundColor: lineColor }} />
+              <div className="h-1 w-1.5 sm:w-6" style={{ backgroundColor: lineColor }} />
             )}
           </div>
         );
       })}
+      </div>
     </div>
   );
 }
@@ -216,7 +255,7 @@ function LevelProgress({ idx }: { idx: number }) {
 function ApTooltip({ ap, apMax }: { ap: number; apMax: number }) {
   return (
     <div
-      className="inline-flex items-center gap-1.5 cursor-help"
+      className="inline-flex items-center gap-1.5 cursor-help whitespace-nowrap"
       title="行动点每关刷新。招募、发奖金、打零工各消耗 1 行动点。"
     >
       <span className="text-lg">{"\u26A1"}</span>
@@ -229,29 +268,34 @@ function ApTooltip({ ap, apMax }: { ap: number; apMax: number }) {
 export function TopBar({ g }: { g: UseGameApi }) {
   return (
     <div
-      className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-2.5 rounded-xl overflow-hidden"
+      className="relative flex flex-col gap-2 overflow-hidden rounded-xl px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-2.5"
       style={{
         backgroundColor: "rgba(0,0,0,0.7)",
       }}
     >
-      <div className="flex items-center gap-4">
-        <div className={`flex items-center gap-2 font-semibold text-lg ${g.economyWarning ? "text-rose-300 animate-pulse" : "text-violet-200"} ${TXT}`}>
-          <ShardIcon size={36} />
+      <div className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 sm:w-auto sm:gap-4">
+        <div className={`flex items-center gap-1.5 text-sm font-semibold sm:gap-2 sm:text-lg ${g.economyWarning ? "text-rose-300 animate-pulse" : "text-violet-200"} ${TXT}`}>
+          <ShardIcon size={28} />
           <span>灵魂碎片 {g.shards}</span>
           {g.economyWarning && (
             <span className="rounded border border-rose-200/25 bg-black/70 px-1.5 py-0.5 text-[10px] text-rose-100 backdrop-blur-[1px]">储备告急</span>
           )}
         </div>
-        <div className={`flex items-center gap-2 text-sky-200 font-semibold text-lg ${TXT}`}>
+        <div className={`flex items-center gap-2 text-sm font-semibold text-sky-200 sm:text-lg ${TXT}`}>
           <ApTooltip ap={g.ap} apMax={g.apMax} />
         </div>
+        {g.activePolicy && (
+          <div className={`hidden md:block text-xs text-amber-100 font-semibold ${TXT_SM}`} title={g.activePolicy.desc}>
+            方针：{g.activePolicy.title}
+          </div>
+        )}
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex w-full min-w-0 items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-3">
         <button className="w-8 h-8 overflow-hidden hover:brightness-125 transition" title="重启（准备阶段：撤销本回合 / 其他：重新开始）" onClick={g.restart}>
           <img src={ART.icoRestart} alt="重启" className="w-full h-full object-cover" />
         </button>
-        <div className="text-right ml-2">
-          <div className={`text-sm font-bold text-amber-200 ${TXT}`}>{g.levelId} · {g.levelTitle}</div>
+        <div className="min-w-0 flex-1 text-right sm:ml-2 sm:flex-none">
+          <div className={`truncate text-xs font-bold text-amber-200 sm:text-sm ${TXT}`}>{g.levelId} · {g.levelTitle}</div>
           <LevelProgress idx={g.levelIndex} />
         </div>
       </div>
@@ -262,44 +306,50 @@ export function TopBar({ g }: { g: UseGameApi }) {
 export function PrepScreen({ g }: { g: UseGameApi }) {
   const nextLevel = LEVELS[g.levelIndex];
   const heroPreview = nextLevel?.heroId;
-  const heroMap: Record<string, { name: string; hp: number }> = {
-    HERO_W01: { name: "勇者·初出茅庐", hp: 110 },
-    HERO_W02: { name: "勇者·小有名气", hp: 220 },
-    HERO_W03: { name: "勇者·身经百战", hp: 330 },
-    HERO_W04: { name: "勇者·声名远扬", hp: 440 },
-    HERO_ELITE: { name: "精英勇者", hp: 600 },
+  const heroMap = HEROES;
+  const heroImage = (id: string) => {
+    if (id === "HERO_W01") return ART.heroW01;
+    if (id === "HERO_W02") return ART.heroW02;
+    if (id === "HERO_W03") return ART.heroW03;
+    if (id === "HERO_W04" || id === "HERO_W05") return ART.heroW04;
+    return ART.heroElite;
   };
   const isL01 = g.levelId === "L01";
   const emptyCount = Math.max(0, g.slots - g.monsters.length);
 
   return (
-    <div className="flex flex-col lg:flex-row gap-3 h-full">
+    <div className="flex h-full flex-col gap-3 xl:flex-row">
       {/* 怪物槽位面板（全宽） */}
       <div className="flex-1 flex flex-col gap-3">
         <div
-          className="relative rounded-2xl p-4 overflow-hidden"
+          className="relative overflow-hidden rounded-2xl p-3 sm:p-4"
           style={{
             backgroundColor: "rgba(0,0,0,0.7)",
             border: "2px solid rgba(61,58,54,0.5)",
           }}
         >
           <div className="relative z-10">
-            <div className="flex items-center justify-between mb-3 gap-2">
+            <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
               <h2 className={`text-lg text-white font-bold flex items-center gap-2 ${TXT}`}>
                 怪物槽位（{g.monsters.length}/{g.slots}）
               </h2>
-              {isL01 && <span className={`text-sm text-amber-200 ${TXT_SM}`}>入职第一天：先招募你的第一位员工</span>}
+              {isL01 && <span className={`text-xs text-amber-200 sm:text-sm ${TXT_SM}`}>入职第一天：先招募你的第一位员工</span>}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {g.monsters.map((m) => (
-                <div key={m.id} className="h-[220px]">
-                  <MonsterCard m={m} showHidden />
+                <div key={m.id} className="h-[210px] sm:h-[220px] xl:h-[230px]">
+                  <MonsterCard
+                    m={m}
+                    showHidden
+                    onBonus={m.state === "active" || m.state === "negative" ? () => g.openBonus(m.id) : undefined}
+                    bonusDisabled={g.ap <= 0}
+                  />
                 </div>
               ))}
               {Array.from({ length: emptyCount }).map((_, i) => (
                 <div
                   key={`empty-${i}`}
-                  className="rounded-xl flex flex-col items-center justify-center h-[220px]"
+                  className="flex h-[210px] flex-col items-center justify-center rounded-xl sm:h-[220px] xl:h-[230px]"
                   style={{
                     backgroundColor: "rgba(184,181,168,0.5)",
                     border: "4px dashed #3D3A36",
@@ -314,7 +364,7 @@ export function PrepScreen({ g }: { g: UseGameApi }) {
                 <button
                   onClick={g.doBuild}
                   disabled={!g.canBuild}
-                  className="rounded-xl flex flex-col items-center justify-center h-[220px] transition hover:brightness-105 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex h-[210px] flex-col items-center justify-center rounded-xl transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40 sm:h-[220px] xl:h-[230px]"
                   style={{
                     backgroundColor: "rgba(184,181,168,0.3)",
                     border: "2px dashed #C97B5C",
@@ -330,7 +380,7 @@ export function PrepScreen({ g }: { g: UseGameApi }) {
       </div>
 
       {/* 右侧：动作按钮面板 */}
-      <div className="w-full lg:w-[280px] flex flex-col gap-3">
+      <div className="flex w-full flex-col gap-3 xl:w-[280px]">
         <div
           className="rounded-2xl p-3 flex flex-col gap-2 flex-1"
           style={{
@@ -342,8 +392,7 @@ export function PrepScreen({ g }: { g: UseGameApi }) {
           <h2 className={`text-base text-[#3D3A36] font-bold`}>准备阶段</h2>
           <ActionBtn onClick={g.openRecruit} disabled={g.ap <= 0} icon="📋" name="招募" cost="1 行动点" sub="免费" />
           <ActionBtn onClick={g.doBuild} disabled={!g.canBuild} icon="🏗️" name="扩建" cost="1 行动点" sub={`${g.buildCost} 碎片`} />
-          <ActionBtn onClick={g.openBonus} disabled={g.ap <= 0} icon="💰" name="发奖金" cost="1 行动点" sub="8/15/25 三档" />
-          <ActionBtn onClick={g.doLabor} disabled={g.ap <= 0} icon="⛏️" name="打零工" cost="1 行动点" sub="+4 碎片" />
+          <ActionBtn onClick={g.doLabor} disabled={g.ap <= 0} icon="⛏️" name="打零工" cost="1 行动点" sub={`+${BALANCE.AP_TO_SHARD_RATE} 碎片`} />
 
           <div className="mt-auto pt-2">
             {nextLevel?.hasBattle ? (
@@ -385,7 +434,7 @@ export function PrepScreen({ g }: { g: UseGameApi }) {
               <div className="absolute inset-0 bg-black/40 pointer-events-none" />
               <div className="relative z-10 flex items-center gap-2">
                 <img
-                  src={heroPreview === "HERO_ELITE" ? ART.heroElite : heroPreview === "HERO_W04" ? ART.heroW04 : heroPreview === "HERO_W03" ? ART.heroW03 : heroPreview === "HERO_W02" ? ART.heroW02 : ART.heroW01}
+                  src={heroImage(heroPreview)}
                   alt="hero"
                   className="w-10 h-10 rounded-lg object-cover"
                 />
@@ -435,10 +484,10 @@ export function BattleScreen({ g }: { g: UseGameApi }) {
   }, [g.logs]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 gap-3 xl:grid-cols-3 xl:gap-4">
       {/* 战斗日志面板 */}
       <div
-        className="relative lg:col-span-2 rounded-2xl p-4 flex flex-col overflow-hidden"
+        className="relative flex flex-col overflow-hidden rounded-2xl p-3 sm:p-4 xl:col-span-2"
         style={{
           backgroundColor: "rgba(0,0,0,0.7)",
         }}
@@ -457,7 +506,7 @@ export function BattleScreen({ g }: { g: UseGameApi }) {
               </GameBtn>
             </div>
           </div>
-          <div ref={logRef} className="flex-1 overflow-y-auto space-y-1 pr-2 min-h-[320px] max-h-[55vh]">
+          <div ref={logRef} className="min-h-[220px] flex-1 space-y-1 overflow-y-auto pr-2 sm:min-h-[320px] max-h-[55vh]">
             {g.logs.map((l) => (
               <LogLine key={l.id} entry={l} />
             ))}

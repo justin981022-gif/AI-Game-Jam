@@ -9,7 +9,10 @@ import {
   EndingDialog,
   EvalDialog,
   EventDialog,
+  GrowthDialog,
   NegotiateDialog,
+  PolicyDialog,
+  PrepEventDialog,
   RecruitDialog,
   StoryDialog,
   ToastContainer,
@@ -19,15 +22,15 @@ import {
 function StartScreen({ onStart }: { onStart: () => void }) {
   return (
     <div
-      className="min-h-screen w-full relative flex items-center justify-center"
+      className="min-h-screen w-full relative flex items-center justify-center overflow-hidden"
       style={{ backgroundColor: "#b7b1a3" }}
     >
       {/* 全屏背景图 — 16:9 contain 居中，不裁切 */}
       <div
-        className="relative w-full h-0"
+        className="relative w-full"
         style={{
-          paddingBottom: "56.25%", /* 16:9 */
-          maxWidth: "100vw",
+          aspectRatio: "16 / 9",
+          maxWidth: "min(100vw, 177.78vh)",
           maxHeight: "100vh",
         }}
       >
@@ -64,17 +67,17 @@ function StartScreen({ onStart }: { onStart: () => void }) {
             className="absolute flex items-center justify-center cursor-pointer hover:brightness-110 transition-all duration-200 active:brightness-90"
             style={{
               left: "55%",
-              right: "27%",
-              top: "67%",
-              bottom: "20%",
+              top: "66.5%",
+              width: "clamp(78px, 18vw, 280px)",
+              height: "clamp(42px, 7.25vw, 92px)",
               background: "transparent",
               border: "none",
               outline: "none",
             }}
           >
             <span
-              className="font-bold"
-              style={{ fontSize: "clamp(20px, 3.5vw, 44px)", color: "#3D3A36" }}
+              className="font-bold leading-none whitespace-nowrap"
+              style={{ fontSize: "clamp(12px, 3vw, 44px)", color: "#3D3A36" }}
             >
               开始入职
             </span>
@@ -111,7 +114,7 @@ export default function Index() {
         {g.gameState === "GAME_INIT" ? (
           <StartScreen onStart={g.startGame} />
         ) : (
-          <div className="w-full px-3 py-2 space-y-3">
+          <div className="min-h-screen w-full px-2 py-2 pb-4 space-y-2 sm:px-3 sm:space-y-3">
             <TopBar g={g} />
             {g.gameState === "BATTLE" ? <BattleScreen g={g} /> : <PrepScreen g={g} />}
           </div>
@@ -120,10 +123,13 @@ export default function Index() {
 
       {/* 弹窗层 */}
       <StoryDialog g={g} />
+      <PolicyDialog g={g} />
+      <PrepEventDialog g={g} />
       <RecruitDialog g={g} />
       <BonusDialog g={g} />
       <EventDialog g={g} />
       <EvalDialog g={g} />
+      <GrowthDialog g={g} />
       <DismissDialog g={g} />
       <NegotiateDialog g={g} />
       <EndingDialog g={g} />

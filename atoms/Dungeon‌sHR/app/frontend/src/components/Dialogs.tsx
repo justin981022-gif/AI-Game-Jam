@@ -11,7 +11,7 @@ const TXT_SM = "drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]";
 
 function Overlay({ children }: { children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 mt-[0px] mr-[0px] mb-[0px] ml-[0px] pt-[16px] pr-[16px] pb-[16px] pl-[16px] rounded-none text-[16px] font-normal text-[#FFFFFF] bg-[#000000B3] opacity-100">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#000000B3] p-2 py-4 text-[16px] font-normal text-[#FFFFFF] opacity-100 sm:items-center sm:p-4">
       {children}
     </div>
   );
@@ -208,20 +208,20 @@ export function RecruitDialog({ g }: { g: UseGameApi }) {
 
   return (
     // R6: 深棕蒙版 rgba(15,12,8,0.55)
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-2 py-4 sm:items-center sm:p-4"
       style={{ backgroundColor: "rgba(15,12,8,0.55)" }}
       onClick={g.closeRecruit}
     >
-      {/* 全屏布局 — 卡片整体下移，顶部留更多空间 */}
-      <div className="w-full h-full flex flex-col px-3 pt-6 pb-2" onClick={(e) => e.stopPropagation()}>
-        {/* R9: 顶部信息栏 — 字号 1.6em 加粗 */}
-        <div className="flex items-center justify-between shrink-0 mb-3">
-          <div className={`flex items-center gap-2 text-white font-semibold ${TXT}`}>
-            <ShardIcon size={36} />
+      {/* 全屏布局 - 卡片整体下移，顶部留更多空间 */}
+      <div className="flex min-h-full w-full flex-col px-1 pb-2 pt-2 sm:h-full sm:px-3 sm:pt-6" onClick={(e) => e.stopPropagation()}>
+        {/* R9: 顶部信息栏 - 字号 1.6em 加粗 */}
+        <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-2">
+          <div className={`flex items-center gap-2 text-sm font-semibold text-white sm:text-base ${TXT}`}>
+            <ShardIcon size={28} />
             <span>× {g.shards} 灵魂碎片</span>
           </div>
-          <h2 className={`font-black text-white ${TXT}`} style={{ fontSize: "1.6em" }}>
-            招募候选人 — 点击简历即可录用
+          <h2 className={`min-w-0 flex-1 text-center text-lg font-black text-white sm:text-[1.6em] ${TXT}`}>
+            招募候选人 - 点击简历即可录用
           </h2>
           <button onClick={g.closeRecruit} className={`text-white text-2xl leading-none hover:brightness-150 ${TXT}`}>
             ×
@@ -229,7 +229,7 @@ export function RecruitDialog({ g }: { g: UseGameApi }) {
         </div>
 
         {/* 三张简历卡并排 — 下移后占满剩余空间 */}
-        <div className="flex-1 min-h-0 grid grid-cols-3 gap-3 py-1">
+        <div className="grid flex-1 grid-cols-1 gap-3 py-1 sm:min-h-0 sm:grid-cols-3">
           {pool.map((r) => (
             <ResumeCard key={r.id} r={r} onChoose={() => g.chooseResume(r)} />
           ))}
@@ -244,7 +244,7 @@ export function RecruitDialog({ g }: { g: UseGameApi }) {
               active:brightness-90 active:scale-95 disabled:opacity-50 disabled:grayscale-[0.3] disabled:cursor-not-allowed
               hover:brightness-110 hover:scale-[1.02] hover:-translate-y-[1px]"
             style={{
-              minWidth: 620,
+              width: "min(620px, 100%)",
               borderStyle: "solid",
               borderColor: "transparent",
               borderWidth: "16px 32px",
@@ -264,64 +264,72 @@ export function RecruitDialog({ g }: { g: UseGameApi }) {
 export function BonusDialog({ g }: { g: UseGameApi }) {
   if (!g.bonusOpen) return null;
   const active = g.monsters.filter((m) => m.state === "active" || m.state === "negative");
+  const target = (g.bonusTargetId ? active.find((m) => m.id === g.bonusTargetId) : active[0]) ?? null;
   const tierKeys: BonusTier[] = ["small", "medium", "large"];
+  if (!target) return null;
 
   return (
     <Overlay>
       <div
-        className="relative w-full max-w-lg rounded-2xl overflow-hidden"
+        className="relative my-auto w-full max-w-[460px] overflow-hidden rounded-2xl"
         style={{
-          backgroundImage: `url(${ART.cardEvent})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundColor: "#F2E6C9",
+          border: "3px solid #3D3A36",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
         }}
       >
-        <div className="relative z-10">
-          <div className="px-5 py-3 flex items-center justify-between">
-            <div className={`text-sm font-bold text-amber-100 flex items-center gap-2 ${TXT}`}>
+        <div className="relative z-10 text-[#3D3A36]">
+          <div className="flex items-center justify-between gap-3 border-b border-[#3D3A36]/20 px-4 py-3 sm:px-5">
+            <div className="flex min-w-0 items-center gap-2 text-sm font-black">
               <ShardIcon size={18} />
-              发奖金（选择档位和目标）
+              <span className="truncate">给 {target.name} 发奖金</span>
             </div>
-            <button onClick={g.closeBonus} className={`text-white text-lg hover:brightness-150 ${TXT}`}>×</button>
+            <button onClick={g.closeBonus} className="shrink-0 text-xl font-black leading-none hover:brightness-125">×</button>
           </div>
-          <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
-            {active.map((m) => (
-              <div key={m.id} className="relative rounded-xl p-3 overflow-hidden"
-                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-              >
-                <div className="absolute inset-0 bg-black/30 pointer-events-none" />
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-2">
-                    <img src={m.artUrl} alt={m.name} className="w-10 h-10 rounded-lg object-cover" />
-                    <div className="flex-1 min-w-0">
-                      <div className={`text-sm font-semibold text-white truncate ${TXT}`}>{m.name}</div>
-                      <div className={`text-[11px] text-slate-200 ${TXT_SM}`}>ATK {m.atk} | 当前奖金倍率 x{m.bonusAtkMult.toFixed(2)}</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    {tierKeys.map((key) => {
-                      const tier = BONUS_TIERS[key];
-                      const disabled = g.shards < tier.cost;
-                      return (
-                        <GameBtn
-                          key={key}
-                          onClick={() => g.applyBonus(m.id, key)}
-                          disabled={disabled}
-                          className="flex-1 text-xs"
-                        >
-                          {tier.label} ({tier.cost}<ShardIcon size={10} />, x{tier.atkMult.toFixed(2)})
-                        </GameBtn>
-                      );
-                    })}
-                  </div>
+          <div className="space-y-3 p-4 sm:p-5">
+            <div className="flex items-center gap-3 rounded-xl border border-[#3D3A36]/15 bg-white/45 p-3">
+              <img src={target.artUrl} alt={target.name} className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+              <div className="min-w-0 flex-1">
+                <div className="break-words text-sm font-black leading-tight">{target.name}</div>
+                <div className="mt-1 text-[11px] font-semibold text-[#3D3A36]/70">
+                  ATK {target.atk} · 当前奖金倍率 x{target.bonusAtkMult.toFixed(2)}
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="px-5 pb-4 flex justify-end">
-            <GameBtn onClick={g.closeBonus}>
-              取消
-            </GameBtn>
+            </div>
+
+            <div className="grid gap-2">
+              {tierKeys.map((key) => {
+                const tier = BONUS_TIERS[key];
+                const cost = Math.max(1, Math.round(tier.cost * (1 - (g.activePolicy?.bonusDiscount ?? 0))));
+                const disabled = g.shards < cost || g.ap <= 0;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => g.applyBonus(target.id, key)}
+                    disabled={disabled}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-[#3D3A36]/20 bg-white/60 px-3 py-3 text-left transition hover:bg-white/85 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    <div className="min-w-0">
+                      <div className="text-[14px] font-black leading-tight">{tier.label}</div>
+                      <div className="mt-1 text-[11px] font-semibold text-[#3D3A36]/65">本场 ATK x{tier.atkMult.toFixed(2)} · 消耗 1 行动点</div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1 text-[13px] font-black text-amber-700">
+                      {cost}
+                      <ShardIcon size={14} />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={g.closeBonus}
+                className="rounded-lg border border-[#3D3A36]/20 bg-white/45 px-4 py-2 text-[13px] font-black transition hover:bg-white/75 active:scale-[0.99]"
+              >
+                取消
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -387,6 +395,77 @@ export function EventDialog({ g }: { g: UseGameApi }) {
   );
 }
 
+// ───────── 本日经营方针 ─────────
+export function PolicyDialog({ g }: { g: UseGameApi }) {
+  if (g.dailyPolicyChoices.length === 0 || g.activePolicy) return null;
+  return (
+    <Overlay>
+      <div
+        className="relative my-auto w-full max-w-[560px] max-h-[calc(100svh-2rem)] overflow-y-auto rounded-2xl"
+        style={{
+          backgroundColor: "#F2E6C9",
+          border: "3px solid #3D3A36",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div className="relative z-10 p-4 sm:p-5">
+          <div className="mb-2 text-[16px] font-black text-[#3D3A36] sm:mb-4">本日经营方针</div>
+          <div className="mb-3 text-[12px] font-semibold leading-relaxed text-[#3D3A36]/80 sm:mb-4 sm:text-[13px]">
+            董事会要求本关先定策略。方针只影响本关，选完后进入日常突发事件。
+          </div>
+          <div className="space-y-2 sm:space-y-3">
+            {g.dailyPolicyChoices.map((policy) => (
+              <button
+                key={policy.id}
+                onClick={() => g.choosePolicy(policy)}
+                className="w-full rounded-md border border-[#3D3A36]/25 bg-white/60 px-3 py-2.5 text-left text-[#3D3A36] transition hover:bg-white/85 active:scale-[0.99] sm:rounded-lg sm:px-4 sm:py-3"
+              >
+                <div className="text-[14px] font-black leading-tight">{policy.title}</div>
+                <div className="mt-1 text-[12px] font-semibold leading-snug opacity-75">{policy.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+// ───────── 准备阶段日常事件 ─────────
+export function PrepEventDialog({ g }: { g: UseGameApi }) {
+  if (!g.prepEvent || g.dailyPolicyChoices.length > 0) return null;
+  const ev = g.prepEvent;
+  return (
+    <Overlay>
+      <div
+        className="relative my-auto w-full max-w-[540px] max-h-[calc(100svh-2rem)] overflow-y-auto rounded-2xl"
+        style={{
+          backgroundColor: "#F2E6C9",
+          border: "3px solid #3D3A36",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div className="relative z-10 p-4 text-[#3D3A36] sm:p-5">
+          <div className="mb-3 text-[16px] font-black leading-tight">{ev.title}</div>
+          <div className="mb-4 text-[14px] font-semibold leading-relaxed text-[#3D3A36]/85">{ev.cardText}</div>
+          <div className="space-y-2 sm:space-y-3">
+          {ev.options.map((opt, idx) => (
+            <button
+              key={idx}
+              onClick={() => g.choosePrepEventOption(idx as 0 | 1)}
+              className="flex w-full flex-col rounded-md border border-[#3D3A36]/25 bg-white/60 px-3 py-2.5 text-left text-[#3D3A36] transition hover:bg-white/85 active:scale-[0.99] sm:rounded-lg sm:px-4 sm:py-3"
+            >
+              <span className="text-[14px] font-black leading-tight">{opt.label}</span>
+              {opt.sub && <span className="mt-1 text-[12px] font-semibold leading-snug opacity-75">{opt.sub}</span>}
+            </button>
+          ))}
+          </div>
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
 // ───────── 谈薪弹窗（ART.negotiate 作为专用面板背景） ─────────
 export function NegotiateDialog({ g }: { g: UseGameApi }) {
   if (!g.negotiate) return null;
@@ -435,6 +514,51 @@ export function NegotiateDialog({ g }: { g: UseGameApi }) {
         >
           拒绝
         </button>
+      </div>
+    </Overlay>
+  );
+}
+
+// ───────── 战后成长三选一 ─────────
+export function GrowthDialog({ g }: { g: UseGameApi }) {
+  if (!g.growth) return null;
+  const m = g.monsters.find((x) => x.id === g.growth!.monsterId);
+  if (!m) return null;
+
+  return (
+    <Overlay>
+      <div
+        className="relative my-auto w-full max-w-[560px] max-h-[calc(100svh-2rem)] overflow-y-auto rounded-2xl"
+        style={{
+          backgroundColor: "#F2E6C9",
+          border: "3px solid #3D3A36",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div className="relative z-10 p-4 text-[#3D3A36] sm:p-5">
+          <div className="mb-2 text-[18px] font-black sm:mb-3">战后成长</div>
+          <div className="mb-3 flex items-center gap-3 sm:mb-4">
+            <img src={m.artUrl} alt={m.name} className="h-12 w-12 rounded-lg object-cover" />
+            <div className="min-w-0">
+              <div className="truncate text-[15px] font-black">{m.name}</div>
+              <div className="text-[11px] font-semibold leading-snug opacity-75 sm:text-[12px]">
+                Lv.{m.level} | ATK {m.atk} | HP {m.hp}/{m.hpMax} | 日薪 {m.salary}
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2 sm:space-y-3">
+            {g.growth.choices.map((choice) => (
+              <button
+                key={choice.id}
+                onClick={() => g.chooseGrowth(choice)}
+                className="w-full rounded-md border border-[#3D3A36]/25 bg-white/60 px-3 py-2.5 text-left transition hover:bg-white/85 active:scale-[0.99] sm:rounded-lg sm:px-4 sm:py-3"
+              >
+                <div className="text-[14px] font-black leading-tight">{choice.title}</div>
+                <div className="mt-1 text-[12px] font-semibold leading-snug opacity-75">{choice.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </Overlay>
   );
@@ -628,7 +752,7 @@ export function EndingDialog({ g }: { g: UseGameApi }) {
 export function ToastContainer({ g }: { g: UseGameApi }) {
   if (g.toasts.length === 0) return null;
   return (
-    <div className="fixed bottom-4 right-4 z-[60] space-y-2 max-w-sm">
+    <div className="fixed inset-x-2 bottom-3 z-[60] space-y-2 sm:inset-x-auto sm:bottom-4 sm:right-4 sm:max-w-sm">
       {g.toasts.map((t) => (
         <div
           key={t.id}

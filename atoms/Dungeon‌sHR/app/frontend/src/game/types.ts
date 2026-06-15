@@ -19,11 +19,18 @@ export type PersonalGoalId =
   | "no_bonus_survive"
   | "reach_level_3";
 
+export interface PersonalGoalReward {
+  atk?: number;
+  hpMax?: number;
+  critRate?: number;
+}
+
 export interface PersonalGoal {
   id: PersonalGoalId;
   title: string;
   desc: string;
-  rewardShards: number;
+  reward: PersonalGoalReward;
+  rewardText: string;
 }
 
 // 词条 ID
@@ -33,6 +40,15 @@ export type TraitId =
   | "team_player" // 团队协作
   | "cancer" // 团队毒瘤
   | "lone_wolf" // 社恐
+  | "shield_wall" // 前排意识
+  | "precision" // 精准打卡
+  | "mentor" // 带新人
+  | "overtime_ready" // 自愿加班
+  | "compliance" // 合规意识
+  | "glass_heart" // 玻璃心
+  | "night_shift" // 夜班熟手
+  | "battle_trance" // 越打越顺
+  | "quiet_quitter" // 隐性摆烂
   | "cheap_skate" // 省钱攒学费
   | "loyalty" // 怀旧情绪
   | "nostalgic" // 末位淘汰恐惧

@@ -16,6 +16,7 @@ import {
   RecruitDialog,
   StoryDialog,
   ToastContainer,
+  TrainingDialog,
 } from "@/components/Dialogs";
 
 
@@ -127,6 +128,7 @@ export default function Index() {
       <PrepEventDialog g={g} />
       <RecruitDialog g={g} />
       <BonusDialog g={g} />
+      <TrainingDialog g={g} />
       <EventDialog g={g} />
       <EvalDialog g={g} />
       <GrowthDialog g={g} />

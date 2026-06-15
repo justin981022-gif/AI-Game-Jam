@@ -120,12 +120,16 @@ export function MonsterCard({
   compact = false,
   onBonus,
   bonusDisabled = false,
+  onTraining,
+  trainingDisabled = false,
 }: {
   m: Monster;
   showHidden?: boolean;
   compact?: boolean;
   onBonus?: () => void;
   bonusDisabled?: boolean;
+  onTraining?: () => void;
+  trainingDisabled?: boolean;
 }) {
   const dead = m.state === "dead";
   return (
@@ -137,6 +141,16 @@ export function MonsterCard({
         boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
       }}
     >
+      {!compact && onTraining && (
+        <button
+          onClick={onTraining}
+          disabled={trainingDisabled}
+          className="absolute left-2 top-2 z-20 rounded-full border border-cyan-300 bg-cyan-100 px-2 py-1 text-[10px] font-bold leading-none text-cyan-800 shadow-sm transition hover:bg-cyan-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
+          title="单独培训：消耗 1 行动点和灵魂碎片，使怪物升级"
+        >
+          🎓 培训
+        </button>
+      )}
       {!compact && onBonus && (
         <button
           onClick={onBonus}
@@ -165,9 +179,9 @@ export function MonsterCard({
             className={`w-full rounded-md px-2 py-1 text-center text-[10px] font-semibold leading-tight ${
               m.goalCompleted ? "bg-emerald-100 text-emerald-800" : "bg-sky-50 text-slate-700"
             }`}
-            title={`${m.personalGoal.desc} 完成奖励：${m.personalGoal.rewardShards} 碎片。`}
+            title={`${m.personalGoal.desc} 完成奖励：${m.personalGoal.rewardText}。`}
           >
-            目标：{m.personalGoal.title} · 奖励 +{m.personalGoal.rewardShards} 碎片{m.goalCompleted ? "（已领取）" : ""}
+            目标：{m.personalGoal.title} · 奖励 {m.personalGoal.rewardText}{m.goalCompleted ? "（已生效）" : ""}
           </div>
         )}
         {/* 词条 chips */}
@@ -176,10 +190,14 @@ export function MonsterCard({
         <div className="w-full">
           <HpBar hp={m.hp} max={m.hpMax} />
         </div>
-        {/* ATK / CRIT */}
-        <div className="flex justify-between w-full text-[11px] text-[#3D3A36] mt-0.5">
+        {/* 攻击 / 日薪 / 暴击率 */}
+        <div className="grid w-full grid-cols-3 items-center gap-1 text-[11px] text-[#3D3A36] mt-0.5">
           <span>攻击 {m.atk}</span>
-          <span className="text-amber-700">CRIT {Math.round(m.critRate * 100)}%</span>
+          <span className="flex items-center justify-center gap-0.5 text-amber-800">
+            日薪 {m.salary}
+            <ShardIcon size={10} />
+          </span>
+          <span className="text-right text-amber-700">暴击率 {Math.round(m.critRate * 100)}%</span>
         </div>
       </div>
     </div>
@@ -256,7 +274,7 @@ function ApTooltip({ ap, apMax }: { ap: number; apMax: number }) {
   return (
     <div
       className="inline-flex items-center gap-1.5 cursor-help whitespace-nowrap"
-      title="行动点每关刷新。招募、发奖金、打零工各消耗 1 行动点。"
+      title="行动点每关刷新。招募、发奖金、单独培训、打零工各消耗 1 行动点。"
     >
       <span className="text-lg">{"\u26A1"}</span>
       <span>行动点 {ap}/{apMax}</span>
@@ -341,6 +359,8 @@ export function PrepScreen({ g }: { g: UseGameApi }) {
                   <MonsterCard
                     m={m}
                     showHidden
+                    onTraining={m.state === "active" || m.state === "negative" ? () => g.openTraining(m.id) : undefined}
+                    trainingDisabled={g.ap <= 0 || m.level >= BALANCE.LEVELUP_MAX || g.shards < g.trainingCost(m)}
                     onBonus={m.state === "active" || m.state === "negative" ? () => g.openBonus(m.id) : undefined}
                     bonusDisabled={g.ap <= 0}
                   />
@@ -543,7 +563,7 @@ export function BattleScreen({ g }: { g: UseGameApi }) {
                   <HpBar hp={hero.hp} max={hero.hpMax} />
                   <div className={`flex justify-between text-[11px] text-rose-200 mt-1 ${TXT_SM}`}>
                     <span>攻击 {hero.atk}</span>
-                    <span>暴击 {Math.round(hero.critRate * 100)}%</span>
+                    <span>暴击率 {Math.round(hero.critRate * 100)}%</span>
                   </div>
                 </div>
               </div>

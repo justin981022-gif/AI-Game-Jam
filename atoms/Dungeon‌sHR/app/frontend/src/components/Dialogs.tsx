@@ -198,7 +198,7 @@ function ResumeCard({ r, onChoose }: { r: ResumeCandidate; onChoose: () => void 
               </div>
               <div className="text-[16px] text-rose-700 font-semibold"
                 style={{ textShadow: "0 0 3px rgba(255,255,255,0.9)" }}>
-                🎯 暴击 {Math.round(r.critRate * 100)}%
+                🎯 暴击率 {Math.round(r.critRate * 100)}%
               </div>
               <div className="text-[16px] text-amber-700 font-semibold"
                 style={{ textShadow: "0 0 3px rgba(255,255,255,0.9)" }}>
@@ -250,6 +250,7 @@ function ResumeCard({ r, onChoose }: { r: ResumeCandidate; onChoose: () => void 
 export function RecruitDialog({ g }: { g: UseGameApi }) {
   if (!g.recruitOpen) return null;
   const pool = g.resumePool;
+  const recruitRefreshTotalLeft = g.freeRecruitRefreshLeft + g.recruitRefreshLeft;
 
   return (
     // R6: 深棕蒙版 rgba(15,12,8,0.55)
@@ -284,7 +285,7 @@ export function RecruitDialog({ g }: { g: UseGameApi }) {
         <div className="shrink-0 flex justify-center py-2">
           <button
             onClick={g.refreshRecruitPool}
-            disabled={g.recruitRefreshLeft <= 0 || g.shards < 2}
+            disabled={(g.freeRecruitRefreshLeft <= 0 && g.recruitRefreshLeft <= 0) || (g.freeRecruitRefreshLeft <= 0 && g.shards < 2)}
             className="relative px-5 py-3 text-[#3D3A36] font-bold text-base transition-all
               active:brightness-90 active:scale-95 disabled:opacity-50 disabled:grayscale-[0.3] disabled:cursor-not-allowed
               hover:brightness-110 hover:scale-[1.02] hover:-translate-y-[1px]"
@@ -298,7 +299,7 @@ export function RecruitDialog({ g }: { g: UseGameApi }) {
               outline: "none",
             }}
           >
-            换一批（2<ShardIcon size={26} />） 剩{g.recruitRefreshLeft}次
+            换一批（{g.freeRecruitRefreshLeft > 0 ? "免费" : <>2<ShardIcon size={26} /></>}） 剩{recruitRefreshTotalLeft}次
           </button>
         </div>
       </div>
@@ -337,7 +338,7 @@ export function BonusDialog({ g }: { g: UseGameApi }) {
               <div className="min-w-0 flex-1">
                 <div className="break-words text-sm font-black leading-tight">{target.name}</div>
                 <div className="mt-1 text-[11px] font-semibold text-[#3D3A36]/70">
-                  ATK {target.atk} · 当前奖金倍率 x{target.bonusAtkMult.toFixed(2)}
+                  攻击 {target.atk} · 当前奖金倍率 x{target.bonusAtkMult.toFixed(2)}
                 </div>
               </div>
             </div>
@@ -356,7 +357,7 @@ export function BonusDialog({ g }: { g: UseGameApi }) {
                   >
                     <div className="min-w-0">
                       <div className="text-[14px] font-black leading-tight">{tier.label}</div>
-                      <div className="mt-1 text-[11px] font-semibold text-[#3D3A36]/65">本场 ATK x{tier.atkMult.toFixed(2)} · 消耗 1 行动点</div>
+                      <div className="mt-1 text-[11px] font-semibold text-[#3D3A36]/65">本场攻击 x{tier.atkMult.toFixed(2)} · 消耗 1 行动点</div>
                     </div>
                     <div className="flex shrink-0 items-center gap-1 text-[13px] font-black text-amber-700">
                       {cost}
@@ -371,6 +372,84 @@ export function BonusDialog({ g }: { g: UseGameApi }) {
               <button
                 onClick={g.closeBonus}
                 className="rounded-lg border border-[#3D3A36]/20 bg-white/45 px-4 py-2 text-[13px] font-black transition hover:bg-white/75 active:scale-[0.99]"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+// ───────── 单独培训弹窗（与奖金弹窗同结构，青色强调） ─────────
+export function TrainingDialog({ g }: { g: UseGameApi }) {
+  if (!g.trainingOpen) return null;
+  const active = g.monsters.filter((m) => m.state === "active" || m.state === "negative");
+  const target = (g.trainingTargetId ? active.find((m) => m.id === g.trainingTargetId) : active[0]) ?? null;
+  if (!target) return null;
+
+  const cost = g.trainingCost(target);
+  const maxed = target.level >= BALANCE.LEVELUP_MAX;
+  const disabled = g.shards < cost || g.ap <= 0 || maxed;
+  const nextLevel = Math.min(BALANCE.LEVELUP_MAX, target.level + 1);
+  const nextAtk = Math.round(target.baseAtk * (1 + BALANCE.LEVELUP_ATK_PER_LV * nextLevel));
+  const nextHp = Math.round(target.baseHpMax * (1 + BALANCE.LEVELUP_HP_PER_LV * nextLevel));
+  const nextCrit = Math.min(BALANCE.LEVELUP_CRIT_CAP, target.critRate + BALANCE.LEVELUP_CRIT_PER_LV);
+
+  return (
+    <Overlay>
+      <div
+        className="relative my-auto w-full max-w-[480px] max-h-[calc(100svh-2rem)] overflow-y-auto rounded-2xl"
+        style={{
+          backgroundColor: "#E5F6F3",
+          border: "3px solid #2A6F73",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div className="relative z-10 text-[#234246]">
+          <div className="flex items-center justify-between gap-3 border-b border-[#2A6F73]/25 px-4 py-3 sm:px-5">
+            <div className="flex min-w-0 items-center gap-2 text-sm font-black">
+              <span className="text-lg">🎓</span>
+              <span className="truncate">培训 {target.name}</span>
+            </div>
+            <button onClick={g.closeTraining} className="shrink-0 text-xl font-black leading-none hover:brightness-125">×</button>
+          </div>
+          <div className="space-y-3 p-4 sm:p-5">
+            <div className="flex items-center gap-3 rounded-xl border border-[#2A6F73]/20 bg-white/55 p-3">
+              <img src={target.artUrl} alt={target.name} className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+              <div className="min-w-0 flex-1">
+                <div className="break-words text-sm font-black leading-tight">{target.name}</div>
+                <div className="mt-1 text-[11px] font-semibold text-[#234246]/70">
+                  Lv.{target.level} · 攻击 {target.atk} · 血量 {target.hpMax} · 暴击率 {Math.round(target.critRate * 100)}%
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => g.applyTraining(target.id)}
+              disabled={disabled}
+              className="flex w-full items-center justify-between gap-3 rounded-lg border border-[#2A6F73]/25 bg-white/70 px-3 py-3 text-left transition hover:bg-white/90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              <div className="min-w-0">
+                <div className="text-[14px] font-black leading-tight">
+                  {maxed ? "已达到等级上限" : `升至 Lv.${nextLevel}`}
+                </div>
+                <div className="mt-1 text-[11px] font-semibold text-[#234246]/70">
+                  攻击 {target.atk} → {nextAtk} · 血量 {target.hpMax} → {nextHp} · 暴击率 {Math.round(target.critRate * 100)}% → {Math.round(nextCrit * 100)}% · 消耗 1 行动点
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1 text-[13px] font-black text-cyan-800">
+                {cost}
+                <ShardIcon size={14} />
+              </div>
+            </button>
+
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={g.closeTraining}
+                className="rounded-lg border border-[#2A6F73]/25 bg-white/45 px-4 py-2 text-[13px] font-black transition hover:bg-white/75 active:scale-[0.99]"
               >
                 取消
               </button>
@@ -587,7 +666,7 @@ export function GrowthDialog({ g }: { g: UseGameApi }) {
             <div className="min-w-0">
               <div className="truncate text-[15px] font-black">{m.name}</div>
               <div className="text-[11px] font-semibold leading-snug opacity-75 sm:text-[12px]">
-                Lv.{m.level} | ATK {m.atk} | HP {m.hp}/{m.hpMax} | 日薪 {m.salary}
+                Lv.{m.level} | 攻击 {m.atk} | 血量 {m.hp}/{m.hpMax} | 日薪 {m.salary}
               </div>
             </div>
           </div>

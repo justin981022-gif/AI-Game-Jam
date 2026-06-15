@@ -49,10 +49,16 @@ const NAME_POOL = namePoolRaw as {
   tags_pool: { lines: string[] };
 };
 
-// BUST asset path → public path
-function bustPublicPath(assetPath: string): string {
-  // "atoms/assets/art/characters/A-CHR-BUST-GROOBAS.png" → "/art/characters/A-CHR-BUST-GROOBAS.png"
-  return assetPath.replace("atoms/assets", "");
+const BUST_ART: Record<string, string> = {
+  "A-CHR-BUST-GROOBAS": "/art/characters/A-CHR-BUST-GROOBAS.png",
+  "A-CHR-BUST-XIAOXING": "/art/characters/A-CHR-BUST-XIAOXING.png",
+  "A-CHR-BUST-GENERIC-1": "/art/characters/A-CHR-BUST-GENERIC-1.png",
+  "A-CHR-BUST-GENERIC-2": "/art/characters/A-CHR-BUST-GENERIC-2.png",
+  "A-CHR-BUST-GENERIC-3": "/art/characters/A-CHR-BUST-GENERIC-3.png",
+};
+
+function bustPublicPath(bust: BustEntry): string {
+  return BUST_ART[bust.asset_id] ?? bust.asset_path.replace("atoms/assets", "");
 }
 
 // Role → MonsterTemplate mapping
@@ -78,9 +84,9 @@ const ROLE_ART: Record<string, string[]> = {
 
 // Visible trait pools by role
 const ROLE_VISIBLE_TRAITS: Record<string, TraitId[]> = {
-  TANK: ["tough", "team_player", "cancer"],
-  DPS: ["lone_wolf", "team_player", "cancer", "tough"],
-  RANGE: ["team_player", "glass", "lone_wolf"],
+  TANK: ["tough", "team_player", "cancer", "shield_wall", "mentor", "glass_heart", "compliance"],
+  DPS: ["lone_wolf", "team_player", "cancer", "tough", "precision", "overtime_ready", "glass_heart"],
+  RANGE: ["team_player", "glass", "lone_wolf", "precision", "overtime_ready", "mentor", "compliance"],
 };
 
 function generateCandidateFromBust(bustKey: string, usedIntros: Set<string>): ResumeCandidate {
@@ -139,7 +145,7 @@ function generateCandidateFromBust(bustKey: string, usedIntros: Set<string>): Re
     species: bust.race_en,
     template: ROLE_TO_TEMPLATE[role],
     artUrl,
-    bustAsset: bustPublicPath(bust.asset_path),
+    bustAsset: bustPublicPath(bust),
     position: bust.applied_position,
     tenureYears: randInt(2, 12),
     performanceRecord: pick(RESUME_DATA.performance),
@@ -292,7 +298,7 @@ export function allActiveTraits(m: Monster): TraitId[] {
 }
 
 // 计算单个怪物的有效 ATK（含词条/奖金/临时效果/队伍协作/消极怠工）
-export function effectiveAtk(m: Monster, team: Monster[]): number {
+export function effectiveAtk(m: Monster, team: Monster[], hero?: Hero, round = 1): number {
   let atk = m.atk;
   const traits = allActiveTraits(m);
 
@@ -316,6 +322,26 @@ export function effectiveAtk(m: Monster, team: Monster[]): number {
 
   // 末位淘汰恐惧：HP<30% 时 ATK +15%
   if (traits.includes("nostalgic") && m.hp / m.hpMax < 0.3) atk *= 1.15;
+
+  // 带新人：队伍人数≥2 时自身 ATK +8%
+  if (traits.includes("mentor") && team.filter((tm) => tm.state !== "dead" && tm.state !== "quit").length >= 2) {
+    atk *= 1.08;
+  }
+
+  // 自愿加班：第 3 回合起 ATK +12%
+  if (traits.includes("overtime_ready") && round >= 3) atk *= 1.12;
+
+  // 合规意识：未领取奖金时 ATK +6%
+  if (traits.includes("compliance") && m.bonusAtkMult <= 1) atk *= 1.06;
+
+  // 夜班熟手：勇者半血后 ATK +10%
+  if (traits.includes("night_shift") && hero && hero.hp / hero.hpMax < 0.5) atk *= 1.1;
+
+  // 越打越顺：每次命中后本场 ATK 小幅提升，最多 +15%
+  if (traits.includes("battle_trance") && m.hits > 0) atk *= 1 + Math.min(0.15, m.hits * 0.03);
+
+  // 隐性摆烂：连续两回合未造成伤害后 ATK -10%
+  if (traits.includes("quiet_quitter") && m.noDamageStreak >= 2) atk *= 0.9;
 
   // 消极怠工
   if (m.slackerBattlesLeft > 0) {
@@ -378,9 +404,11 @@ export function runRoundTick(
       m.noDamageStreak += 1;
       continue;
     }
-    let dmg = effectiveAtk(m, monsters) * rand(0.9, 1.1);
+    let dmg = effectiveAtk(m, monsters, hero, opts.round ?? 1) * rand(0.9, 1.1);
     // 怪物独立暴击
-    const isCrit = Math.random() < m.critRate;
+    const traits = allActiveTraits(m);
+    const critRate = traits.includes("precision") ? Math.min(0.5, m.critRate + 0.05) : m.critRate;
+    const isCrit = Math.random() < critRate;
     if (isCrit) dmg *= BALANCE.CRIT_MULT;
     dmg = Math.max(1, Math.round(dmg));
     monsterTotal += dmg;
@@ -431,8 +459,12 @@ export function runRoundTick(
       const totalHp = livingMonsters.reduce((s, m) => s + m.hp, 0) || 1;
       for (const m of livingMonsters) {
         let share = Math.round((m.hp / totalHp) * heroDmg);
+        const traits = allActiveTraits(m);
         // 易燃体质：火焰勇者伤害 ×2（精英视为火焰）
-        if (allActiveTraits(m).includes("glass") && hero.critRate >= 0.18) share = Math.round(share * 2);
+        if (traits.includes("glass") && hero.critRate >= 0.18) share = Math.round(share * 2);
+        // 前排意识：稳定减伤；玻璃心：受到暴击伤害增加
+        if (traits.includes("shield_wall")) share = Math.round(share * 0.88);
+        if (isCrit && traits.includes("glass_heart")) share = Math.round(share * 1.25);
 
         // L03 强制阵亡已移至 tick 层脚本（v0.5），此处不再做伤害倍率
 

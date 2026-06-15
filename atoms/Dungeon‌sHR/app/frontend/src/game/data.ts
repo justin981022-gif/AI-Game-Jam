@@ -85,6 +85,8 @@ export const BALANCE = {
   LEVELUP_CRIT_PER_LV: 0.02,
   LEVELUP_CRIT_CAP: 0.50,
   NEGOTIATE_PROB: 0.6, // 升级后≥2级时60%谈薪
+  TRAINING_BASE_COST: 10,
+  TRAINING_COST_PER_LEVEL: 8,
   BASE_MISS_RATE: 0.05,
   CRIT_MULT: 1.5,
   MAX_EVENTS: 3,
@@ -115,16 +117,25 @@ export const BONUS_TIERS: Record<string, BonusTierDef> = {
 };
 
 export const TRAITS: Record<TraitId, TraitDef> = {
-  tough: { id: "tough", name: "吃苦耐劳", type: "positive", desc: "HP 上限 +20%", hidden: false },
+  tough: { id: "tough", name: "吃苦耐劳", type: "positive", desc: "血量上限 +20%", hidden: false },
   glass: { id: "glass", name: "易燃体质", type: "neutral", desc: "遇火焰类勇者伤害 ×2", hidden: false },
-  team_player: { id: "team_player", name: "团队协作", type: "positive", desc: "同槽其他怪物 ATK +5%", hidden: false },
-  cancer: { id: "cancer", name: "团队毒瘤", type: "negative", desc: "同槽其他怪物 ATK -10%", hidden: false },
+  team_player: { id: "team_player", name: "团队协作", type: "positive", desc: "队伍中其他怪物攻击 +5%", hidden: false },
+  cancer: { id: "cancer", name: "团队毒瘤", type: "negative", desc: "队伍中其他怪物攻击 -10%", hidden: false },
   lone_wolf: { id: "lone_wolf", name: "社恐", type: "neutral", desc: "奖金效果减半", hidden: false },
+  shield_wall: { id: "shield_wall", name: "前排意识", type: "positive", desc: "承受勇者伤害 -12%", hidden: false },
+  precision: { id: "precision", name: "精准打卡", type: "positive", desc: "暴击率 +5%", hidden: false },
+  mentor: { id: "mentor", name: "带新人", type: "positive", desc: "队伍人数≥2 时自身攻击 +8%", hidden: false },
+  overtime_ready: { id: "overtime_ready", name: "自愿加班", type: "positive", desc: "第 3 回合起攻击 +12%", hidden: false },
+  compliance: { id: "compliance", name: "合规意识", type: "neutral", desc: "未领取奖金时攻击 +6%", hidden: false },
+  glass_heart: { id: "glass_heart", name: "玻璃心", type: "negative", desc: "受到暴击伤害 +25%", hidden: false },
   cheap_skate: { id: "cheap_skate", name: "省钱攒学费", type: "neutral", desc: "薪水期望×0.95，不发起谈薪", hidden: true },
   loyalty: { id: "loyalty", name: "怀旧情绪", type: "positive", desc: "战斗中不接受勇者策反", hidden: true },
-  nostalgic: { id: "nostalgic", name: "末位淘汰恐惧", type: "neutral", desc: "HP<30% 时 ATK +15%", hidden: true },
-  slacker: { id: "slacker", name: "消极怠工", type: "negative", desc: "本场ATK×0.75，下场ATK×0.85（1场后清除）", hidden: true },
-  contract_pending: { id: "contract_pending", name: "合同未签", type: "neutral", desc: "C01 触发本场 ATK +10%", hidden: true },
+  nostalgic: { id: "nostalgic", name: "末位淘汰恐惧", type: "neutral", desc: "血量<30% 时攻击 +15%", hidden: true },
+  night_shift: { id: "night_shift", name: "夜班熟手", type: "positive", desc: "勇者血量<50% 时攻击 +10%", hidden: true },
+  battle_trance: { id: "battle_trance", name: "越打越顺", type: "positive", desc: "每次命中后本场攻击小幅提升", hidden: true },
+  quiet_quitter: { id: "quiet_quitter", name: "隐性摆烂", type: "negative", desc: "连续未造成伤害后攻击 -10%", hidden: true },
+  slacker: { id: "slacker", name: "消极怠工", type: "negative", desc: "本场攻击×0.75，下场攻击×0.85（1场后清除）", hidden: true },
+  contract_pending: { id: "contract_pending", name: "合同未签", type: "neutral", desc: "C01 触发本场攻击 +10%", hidden: true },
 };
 
 // 勇者数据（balance v0.5.0 §4.2 — v0.6 HP ~100% 上调 + ATK 下调）
@@ -160,8 +171,8 @@ export const EVENTS: Record<string, GameEvent> = {
     availableLevels: ["L02", "L03", "L04", "L05", "L06"],
     cardText: "勇者拔出武器高呼：『为了正义！』",
     options: [
-      { label: "全员防守，稳住阵线", sub: "我方全体 HP +10%（本回合）", effect: { team_hp_pct: 0.1 } },
-      { label: "激将法，扰乱其心神", sub: "勇者本回合 ATK -20%，下回合 +10%", effect: { hero_atk_pct_this_round: -0.2, hero_atk_pct_next_round: 0.1 } },
+      { label: "全员防守，稳住阵线", sub: "我方全体血量 +10%（本回合）", effect: { team_hp_pct: 0.1 } },
+      { label: "激将法，扰乱其心神", sub: "勇者本回合攻击 -20%，下回合 +10%", effect: { hero_atk_pct_this_round: -0.2, hero_atk_pct_next_round: 0.1 } },
     ],
     timeoutDefault: 1,
   },
@@ -172,8 +183,8 @@ export const EVENTS: Record<string, GameEvent> = {
     availableLevels: ["L03", "L04", "L05", "L06"],
     cardText: "[怪物名] 拖着残躯发来内网消息：『我还能打，但我需要绩效承诺。』",
     options: [
-      { label: "承诺本场绩效 S", sub: "该怪物本回合 ATK ×1.5", effect: { monster_atk_mult: 1.5 } },
-      { label: "稳住，先活着再说", sub: "该怪物 HP +5%，ATK 不变", effect: { monster_hp_pct: 0.05 } },
+      { label: "承诺本场绩效 S", sub: "该怪物本回合攻击 ×1.5", effect: { monster_atk_mult: 1.5 } },
+      { label: "稳住，先活着再说", sub: "该怪物血量 +5%，攻击不变", effect: { monster_hp_pct: 0.05 } },
     ],
     timeoutDefault: 1,
   },
@@ -185,7 +196,7 @@ export const EVENTS: Record<string, GameEvent> = {
     cardText: "地下城配电室短路，视野急剧下降。",
     options: [
       { label: "紧急拉闸", sub: "双方各失去本回合一次攻击", effect: { both_skip: true } },
-      { label: "强行续电", sub: "随机一方 ATK ×1.5，另一方 ×0.5", effect: { random_power: true } },
+      { label: "强行续电", sub: "随机一方攻击 ×1.5，另一方 ×0.5", effect: { random_power: true } },
     ],
     timeoutDefault: 1,
   },
@@ -196,8 +207,8 @@ export const EVENTS: Record<string, GameEvent> = {
     availableLevels: ["L05", "L06"],
     cardText: "勇者队伍传来情报：他们今天拿了双倍任务奖励，士气爆棚。",
     options: [
-      { label: "紧急发放团队战斗津贴", sub: "消耗 17 碎片，我方全体 ATK +15%（本场）", effect: { cost: 17, team_atk_pct_battle: 0.15 } },
-      { label: "心理战", sub: "50% 勇者 ATK -15%；50% 无效", effect: { psy_war: true } },
+      { label: "紧急发放团队战斗津贴", sub: "消耗 17 碎片，我方全体攻击 +15%（本场）", effect: { cost: 17, team_atk_pct_battle: 0.15 } },
+      { label: "心理战", sub: "50% 勇者攻击 -15%；50% 无效", effect: { psy_war: true } },
     ],
     timeoutDefault: 1,
   },
@@ -208,7 +219,7 @@ export const EVENTS: Record<string, GameEvent> = {
     availableLevels: ["L04", "L05", "L06"],
     cardText: "[怪物名]：『老板我今天状态不行，能不能让我先去厕所冷静一下。』",
     options: [
-      { label: "批准休整", sub: "该怪物本回合跳过，下回合 ATK +20%", effect: { monster_skip_next_bonus: 0.2 } },
+      { label: "批准休整", sub: "该怪物本回合跳过，下回合攻击 +20%", effect: { monster_skip_next_bonus: 0.2 } },
       { label: "强制上岗", sub: "本回合正常行动，但 30% 概率造成半伤", effect: { monster_force_work: true } },
     ],
     timeoutDefault: 1,
@@ -220,7 +231,7 @@ export const EVENTS: Record<string, GameEvent> = {
     availableLevels: ["L05", "L06"],
     cardText: "存活怪物联名提交《紧急战时补贴申请》。",
     options: [
-      { label: "批准补贴", sub: "消耗 16 碎片，存活怪物 HP +20%", effect: { cost: 16, alive_hp_pct: 0.2 } },
+      { label: "批准补贴", sub: "消耗 16 碎片，存活怪物血量 +20%", effect: { cost: 16, alive_hp_pct: 0.2 } },
       { label: "驳回申请", sub: "本波士气下降（若存在士气词条）", effect: { morale_down: true } },
     ],
     timeoutDefault: 1,
@@ -244,8 +255,8 @@ export const EVENTS: Record<string, GameEvent> = {
     availableLevels: ["L04", "L05", "L06"],
     cardText: "审计部门突然上线旁听：『请解释一下本场战斗预算的合理性。』",
     options: [
-      { label: "立刻补材料", sub: "流程拖住勇者：勇者下回合 ATK -10%", effect: { hero_atk_pct_next_round: -0.1 } },
-      { label: "先打完再报销", sub: "我方本场 ATK +8%，但立刻支出 6 碎片", effect: { cost: 6, team_atk_pct_battle: 0.08 } },
+      { label: "立刻补材料", sub: "流程拖住勇者：勇者下回合攻击 -10%", effect: { hero_atk_pct_next_round: -0.1 } },
+      { label: "先打完再报销", sub: "我方本场攻击 +8%，但立刻支出 6 碎片", effect: { cost: 6, team_atk_pct_battle: 0.08 } },
     ],
     timeoutDefault: 0,
   },
@@ -257,7 +268,7 @@ export const EVENTS: Record<string, GameEvent> = {
     cardText: "勇者开启直播，弹幕开始嘲笑魔王城福利待遇。",
     options: [
       { label: "切断直播信号", sub: "双方本回合各跳过一次攻击", effect: { both_skip: true } },
-      { label: "反向营销", sub: "获得 5 碎片赞助，但勇者下回合 ATK +10%", effect: { shards: 5, hero_atk_pct_next_round: 0.1 } },
+      { label: "反向营销", sub: "获得 5 碎片赞助，但勇者下回合攻击 +10%", effect: { shards: 5, hero_atk_pct_next_round: 0.1 } },
     ],
     timeoutDefault: 1,
   },
@@ -268,8 +279,8 @@ export const EVENTS: Record<string, GameEvent> = {
     availableLevels: ["L06", "L07", "L08", "L09"],
     cardText: "员工互助群刷屏：『一线同事需要紧急补给，财务批不批？』",
     options: [
-      { label: "批准互助红包", sub: "消耗 10 碎片，存活怪物 HP +15%", effect: { cost: 10, alive_hp_pct: 0.15 } },
-      { label: "让大家自我调节", sub: "本回合勇者 ATK -10%，但没有治疗", effect: { hero_atk_pct_this_round: -0.1 } },
+      { label: "批准互助红包", sub: "消耗 10 碎片，存活怪物血量 +15%", effect: { cost: 10, alive_hp_pct: 0.15 } },
+      { label: "让大家自我调节", sub: "本回合勇者攻击 -10%，但没有治疗", effect: { hero_atk_pct_this_round: -0.1 } },
     ],
     timeoutDefault: 1,
   },
@@ -280,8 +291,8 @@ export const EVENTS: Record<string, GameEvent> = {
     availableLevels: ["L07", "L08", "L09"],
     cardText: "CEO 在群里发送 60 秒语音：『各位，上市以后什么都会有的。』",
     options: [
-      { label: "转发并置顶", sub: "我方本场 ATK +10%", effect: { team_atk_pct_battle: 0.1 } },
-      { label: "别打扰一线", sub: "存活怪物 HP +10%", effect: { alive_hp_pct: 0.1 } },
+      { label: "转发并置顶", sub: "我方本场攻击 +10%", effect: { team_atk_pct_battle: 0.1 } },
+      { label: "别打扰一线", sub: "存活怪物血量 +10%", effect: { alive_hp_pct: 0.1 } },
     ],
     timeoutDefault: 1,
   },
@@ -293,7 +304,7 @@ export const EVENTS: Record<string, GameEvent> = {
     cardText: "工会临检抵达前台：『听说这里存在连续作战与超时加班。』",
     options: [
       { label: "补齐加班流程", sub: "消耗 8 碎片，勇者下回合暂停", effect: { cost: 8, hero_forced_skip: true } },
-      { label: "请他们先喝茶", sub: "我方全体 HP +5%，勇者下回合 ATK +10%", effect: { alive_hp_pct: 0.05, hero_atk_pct_next_round: 0.1 } },
+      { label: "请他们先喝茶", sub: "我方全体血量 +5%，勇者下回合攻击 +10%", effect: { alive_hp_pct: 0.05, hero_atk_pct_next_round: 0.1 } },
     ],
     timeoutDefault: 1,
   },
@@ -304,8 +315,8 @@ export const EVENTS: Record<string, GameEvent> = {
     availableLevels: ["L09"],
     cardText: "[怪物名] 看着上市倒计时，突然认真起来：『最后一场了，对吧？』",
     options: [
-      { label: "允许超常发挥", sub: "该怪物本回合 ATK ×2.0", effect: { monster_atk_mult: 2.0 } },
-      { label: "稳住，活着上市", sub: "该怪物 HP +20%", effect: { monster_hp_pct: 0.2 } },
+      { label: "允许超常发挥", sub: "该怪物本回合攻击 ×2.0", effect: { monster_atk_mult: 2.0 } },
+      { label: "稳住，活着上市", sub: "该怪物血量 +20%", effect: { monster_hp_pct: 0.2 } },
     ],
     timeoutDefault: 1,
   },
@@ -316,7 +327,7 @@ export const EVENTS: Record<string, GameEvent> = {
     availableLevels: ["L02"],
     cardText: "[怪物名] 发来内网消息：『请问这算正式上岗吗，我还没签完入职合同。』",
     options: [
-      { label: "先打，手续战后补", sub: "该怪物本场 ATK +10%，合同标注已补签", effect: { monster_contract_pending: true } },
+      { label: "先打，手续战后补", sub: "该怪物本场攻击 +10%，合同标注已补签", effect: { monster_contract_pending: true } },
       { label: "先停，去签合同", sub: "该怪物本场跳过一回合，下场合规上岗无惩罚", effect: { monster_skip_next_bonus: 0 } },
     ],
     timeoutDefault: 0,
@@ -347,8 +358,8 @@ export const PREP_EVENTS: PrepEvent[] = [
     title: "日常突发 · 员工关怀日",
     cardText: "行政部突然记起今天是员工关怀日，士气窗口期很短。",
     options: [
-      { label: "发放补给包", sub: "全员 HP +10%", effect: { team_hp_pct: 0.1 } },
-      { label: "举办五分钟晨会", sub: "本关全员 ATK +5%", effect: { prep_team_atk_pct: 0.05 } },
+      { label: "发放补给包", sub: "全员血量 +10%", effect: { team_hp_pct: 0.1 } },
+      { label: "举办五分钟晨会", sub: "本关全员攻击 +5%", effect: { prep_team_atk_pct: 0.05 } },
     ],
   },
   {
@@ -366,7 +377,7 @@ export const PREP_EVENTS: PrepEvent[] = [
     cardText: "地下城维修队今天正好路过，可以顺手改一间休息室。",
     options: [
       { label: "压价扩建", sub: "获得 10 碎片，适合立刻扩建", effect: { shards: 10 } },
-      { label: "让他们修训练场", sub: "本关全员 ATK +5%", effect: { prep_team_atk_pct: 0.05 } },
+      { label: "让他们修训练场", sub: "本关全员攻击 +5%", effect: { prep_team_atk_pct: 0.05 } },
     ],
   },
 ];
@@ -375,53 +386,53 @@ export const BOARD_POLICIES: BoardPolicy[] = [
   {
     id: "cost_control",
     title: "节流经营",
-    desc: "奖金费用 -30%，但本关怪物 ATK -5%。",
+    desc: "奖金费用 -30%，但本关怪物攻击 -5%。",
     bonusDiscount: 0.3,
     monsterAtkPct: -0.05,
   },
   {
     id: "roadshow_sprint",
     title: "路演冲刺",
-    desc: "通关绩效 +25%，但本关勇者 HP +10%。",
+    desc: "通关绩效 +25%，但本关勇者血量 +10%。",
     rewardMult: 1.25,
     heroHpPct: 0.1,
   },
   {
     id: "employee_care",
     title: "员工关怀",
-    desc: "怪物 HP +15%，但本关抚恤成本 +20%。",
+    desc: "怪物血量 +15%，但本关抚恤成本 +20%。",
     monsterHpPct: 0.15,
     pensionMult: 1.2,
   },
   {
     id: "aggressive_hiring",
     title: "激进排班",
-    desc: "本关行动点 +1，但勇者 ATK +5%。",
+    desc: "本关行动点 +1，但勇者攻击 +5%。",
     extraAp: 1,
     heroAtkPct: 0.05,
   },
 ];
 
 export const HERO_VARIANTS: HeroVariant[] = [
-  { id: "shield", title: "持盾", desc: "HP +20%，ATK -10%。", hpMult: 1.2, atkMult: 0.9, critDelta: 0 },
-  { id: "berserker", title: "狂热", desc: "ATK +20%，HP -10%。", hpMult: 0.9, atkMult: 1.2, critDelta: 0.02 },
-  { id: "auditor", title: "审计", desc: "HP +10%，暴击 +3%。", hpMult: 1.1, atkMult: 1, critDelta: 0.03 },
-  { id: "tired", title: "疲惫", desc: "HP -10%，ATK -5%。", hpMult: 0.9, atkMult: 0.95, critDelta: -0.01 },
+  { id: "shield", title: "持盾", desc: "血量 +20%，攻击 -10%。", hpMult: 1.2, atkMult: 0.9, critDelta: 0 },
+  { id: "berserker", title: "狂热", desc: "攻击 +20%，血量 -10%。", hpMult: 0.9, atkMult: 1.2, critDelta: 0.02 },
+  { id: "auditor", title: "审计", desc: "血量 +10%，暴击率 +3%。", hpMult: 1.1, atkMult: 1, critDelta: 0.03 },
+  { id: "tired", title: "疲惫", desc: "血量 -10%，攻击 -5%。", hpMult: 0.9, atkMult: 0.95, critDelta: -0.01 },
 ];
 
 export const PERSONAL_GOALS: PersonalGoal[] = [
-  { id: "survive_2", title: "稳定就业", desc: "累计存活 2 场战斗。", rewardShards: 8 },
-  { id: "deal_200", title: "绩效样板", desc: "累计造成 200 点伤害。", rewardShards: 10 },
-  { id: "no_bonus_survive", title: "不靠奖金", desc: "不领取战前奖金并存活一场。", rewardShards: 7 },
-  { id: "reach_level_3", title: "骨干员工", desc: "升到 3 级。", rewardShards: 12 },
+  { id: "survive_2", title: "稳定就业", desc: "累计存活 2 场战斗。", reward: { hpMax: 12 }, rewardText: "血量上限 +12" },
+  { id: "deal_200", title: "绩效样板", desc: "累计造成 200 点伤害。", reward: { atk: 3 }, rewardText: "攻击 +3" },
+  { id: "no_bonus_survive", title: "不靠奖金", desc: "不领取战前奖金并存活一场。", reward: { atk: 1, hpMax: 8 }, rewardText: "攻击 +1，血量上限 +8" },
+  { id: "reach_level_3", title: "骨干员工", desc: "升到 3 级。", reward: { atk: 2, critRate: 0.03 }, rewardText: "攻击 +2，暴击率 +3%" },
 ];
 
 export const GROWTH_CHOICES: GrowthChoice[] = [
-  { id: "atk_training", title: "专项训练", desc: "永久 ATK +2。" },
-  { id: "hp_benefits", title: "健康福利", desc: "永久 HP 上限 +10，并立即恢复 10 HP。" },
+  { id: "atk_training", title: "专项训练", desc: "永久攻击 +1。" },
+  { id: "hp_benefits", title: "健康福利", desc: "永久血量上限 +6，并立即恢复 6 血量。" },
   { id: "salary_review", title: "薪酬复盘", desc: "日薪 -1（最低 1），略微缓解长期经济压力。" },
   { id: "reveal_trait", title: "背景调查", desc: "立刻揭示隐藏词条。" },
-  { id: "crit_drill", title: "暴击演练", desc: "永久暴击率 +3%。" },
+  { id: "crit_drill", title: "暴击演练", desc: "永久暴击率 +2%。" },
 ];
 
 export const BATTLE_LOG_TEMPLATES: BattleLogTemplates = {
@@ -432,7 +443,7 @@ export const BATTLE_LOG_TEMPLATES: BattleLogTemplates = {
   ],
   heroHit: [
     "勇者挥剑而下，{m} 承受 {x} 点伤害。",
-    "勇者一记重击，{m} 损失 {x} 点 HP。",
+    "勇者一记重击，{m} 损失 {x} 点血量。",
     "勇者突进劈砍，{m} 承受 {x} 点伤害。",
   ],
   monsterMiss: ["{m} 试图反击，但勇者闪过。", "{m} 出手过急，攻击落空。"],
@@ -536,11 +547,11 @@ export interface MonsterTemplateDef {
 }
 
 export const MONSTER_TEMPLATES: MonsterTemplateDef[] = [
-  { template: "MON_TANK", species: "slime", art: ART.groobas, baseHp: 75, baseAtk: 10, baseSpeed: 9, baseCritRate: 0.03, baseSalary: 8, visiblePool: ["tough", "team_player"] },
-  { template: "MON_TANK", species: "mushroom", art: ART.generic3, baseHp: 75, baseAtk: 10, baseSpeed: 9, baseCritRate: 0.03, baseSalary: 8, visiblePool: ["tough", "cancer"] },
-  { template: "MON_DPS", species: "skeleton", art: ART.xiaoxing, baseHp: 50, baseAtk: 16, baseSpeed: 11, baseCritRate: 0.08, baseSalary: 10, visiblePool: ["lone_wolf", "team_player"] },
-  { template: "MON_DPS", species: "imp", art: ART.generic2, baseHp: 50, baseAtk: 16, baseSpeed: 11, baseCritRate: 0.08, baseSalary: 10, visiblePool: ["cancer", "tough"] },
-  { template: "MON_RANGE", species: "goblin", art: ART.generic1, baseHp: 45, baseAtk: 14, baseSpeed: 12, baseCritRate: 0.10, baseSalary: 9, visiblePool: ["team_player", "glass"] },
+  { template: "MON_TANK", species: "slime", art: ART.groobas, baseHp: 75, baseAtk: 10, baseSpeed: 9, baseCritRate: 0.03, baseSalary: 8, visiblePool: ["tough", "team_player", "shield_wall", "mentor", "glass_heart"] },
+  { template: "MON_TANK", species: "mushroom", art: ART.generic3, baseHp: 75, baseAtk: 10, baseSpeed: 9, baseCritRate: 0.03, baseSalary: 8, visiblePool: ["tough", "cancer", "shield_wall", "compliance", "overtime_ready"] },
+  { template: "MON_DPS", species: "skeleton", art: ART.xiaoxing, baseHp: 50, baseAtk: 16, baseSpeed: 11, baseCritRate: 0.08, baseSalary: 10, visiblePool: ["lone_wolf", "team_player", "precision", "overtime_ready", "glass_heart"] },
+  { template: "MON_DPS", species: "imp", art: ART.generic2, baseHp: 50, baseAtk: 16, baseSpeed: 11, baseCritRate: 0.08, baseSalary: 10, visiblePool: ["cancer", "tough", "precision", "mentor", "compliance"] },
+  { template: "MON_RANGE", species: "goblin", art: ART.generic1, baseHp: 45, baseAtk: 14, baseSpeed: 12, baseCritRate: 0.10, baseSalary: 9, visiblePool: ["team_player", "glass", "lone_wolf", "precision", "overtime_ready", "compliance"] },
 ];
 
-export const HIDDEN_TRAIT_POOL: TraitId[] = ["loyalty", "nostalgic", "cheap_skate", "tough", "lone_wolf"];
+export const HIDDEN_TRAIT_POOL: TraitId[] = ["loyalty", "nostalgic", "cheap_skate", "tough", "lone_wolf", "night_shift", "battle_trance", "quiet_quitter"];

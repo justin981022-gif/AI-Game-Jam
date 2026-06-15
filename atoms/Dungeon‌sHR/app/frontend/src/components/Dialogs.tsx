@@ -17,44 +17,90 @@ function Overlay({ children }: { children: React.ReactNode }) {
   );
 }
 
+function EmailOverlay({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[rgba(15,12,8,0.55)] p-3 text-[16px] font-normal text-[#3D3A36] sm:p-6">
+      {children}
+    </div>
+  );
+}
+
 // ───────── 剧情 / 邮件弹窗（ART.mailCeo 作为面板背景） ─────────
 export function StoryDialog({ g }: { g: UseGameApi }) {
   if (!g.storyText) return null;
   const isEmail = g.storyText.title.includes("收件箱");
   // 邮件模式：body 第一行作为主题，剩余按 \n 拼回作为正文
   const emailLines = isEmail ? g.storyText.body.split("\n") : [];
-  const emailSubject = emailLines[0] ?? "";
-  const displayBody = isEmail ? emailLines.slice(1).join("\n") : g.storyText.body;
+  const emailFrom = isEmail ? (g.storyText.title.match(/From:\s*(.+)$/)?.[1] ?? "CEO@魔王城.corp") : "";
+  const emailSubject = (emailLines[0] ?? "").replace(/^主题[:：]\s*/, "");
+  const displayBody = isEmail ? emailLines.slice(1).join("\n").trim() : g.storyText.body;
+
+  if (isEmail) {
+    return (
+      <EmailOverlay>
+        <div className="flex w-[min(92vw,800px)] flex-col items-center">
+          <div
+            className="relative min-h-[430px] w-full overflow-visible rounded-[20px] text-[#3D3A36] sm:min-h-0"
+            style={{
+              aspectRatio: "8 / 5",
+              backgroundImage: `url(${ART.mailCeo})`,
+              backgroundSize: "100% 100%",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              filter: "drop-shadow(0 18px 28px rgba(0,0,0,0.32))",
+            }}
+          >
+            <div className="absolute left-[7%] right-[11%] top-[8.8%] flex h-[10%] flex-col justify-center gap-0.5">
+              <div className="truncate text-[13px] font-black leading-none sm:text-[18px]">
+                From: {emailFrom}
+              </div>
+              <div className="truncate text-[12px] font-black leading-none sm:text-[16px]">
+                Subject: {emailSubject}
+              </div>
+            </div>
+
+            <div className="absolute left-[7%] right-[8%] top-[27.5%] bottom-[12%] flex items-start sm:right-[31%] sm:bottom-[20%]">
+              <div className="whitespace-pre-line text-[13px] font-semibold leading-[1.55] sm:text-[18px] sm:leading-[1.85]">
+                {displayBody}
+              </div>
+            </div>
+
+            <img
+              src={ART.ceoStamp}
+              alt="CEO"
+              className="absolute bottom-[10.5%] right-[8.5%] h-[25%] w-[25%] max-w-[200px] rotate-[8deg] object-contain opacity-95"
+            />
+          </div>
+
+          <button
+            onClick={g.closeStory}
+            className="relative mt-3 flex h-16 w-[min(280px,58vw)] items-center justify-center rounded-md border-[3px] border-[#3D3A36] bg-[#D8CCB8] text-[#3D3A36] text-[16px] font-black transition-all sm:text-[20px]
+              active:brightness-90 active:scale-95 hover:brightness-110 hover:scale-[1.02] hover:-translate-y-[1px]"
+            style={{
+              outline: "none",
+              boxShadow: "inset 0 0 0 2px rgba(232,226,213,0.5), 0 8px 14px rgba(0,0,0,0.22)",
+            }}
+          >
+            继续 →
+          </button>
+        </div>
+      </EmailOverlay>
+    );
+  }
 
   return (
     <Overlay>
       <div
         className="relative w-full max-w-lg rounded-2xl overflow-hidden"
-        style={isEmail ? {
-          backgroundImage: `url(${ART.mailCeo})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        } : {
+        style={{
           backgroundColor: "rgba(0,0,0,0.7)",
         }}
       >
-        {/* 邮件模式：CEO 印章作为右下角装饰，与 mailCeo 背景的圆圈位对齐；层级低于 z-10 文本 */}
-        {isEmail && (
-          <img
-            src={ART.ceoStamp}
-            alt="CEO"
-            className="absolute w-[12.5rem] h-[12.5rem] rounded-full object-cover pointer-events-none"
-            style={{ bottom: 5, right: -38 }}
-          />
-        )}
         <div className="relative z-10">
-          <div className={`${isEmail ? "pl-16 pr-5 pt-5 pb-3 flex flex-col gap-3" : "px-5 py-3 flex items-center gap-2"}`}>
-            <div className={`text-sm font-bold ${isEmail ? "text-slate-900" : "text-amber-100"} ${TXT}`}>{g.storyText.title}</div>
-            {isEmail && (
-              <div className={`text-sm font-semibold text-slate-800 ${TXT_SM}`}>{emailSubject}</div>
-            )}
+          <div className="px-5 py-3 flex items-center gap-2">
+            <div className={`text-sm font-bold text-amber-100 ${TXT}`}>{g.storyText.title}</div>
           </div>
-          <div className={`px-5 py-4 ${isEmail ? "text-slate-900" : "text-white"} text-sm leading-relaxed whitespace-pre-line min-h-[80px] ${TXT_SM}`}>
+          <div className={`px-5 py-4 text-white text-sm leading-relaxed whitespace-pre-line min-h-[80px] ${TXT_SM}`}>
             {displayBody}
           </div>
           <div className="px-5 pb-4 flex justify-end">
@@ -65,7 +111,6 @@ export function StoryDialog({ g }: { g: UseGameApi }) {
                 hover:brightness-110 hover:scale-[1.02] hover:-translate-y-[1px]"
               style={{
                 minWidth: 240,
-                marginRight: -75,
                 borderStyle: "solid",
                 borderColor: "transparent",
                 borderWidth: "16px 32px",

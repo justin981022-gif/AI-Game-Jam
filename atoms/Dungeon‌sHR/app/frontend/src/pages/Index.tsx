@@ -1,8 +1,10 @@
 // 主入口页：组合所有界面与弹窗，编排状态机
 // 所有视觉装饰使用 art 图片驱动，CSS 仅用于布局
+import { useEffect, useRef } from "react";
 import { ART } from "@/game/data";
 import { useGame } from "@/game/useGame";
 import { BattleScreen, PrepScreen, TopBar } from "@/components/GameScreens";
+import { useBgm } from "@/hooks/use-bgm";
 import {
   BonusDialog,
   DismissDialog,
@@ -20,11 +22,12 @@ import {
 } from "@/components/Dialogs";
 
 
-function StartScreen({ onStart }: { onStart: () => void }) {
+function StartScreen({ onStart, onInteract }: { onStart: () => void; onInteract: () => void }) {
   return (
     <div
       className="min-h-screen w-full relative flex items-center justify-center overflow-hidden"
       style={{ backgroundColor: "#b7b1a3" }}
+      onPointerDown={onInteract}
     >
       {/* 全屏背景图 — 16:9 contain 居中，不裁切 */}
       <div
@@ -91,9 +94,49 @@ function StartScreen({ onStart }: { onStart: () => void }) {
 
 export default function Index() {
   const g = useGame();
+  const { playTrack, playEvalMusic, stopEvalMusic, syncToState } = useBgm();
+  const prevEvalOpenRef = useRef(g.evalOpen);
+  const startTimerRef = useRef<number | null>(null);
 
   const inGame = g.gameState !== "GAME_INIT";
   const bgUrl = g.gameState === "BATTLE" ? ART.bgBattle : ART.bgPrep;
+
+  useEffect(() => {
+    syncToState(g.gameState, g.evalOpen);
+  }, [g.gameState, g.evalOpen, syncToState]);
+
+  useEffect(() => {
+    if (g.evalOpen) {
+      void playEvalMusic();
+    } else if (prevEvalOpenRef.current) {
+      stopEvalMusic();
+    }
+    prevEvalOpenRef.current = g.evalOpen;
+  }, [g.evalOpen, playEvalMusic, stopEvalMusic]);
+
+  useEffect(() => {
+    return () => {
+      if (startTimerRef.current !== null) {
+        window.clearTimeout(startTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleStart = () => {
+    if (startTimerRef.current !== null) {
+      window.clearTimeout(startTimerRef.current);
+    }
+    startTimerRef.current = window.setTimeout(() => {
+      void playTrack("prep");
+      g.startGame();
+    }, 450);
+  };
+
+  const handleTitleInteract = () => {
+    if (g.gameState === "GAME_INIT") {
+      void playTrack("title");
+    }
+  };
 
   return (
     <div className="min-h-screen text-white relative overflow-x-hidden">
@@ -113,7 +156,7 @@ export default function Index() {
 
       <div className="relative z-10">
         {g.gameState === "GAME_INIT" ? (
-          <StartScreen onStart={g.startGame} />
+          <StartScreen onStart={handleStart} onInteract={handleTitleInteract} />
         ) : (
           <div className="min-h-screen w-full px-2 py-2 pb-4 space-y-2 sm:px-3 sm:space-y-3">
             <TopBar g={g} />

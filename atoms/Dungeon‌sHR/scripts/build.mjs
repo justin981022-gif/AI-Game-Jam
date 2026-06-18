@@ -9,7 +9,7 @@
 //      b. 把 <script src="/assets/xxx.js"></script> 内联为 <script type="module">...</script>
 //      c. 把 <link rel="stylesheet" href="/assets/xxx.css"> 内联为 <style>...</style>
 //      d. 把 modulepreload / 远程 CDN 链接保留
-//      e. 把 JS / CSS 字符串里的 "/art/xxx.png" 替换为 base64 data URI
+//      e. 把 JS / CSS 字符串里的 "/art/xxx.png" / "/audio/xxx.mp3" 替换为 base64 data URI
 //   4. 写到 dist-html/Dungeon-HR.html
 //
 // 设计取舍：
@@ -70,8 +70,8 @@ if (fs.existsSync(DIST)) {
 }
 run('npx', ['vite', 'build', '--config', 'vite.config.singlefile.mjs'], { cwd: FRONTEND });
 
-// 3. 后处理：内联 JS / CSS / 图片
-log('后处理：内联 JS / CSS / 图片到单 HTML...');
+// 3. 后处理：内联 JS / CSS / 图片 / 音频
+log('后处理：内联 JS / CSS / 图片 / 音频到单 HTML...');
 const indexPath = path.join(DIST, 'index.html');
 if (!fs.existsSync(indexPath)) {
   console.error(`[build] dist/index.html 缺失，构建可能失败`);
@@ -117,7 +117,7 @@ html = html.replace(/<link\b([^>]*)\brel="stylesheet"([^>]*)>/g, (m, pre, post) 
 // 3c. 删除 modulepreload（已经把 JS 都 inline 了，没意义）
 html = html.replace(/<link\b[^>]*\brel="modulepreload"[^>]*>\s*/g, '');
 
-// 3d. 内联 HTML body 里直接引用的图片
+// 3d. 内联 HTML body 里直接引用的图片 / 音频
 html = inlineImagesInString(html);
 
 // 3e. 替换 favicon URL 模板占位（如果还有未替换的 %VITE_APP_LOGO_URL%）
@@ -146,17 +146,17 @@ function resolveAsset(url) {
   return path.join(DIST, url);
 }
 
-// 在字符串里查找 art 引用并替换为 data URI
-//   匹配："/art/xxx.png" / 'art/xxx.png' / `/art/xxx.png` / url(/art/xxx.png) / url("/art/xxx.png")
+// 在字符串里查找 art / audio 引用并替换为 data URI
+//   匹配："/art/xxx.png" / "/audio/xxx.mp3" / url(/art/xxx.png) / url("/audio/xxx.mp3")
 function inlineImagesInString(s) {
   // CSS url(...)
-  s = s.replace(/url\((["']?)((?:\.\/|\/)?art\/[^"')]+\.(png|jpg|jpeg|gif|svg|webp))\1\)/gi, (m, q, p, ext) => {
+  s = s.replace(/url\((["']?)((?:\.\/|\/)?(?:art|audio)\/[^"')]+\.(png|jpg|jpeg|gif|svg|webp|mp3|wav|ogg|m4a|aac|flac))\1\)/gi, (m, q, p, ext) => {
     const dataUri = toDataUri(p, ext);
     return dataUri ? `url(${q}${dataUri}${q})` : m;
   });
   // 字符串字面量引用（单引号 / 双引号 / 反引号）
   s = s.replace(
-    /(["'`])((?:\.\/|\/)?art\/[A-Za-z0-9_\-\/]+?\.(png|jpg|jpeg|gif|svg|webp))\1/gi,
+    /(["'`])((?:\.\/|\/)?(?:art|audio)\/[A-Za-z0-9_\-\/]+?\.(png|jpg|jpeg|gif|svg|webp|mp3|wav|ogg|m4a|aac|flac))\1/gi,
     (m, q, p, ext) => {
       const dataUri = toDataUri(p, ext);
       return dataUri ? `${q}${dataUri}${q}` : m;
@@ -166,14 +166,17 @@ function inlineImagesInString(s) {
 }
 
 function toDataUri(refPath, ext) {
-  // refPath 形如 "/art/xxx.png" 或 "art/xxx.png"
+  // refPath 形如 "/art/xxx.png" 或 "/audio/xxx.mp3"
   const stripped = refPath.replace(/^\.?\//, '');   // → "art/xxx.png"
   const filePath = path.join(DIST, stripped);
   if (!fs.existsSync(filePath)) return null;
   try {
     const data = fs.readFileSync(filePath);
     const e = ext.toLowerCase();
-    const mime = e === 'svg' ? 'image/svg+xml' : `image/${e === 'jpg' ? 'jpeg' : e}`;
+    const mime =
+      e === 'svg' ? 'image/svg+xml'
+      : ['mp3', 'wav', 'ogg', 'm4a', 'aac', 'flac'].includes(e) ? `audio/${e === 'mp3' ? 'mpeg' : e}`
+      : `image/${e === 'jpg' ? 'jpeg' : e}`;
     return `data:${mime};base64,${data.toString('base64')}`;
   } catch {
     return null;

@@ -1,4 +1,4 @@
-// 状态管理 hook：驱动 UI 的核心状态机
+﻿// 状态管理 hook：驱动 UI 的核心状态机
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BALANCE, BOARD_POLICIES, BONUS_TIERS, EVENTS, GROWTH_CHOICES, HERO_MECHANISM_EVENTS, LEVELS, PREP_EVENTS, TRAITS } from "./data";
 import {
@@ -88,6 +88,9 @@ export interface UseGameApi {
   bonusTargetId: string | null;
   trainingOpen: boolean;
   trainingTargetId: string | null;
+  healOpen: boolean;
+  healTargetId: string | null;
+  dismissTargetId: string | null;
   pendingEvent: PendingEvent | null;
   eventTimeLeft: number;
   eventIsTutorial: boolean;
@@ -117,6 +120,9 @@ export interface UseGameApi {
   closeTraining: () => void;
   applyTraining: (monsterId: string) => void;
   trainingCost: (monster: Monster) => number;
+  dismissCost: (monster: Monster) => number;
+  openHeal: (monsterId?: string) => void;
+  closeHeal: () => void;
   healCost: (monster: Monster) => number;
   healMonster: (monsterId: string) => void;
   doLabor: () => void;
@@ -127,7 +133,7 @@ export interface UseGameApi {
   choosePolicy: (policy: BoardPolicy) => void;
   chooseGrowth: (choice: GrowthChoice) => void;
   proceedEval: () => void;
-  openDismiss: () => void;
+  openDismiss: (monsterId?: string) => void;
   closeDismiss: () => void;
   dismissMonster: (monsterId: string) => void;
   answerNegotiate: (approve: boolean) => void;
@@ -230,6 +236,9 @@ export function useGame(): UseGameApi {
   const [bonusTargetId, setBonusTargetId] = useState<string | null>(null);
   const [trainingOpen, setTrainingOpen] = useState(false);
   const [trainingTargetId, setTrainingTargetId] = useState<string | null>(null);
+  const [healOpen, setHealOpen] = useState(false);
+  const [healTargetId, setHealTargetId] = useState<string | null>(null);
+  const [dismissTargetId, setDismissTargetId] = useState<string | null>(null);
   const [pendingEvent, setPendingEvent] = useState<PendingEvent | null>(null);
   const [eventTimeLeft, setEventTimeLeft] = useState(BALANCE.EVENT_TIMEOUT_S);
   const [eventIsTutorial, setEventIsTutorial] = useState(false);
@@ -659,10 +668,29 @@ export function useGame(): UseGameApi {
     return BALANCE.TRAINING_BASE_COST + monster.level * BALANCE.TRAINING_COST_PER_LEVEL;
   }, []);
 
+  const dismissCost = useCallback((monster: Monster) => {
+    return monster.salary + (levelIndex + 1) + 1;
+  }, [levelIndex]);
+
   // ───────── 治疗（消耗碎片，不消耗 AP，回满 HP） ─────────
   const healCost = useCallback((monster: Monster) => {
     if (monster.hp >= monster.hpMax) return 0;
     return Math.max(1, Math.round(20 * (1 - monster.hp / monster.hpMax)));
+  }, []);
+
+  const openHeal = useCallback((monsterId?: string) => {
+    const target = monsterId ? monstersRef.current.find((m) => m.id === monsterId) : monstersRef.current.find((m) => m.state !== "dead");
+    if (!target || target.state === "dead") {
+      showToast("该员工无法治疗。");
+      return;
+    }
+    setHealTargetId(target.id);
+    setHealOpen(true);
+  }, [showToast]);
+
+  const closeHeal = useCallback(() => {
+    setHealOpen(false);
+    setHealTargetId(null);
   }, []);
 
   const healMonster = useCallback(
@@ -1565,15 +1593,34 @@ export function useGame(): UseGameApi {
   );
 
   // ───────── 解雇 ─────────
-  const openDismiss = useCallback(() => setDismissOpen(true), []);
-  const closeDismiss = useCallback(() => setDismissOpen(false), []);
+  const openDismiss = useCallback((monsterId?: string) => {
+    setDismissTargetId(monsterId ?? null);
+    setDismissOpen(true);
+  }, []);
+  const closeDismiss = useCallback(() => {
+    setDismissOpen(false);
+    setDismissTargetId(null);
+  }, []);
   const dismissMonster = useCallback(
     (monsterId: string) => {
+      const target = monstersRef.current.find((m) => m.id === monsterId);
+      if (!target) {
+        setDismissOpen(false);
+        setDismissTargetId(null);
+        return;
+      }
+      const cost = dismissCost(target);
+      if (shardsRef.current < cost) {
+        showToast("灵魂碎片不足，无法支付辞退补偿金。");
+        return;
+      }
+      setShards((prev) => Math.max(0, prev - cost));
       setMonsters((prev) => prev.filter((m) => m.id !== monsterId));
       setDismissOpen(false);
-      showToast("已解雇该员工。");
+      setDismissTargetId(null);
+      showToast("已支付 " + cost + " 碎片辞退补偿金，解雇 " + target.name + "。");
     },
-    [showToast]
+    [dismissCost, showToast]
   );
 
   // ───────── 转职系统 ─────────
@@ -1758,6 +1805,9 @@ export function useGame(): UseGameApi {
     evalOpen,
     evalData,
     dismissOpen,
+    healOpen,
+    dismissTargetId,
+    healTargetId,
     endingId,
     gameOverId,
     toasts,
@@ -1775,6 +1825,9 @@ export function useGame(): UseGameApi {
     closeTraining,
     applyTraining: applyTrainingAction,
     trainingCost,
+    dismissCost,
+    openHeal,
+    closeHeal,
     healCost,
     healMonster,
     doLabor,
@@ -1811,3 +1864,4 @@ export function useGame(): UseGameApi {
     chooseMechanismOption,
   };
 }
+

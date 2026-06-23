@@ -1,4 +1,4 @@
-// 弹窗组件：剧情邮件 / 招募简历 / 突发事件卡片 / 谈薪 / EVAL / 解雇 / 结局 / Toast / 新手引导
+﻿// 弹窗组件：剧情邮件 / 招募简历 / 突发事件卡片 / 谈薪 / EVAL / 解雇 / 结局 / Toast / 新手引导
 // 所有视觉装饰使用 art 图片驱动，CSS 仅用于布局
 import { useEffect, useRef, useState } from "react";
 import { ADVANCED_CLASS_LABEL, ART, BALANCE, BONUS_TIERS, ENDINGS, TEMPLATE_LABEL, TRAITS } from "@/game/data";
@@ -846,50 +846,136 @@ export function EvalDialog({ g }: { g: UseGameApi }) {
   );
 }
 
-// ───────── 解雇弹窗（ART.cardEvent 作为面板背景） ─────────
-export function DismissDialog({ g }: { g: UseGameApi }) {
-  if (!g.dismissOpen) return null;
-  const active = g.monsters.filter((m) => m.state === "active" || m.state === "negative");
+// ───────── 治疗弹窗（与培训/奖金同结构，绿色强调） ─────────
+export function HealDialog({ g }: { g: UseGameApi }) {
+  if (!g.healOpen || !g.healTargetId) return null;
+  const target = g.monsters.find((m) => m.id === g.healTargetId);
+  if (!target) return null;
+  const cost = g.healCost(target);
+  const disabled = g.shards < cost || target.hp >= target.hpMax || target.state === "dead";
 
   return (
     <Overlay>
       <div
-        className="relative w-full max-w-sm rounded-2xl overflow-hidden"
+        className="relative my-auto w-full max-w-[480px] max-h-[calc(100svh-2rem)] overflow-y-auto rounded-2xl"
         style={{
-          backgroundImage: `url(${ART.cardEvent})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundColor: "#E8F5E9",
+          border: "3px solid #2E7D32",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
         }}
       >
-        <div className="relative z-10">
-          <div className="px-5 py-3 flex items-center justify-between">
-            <div className={`text-sm font-bold text-white ${TXT}`}>解雇员工</div>
-            <button onClick={g.closeDismiss} className={`text-white text-lg hover:brightness-150 ${TXT}`}>×</button>
+        <div className="relative z-10 text-[#234226]">
+          <div className="flex items-center justify-between gap-3 border-b border-[#2E7D32]/20 px-4 py-3 sm:px-5">
+            <div className="flex min-w-0 items-center gap-2 text-sm font-black">
+              <span className="text-lg">💊</span>
+              <span className="truncate">治疗 {target.name}</span>
+            </div>
+            <button onClick={g.closeHeal} className="shrink-0 text-xl font-black leading-none hover:brightness-125">×</button>
           </div>
-          <div className="p-4 space-y-2 max-h-[50vh] overflow-y-auto">
-            {active.length === 0 && <div className={`text-sm text-slate-300 text-center py-4 ${TXT_SM}`}>暂无在岗员工</div>}
-            {active.map((m) => (
-              <div key={m.id} className="relative flex items-center gap-3 rounded-lg p-2 overflow-hidden"
-                style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-              >
-                <div className="absolute inset-0 bg-black/30 pointer-events-none" />
-                <img src={m.artUrl} alt={m.name} className="relative z-10 w-10 h-10 rounded object-cover" />
-                <div className="relative z-10 flex-1 min-w-0">
-                  <div className={`text-sm text-white truncate ${TXT}`}>{m.name}</div>
-                  <div className={`text-[11px] text-slate-200 flex items-center gap-1 ${TXT_SM}`}>Lv.{m.level} | 日薪 {m.salary} <ShardIcon size={10} /></div>
+          <div className="space-y-3 p-4 sm:p-5">
+            <div className="flex items-center gap-3 rounded-xl border border-[#2E7D32]/15 bg-white/55 p-3">
+              <img src={target.artUrl} alt={target.name} className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+              <div className="min-w-0 flex-1">
+                <div className="break-words text-sm font-black leading-tight">{target.name}</div>
+                <div className="mt-1 text-[11px] font-semibold text-[#234226]/70">
+                  Lv.{target.level} · 血量 {target.hp}/{target.hpMax} · 攻击 {target.atk}
                 </div>
-                <GameBtn onClick={() => g.dismissMonster(m.id)} className="relative z-10 text-xs px-3">
-                  解雇
-                </GameBtn>
               </div>
-            ))}
+            </div>
+
+            <button
+              onClick={() => g.healMonster(target.id)}
+              disabled={disabled}
+              className="flex w-full items-center justify-between gap-3 rounded-lg border border-[#2E7D32]/20 bg-white/70 px-3 py-3 text-left transition hover:bg-white/90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              <div className="min-w-0">
+                <div className="text-[14px] font-black leading-tight">治疗并回满血量</div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1 text-[13px] font-black text-green-800">
+                {cost}
+                <ShardIcon size={14} />
+              </div>
+            </button>
+
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={g.closeHeal}
+                className="rounded-lg border border-[#2E7D32]/20 bg-white/45 px-4 py-2 text-[13px] font-black transition hover:bg-white/75 active:scale-[0.99]"
+              >
+                取消
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </Overlay>
   );
 }
+// ───────── 解雇弹窗（ART.cardEvent 作为面板背景） ─────────
+export function DismissDialog({ g }: { g: UseGameApi }) {
+  if (!g.dismissOpen || !g.dismissTargetId) return null;
+  const target = g.monsters.find((m) => m.id === g.dismissTargetId);
+  if (!target) return null;
+  const cost = g.dismissCost(target);
+  const currentRound = g.levelIndex + 1;
 
+  return (
+    <Overlay>
+      <div
+        className="relative my-auto w-full max-w-[480px] max-h-[calc(100svh-2rem)] overflow-y-auto rounded-2xl"
+        style={{
+          backgroundColor: "#F6E7E3",
+          border: "3px solid #7A3F35",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div className="relative z-10 text-[#4E2A24]">
+          <div className="flex items-center justify-between gap-3 border-b border-[#7A3F35]/20 px-4 py-3 sm:px-5">
+            <div className="flex min-w-0 items-center gap-2 text-sm font-black">
+              <span className="text-lg">🚪</span>
+              <span className="truncate">解雇 {target.name}</span>
+            </div>
+            <button onClick={g.closeDismiss} className="shrink-0 text-xl font-black leading-none hover:brightness-125">×</button>
+          </div>
+          <div className="space-y-3 p-4 sm:p-5">
+            <div className="flex items-center gap-3 rounded-xl border border-[#7A3F35]/15 bg-white/55 p-3">
+              <img src={target.artUrl} alt={target.name} className="h-12 w-12 shrink-0 rounded-lg object-cover" />
+              <div className="min-w-0 flex-1">
+                <div className="break-words text-sm font-black leading-tight">{target.name}</div>
+                <div className="mt-1 text-[11px] font-semibold text-[#4E2A24]/70">
+                  Lv.{target.level} · 攻击 {target.atk} · 血量 {target.hp}/{target.hpMax} · 日薪 {target.salary}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => g.dismissMonster(target.id)}
+              disabled={g.shards < cost}
+              className="flex w-full items-center justify-between gap-3 rounded-lg border border-[#7A3F35]/20 bg-white/70 px-3 py-3 text-left transition hover:bg-white/90 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              <div className="min-w-0">
+                <div className="text-[14px] font-black leading-tight">支付辞退补偿金</div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1 text-[13px] font-black text-rose-800">
+                {cost}
+                <ShardIcon size={14} />
+              </div>
+            </button>
+
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={g.closeDismiss}
+                className="rounded-lg border border-[#7A3F35]/20 bg-white/45 px-4 py-2 text-[13px] font-black transition hover:bg-white/75 active:scale-[0.99]"
+              >
+                取消
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Overlay>
+  );
+}
 // ───────── 结局弹窗（ART.endE01~E04 作为面板背景 + 结局BGM） ─────────
 function getEndingArt(id: string): string {
   if (id === "E01") return ART.endE01;
@@ -932,23 +1018,27 @@ export function EndingDialog({ g }: { g: UseGameApi }) {
   return (
     <Overlay>
       <div
-        className="relative w-full max-w-md rounded-2xl overflow-hidden"
+        className="relative min-h-screen w-full"
         style={{
           backgroundImage: `url(${getEndingArt(id)})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="relative z-10 px-5 py-6 text-center">
-          <div className={`text-lg font-bold mb-3 text-amber-100 ${TXT}`}>
-            {ending.title}
+        <div className="absolute inset-0 bg-black/20" />
+        <div className="relative z-10 flex min-h-screen items-center justify-center px-4 py-8">
+          <div className="w-full max-w-2xl rounded-2xl bg-black/55 px-6 py-8 text-center backdrop-blur-[2px] sm:px-8 sm:py-10">
+            <div className={`mb-4 text-2xl font-black text-amber-100 sm:text-3xl ${TXT}`}>
+              {ending.title}
+            </div>
+            <div className={`mx-auto mb-8 max-w-2xl whitespace-pre-line text-sm leading-relaxed text-white sm:text-base ${TXT_SM}`}>
+              {ending.body}
+            </div>
+            <GameBtn onClick={() => { audioRef.current?.pause(); g.restart(); }} className="mx-auto text-amber-100">
+              重新开始
+            </GameBtn>
           </div>
-          <div className={`text-sm text-white leading-relaxed whitespace-pre-line mb-6 ${TXT_SM}`}>
-            {ending.body}
-          </div>
-          <GameBtn onClick={() => { audioRef.current?.pause(); g.restart(); }} className="mx-auto">
-            重新开始
-          </GameBtn>
         </div>
       </div>
     </Overlay>
@@ -1139,3 +1229,14 @@ export function ToastContainer({ g }: { g: UseGameApi }) {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+

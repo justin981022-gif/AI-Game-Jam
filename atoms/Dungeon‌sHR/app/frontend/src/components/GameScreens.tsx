@@ -1,4 +1,4 @@
-// 主屏组件：准备阶段 / 战斗界面 / EVAL 绩效屏的内容区
+﻿// 主屏组件：准备阶段 / 战斗界面 / EVAL 绩效屏的内容区
 // 所有视觉装饰使用 art 图片驱动，CSS 仅用于布局
 import { useEffect, useRef, useState } from "react";
 import { ADVANCED_CLASS_LABEL, ART, BALANCE, HEROES, LEVELS, TEMPLATE_LABEL, TRAITS } from "@/game/data";
@@ -128,6 +128,9 @@ export function MonsterCard({
   onHeal,
   healDisabled = false,
   healCostValue,
+  onDismiss,
+  dismissDisabled = false,
+  dismissCostValue,
 }: {
   m: Monster;
   showHidden?: boolean;
@@ -142,6 +145,9 @@ export function MonsterCard({
   onHeal?: () => void;
   healDisabled?: boolean;
   healCostValue?: number;
+  onDismiss?: () => void;
+  dismissDisabled?: boolean;
+  dismissCostValue?: number;
 }) {
   const dead = m.state === "dead";
   return (
@@ -182,20 +188,34 @@ export function MonsterCard({
               className="rounded-full border border-green-300 bg-green-100 px-2 py-1 text-[10px] font-bold leading-none text-green-800 shadow-sm transition hover:bg-green-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
               title={`治疗：消耗 ${healCostValue ?? "?"} 碎片，HP 回满（不消耗行动点）`}
             >
-              💊 治疗{healCostValue != null ? ` (${healCostValue})` : ""}
+              💊 治疗
             </button>
           )}
         </div>
       )}
-      {!compact && onBonus && (
-        <button
-          onClick={onBonus}
-          disabled={bonusDisabled}
-          className="absolute right-2 top-2 z-20 rounded-full border border-amber-300 bg-amber-100 px-2 py-1 text-[10px] font-bold leading-none text-amber-800 shadow-sm transition hover:bg-amber-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
-          title="发奖金：消耗 1 行动点，选择一档临时提升本场攻击"
-        >
-          💰 奖金
-        </button>
+      {!compact && (onBonus || onDismiss) && (
+        <div className="absolute right-2 top-2 z-20 flex flex-col items-end gap-1">
+          {onBonus && (
+            <button
+              onClick={onBonus}
+              disabled={bonusDisabled}
+              className="rounded-full border border-amber-300 bg-amber-100 px-2 py-1 text-[10px] font-bold leading-none text-amber-800 shadow-sm transition hover:bg-amber-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
+              title="发奖金：消耗 1 行动点，选择一档临时提升本场攻击"
+            >
+              💰 奖金
+            </button>
+          )}
+          {onDismiss && (
+            <button
+              onClick={onDismiss}
+              disabled={dismissDisabled}
+              className="rounded-full border border-rose-300 bg-rose-100 px-2 py-1 text-[10px] font-bold leading-none text-rose-800 shadow-sm transition hover:bg-rose-200 active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
+              title={`支付辞退补偿金：消耗 ${dismissCostValue ?? "?"} 碎片，解雇该怪物`}
+            >
+              🚪 解雇
+            </button>
+          )}
+        </div>
       )}
       <div className="relative z-10 flex flex-1 flex-col items-center gap-1 overflow-hidden">
         {/* BUST 头像 */}
@@ -510,9 +530,12 @@ export function PrepScreen({ g }: { g: UseGameApi }) {
                         : g.ap <= 0 ? "行动点不足"
                         : "转职：消耗 1 行动点和碎片，选择进阶职业"
                     }
-                    onHeal={m.state !== "dead" && m.hp < m.hpMax ? () => g.healMonster(m.id) : undefined}
+                    onHeal={m.state !== "dead" ? () => g.openHeal(m.id) : undefined}
                     healDisabled={m.hp >= m.hpMax || g.shards < g.healCost(m)}
                     healCostValue={g.healCost(m)}
+                    onDismiss={m.state === "active" || m.state === "negative" ? () => g.openDismiss(m.id) : undefined}
+                    dismissDisabled={g.shards < g.dismissCost(m)}
+                    dismissCostValue={g.dismissCost(m)}
                   />
                 </div>
               ))}
@@ -842,3 +865,9 @@ export function BattleScreen({ g }: { g: UseGameApi }) {
     </div>
   );
 }
+
+
+
+
+
+

@@ -1,4 +1,4 @@
-// 主入口页：组合所有界面与弹窗，编排状态机
+﻿// 主入口页：组合所有界面与弹窗，编排状态机
 // 所有视觉装饰使用 art 图片驱动，CSS 仅用于布局
 import { useEffect, useRef } from "react";
 import { ART } from "@/game/data";
@@ -11,6 +11,7 @@ import {
   EndingDialog,
   EvalDialog,
   EventDialog,
+  HealDialog,
   GrowthDialog,
   JobChangeDialog,
   MechanismEventDialog,
@@ -186,6 +187,7 @@ export default function Index() {
       <RecruitDialog g={g} />
       <BonusDialog g={g} />
       <TrainingDialog g={g} />
+      <HealDialog g={g} />
       <JobChangeDialog g={g} />
       <EventDialog g={g} />
       <MechanismEventDialog g={g} />
@@ -198,3 +200,7 @@ export default function Index() {
     </div>
   );
 }
+
+
+
+

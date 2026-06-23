@@ -69,7 +69,7 @@ export function StoryDialog({ g }: { g: UseGameApi }) {
             <img
               src={ART.ceoStamp}
               alt="CEO"
-              className="absolute bottom-[4%] right-[3%] h-[50%] w-[50%] max-w-[400px] rotate-[8deg] object-contain opacity-95"
+              className="absolute bottom-[-1%] right-[-5%] h-[50%] w-[50%] max-w-[400px] rotate-[8deg] object-contain opacity-95"
             />
           </div>
 

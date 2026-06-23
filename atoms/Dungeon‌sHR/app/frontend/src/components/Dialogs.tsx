@@ -1,7 +1,8 @@
-// 弹窗组件：剧情邮件 / 招募简历 / 突发事件卡片 / 谈薪 / EVAL / 解雇 / 结局 / Toast
+// 弹窗组件：剧情邮件 / 招募简历 / 突发事件卡片 / 谈薪 / EVAL / 解雇 / 结局 / Toast / 新手引导
 // 所有视觉装饰使用 art 图片驱动，CSS 仅用于布局
-import { ART, BALANCE, BONUS_TIERS, ENDINGS, TRAITS } from "@/game/data";
-import type { BonusTier, ResumeCandidate } from "@/game/types";
+import { useEffect, useRef, useState } from "react";
+import { ADVANCED_CLASS_LABEL, ART, BALANCE, BONUS_TIERS, ENDINGS, TEMPLATE_LABEL, TRAITS } from "@/game/data";
+import type { BonusTier, JobChangeOption, ResumeCandidate } from "@/game/types";
 import type { UseGameApi } from "@/game/useGame";
 import { GameBtn, ShardIcon } from "@/components/GameScreens";
 
@@ -68,7 +69,7 @@ export function StoryDialog({ g }: { g: UseGameApi }) {
             <img
               src={ART.ceoStamp}
               alt="CEO"
-              className="absolute bottom-[10.5%] right-[8.5%] h-[25%] w-[25%] max-w-[200px] rotate-[8deg] object-contain opacity-95"
+              className="absolute bottom-[4%] right-[3%] h-[50%] w-[50%] max-w-[400px] rotate-[8deg] object-contain opacity-95"
             />
           </div>
 
@@ -177,10 +178,18 @@ function ResumeCard({ r, onChoose }: { r: ResumeCandidate; onChoose: () => void 
 
           {/* 属性区域 — 纵向居中，应聘岗位在属性上方 */}
           <div className="flex-1 min-h-0 flex flex-col items-center justify-center">
-            {/* R2: 应聘岗位 */}
-            <div className="text-[16px] text-slate-700 mb-2 text-center font-semibold"
-              style={{ textShadow: "0 0 3px rgba(255,255,255,0.8)" }}>
-              应聘岗位：{r.position}
+            {/* R2: 应聘岗位 + 职业标签 */}
+            <div className="flex flex-col items-center gap-1 mb-2">
+              <div className="text-[16px] text-slate-700 text-center font-semibold"
+                style={{ textShadow: "0 0 3px rgba(255,255,255,0.8)" }}>
+                应聘岗位：{r.position}
+              </div>
+              <span
+                className={`inline-flex cursor-help items-center gap-0.5 rounded-full border px-2 py-[2px] text-[12px] font-bold leading-tight ${TEMPLATE_LABEL[r.template]?.bg ?? ""} ${TEMPLATE_LABEL[r.template]?.color ?? ""}`}
+                title={TEMPLATE_LABEL[r.template]?.desc}
+              >
+                {TEMPLATE_LABEL[r.template]?.icon} {TEMPLATE_LABEL[r.template]?.label}
+              </span>
             </div>
             {/* R1: 数值行 — 每个属性独占一行，左对齐但居中区域 */}
             <div className="space-y-1.5 w-fit">
@@ -519,6 +528,55 @@ export function EventDialog({ g }: { g: UseGameApi }) {
   );
 }
 
+// ───────── 勇者机制幽默事件卡片 ─────────
+export function MechanismEventDialog({ g }: { g: UseGameApi }) {
+  if (!g.pendingMechanismEvent) return null;
+  const card = g.pendingMechanismEvent;
+
+  return (
+    <Overlay>
+      <div className="flex flex-col items-center gap-3 w-full">
+        <div
+          className="relative w-full max-w-[540px] aspect-[3/2] overflow-visible"
+          style={{
+            backgroundImage: `url(${ART.cardEvent})`,
+            backgroundSize: "100% 100%",
+            backgroundPosition: "center",
+          }}
+        >
+          <div className="relative z-10 h-full">
+            <div className="absolute left-[8%] top-[5.7%] flex h-[18%] items-center">
+              <div className="text-base font-bold text-[#3D3A36]">{card.title}</div>
+            </div>
+            <div className="absolute left-[6%] top-[29%] flex h-[30.3%] w-[88%] items-center px-4">
+              <div className="text-[#3D3A36] text-[15px] leading-relaxed font-medium">{card.cardText}</div>
+            </div>
+            <div className="absolute inset-x-0 bottom-0 h-[37%]">
+              {card.options.map((opt, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => g.chooseMechanismOption(idx as 0 | 1)}
+                  className="absolute left-[9.1%] flex w-[81.8%] flex-col items-center justify-center rounded-full px-4 text-center text-[#3D3A36] transition hover:bg-black/5 active:scale-[0.99]"
+                  style={{
+                    top: idx === 0 ? "5.4%" : "42.4%",
+                    height: "28.8%",
+                  }}
+                >
+                  <span className="text-[12px] font-semibold leading-tight">{opt.label}</span>
+                  {opt.sub && <span className="mt-0.5 text-[10px] leading-tight opacity-75">{opt.sub}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="text-[11px] text-white/70 italic text-center">
+          （纯属娱乐，不影响实际战斗效果）
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
 // ───────── 本日经营方针 ─────────
 export function PolicyDialog({ g }: { g: UseGameApi }) {
   if (g.dailyPolicyChoices.length === 0 || g.activePolicy) return null;
@@ -722,7 +780,8 @@ export function EvalDialog({ g }: { g: UseGameApi }) {
         <img
           src={rankImg}
           alt="rank"
-          className="absolute left-[88.2%] top-[12.9%] h-[12%] w-[12%] -translate-x-1/2 -translate-y-1/2 object-contain"
+          className="absolute left-[88.2%] top-[12.9%] h-[12%] w-[12%] object-contain animate-[rankBounce_0.7s_ease-out_forwards]"
+          style={{ transformOrigin: "center center" }}
         />
 
         <section className="absolute left-[7%] top-[25%] h-[29%] w-[86%] px-4 py-2 text-[#3D3A36]">
@@ -831,7 +890,7 @@ export function DismissDialog({ g }: { g: UseGameApi }) {
   );
 }
 
-// ───────── 结局弹窗（ART.endE01~E04 作为面板背景） ─────────
+// ───────── 结局弹窗（ART.endE01~E04 作为面板背景 + 结局BGM） ─────────
 function getEndingArt(id: string): string {
   if (id === "E01") return ART.endE01;
   if (id === "E02") return ART.endE02;
@@ -840,8 +899,32 @@ function getEndingArt(id: string): string {
   return ART.endE01;
 }
 
+function getEndingBgm(id: string): string {
+  if (id === "E01") return ART.bgmE01;
+  if (id === "E02") return ART.bgmE02;
+  if (id === "E03") return ART.bgmE03;
+  if (id === "E04") return ART.bgmE04;
+  return ART.bgmE01;
+}
+
 export function EndingDialog({ g }: { g: UseGameApi }) {
   const id = g.endingId ?? g.gameOverId;
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    const audio = new Audio(getEndingBgm(id));
+    audio.loop = true;
+    audio.volume = 0.5;
+    audio.play().catch(() => { /* autoplay blocked — user interaction needed */ });
+    audioRef.current = audio;
+    return () => {
+      audio.pause();
+      audio.src = "";
+      audioRef.current = null;
+    };
+  }, [id]);
+
   if (!id) return null;
   const ending = ENDINGS[id];
   if (!ending) return null;
@@ -863,9 +946,177 @@ export function EndingDialog({ g }: { g: UseGameApi }) {
           <div className={`text-sm text-white leading-relaxed whitespace-pre-line mb-6 ${TXT_SM}`}>
             {ending.body}
           </div>
-          <GameBtn onClick={g.restart} className="mx-auto">
+          <GameBtn onClick={() => { audioRef.current?.pause(); g.restart(); }} className="mx-auto">
             重新开始
           </GameBtn>
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+
+
+// ───────── 新手引导（翻页图文卡片） ─────────
+const TUTORIAL_SLIDES = [
+  {
+    icon: "🏰",
+    title: "欢迎来到魔王城 HR 部",
+    body: "你是魔王城唯一的 HR 总监。你的任务：招募怪物员工，派他们去挡住入侵的勇者。活下来就是胜利！",
+  },
+  {
+    icon: "📋",
+    title: "招募员工",
+    body: "每关开始时可以查看简历、招募怪物。招募消耗 1 行动点（AP），注意查看属性和隐藏词条！",
+  },
+  {
+    icon: "⚔️",
+    title: "自动战斗",
+    body: "战斗全自动进行。你的怪物会轮流攻击勇者，勇者也会反击。战斗中会弹出突发事件，10秒内做出选择！",
+  },
+  {
+    icon: "📊",
+    title: "绩效考评 (EVAL)",
+    body: "每场战斗结束后进入 EVAL：存活员工可升级，阵亡员工需支付抚恤金。还可能有员工来找你谈薪……",
+  },
+  {
+    icon: "🔨",
+    title: "扩建与培训",
+    body: "用灵魂碎片扩建槽位容纳更多员工，或花碎片单独培训提升等级。合理分配资源是关键！",
+  },
+  {
+    icon: "💎",
+    title: "经济管理",
+    body: "灵魂碎片是唯一货币：发工资、扩建、发奖金都要花。碎片不够会破产 Game Over！打零工可以赚点外快。",
+  },
+];
+
+export function TutorialDialog({ g }: { g: UseGameApi }) {
+  const [page, setPage] = useState(0);
+  if (!g.tutorialOpen) return null;
+  const slide = TUTORIAL_SLIDES[page];
+  const isLast = page === TUTORIAL_SLIDES.length - 1;
+
+  return (
+    <Overlay>
+      <div
+        className="relative my-auto w-full max-w-[480px] overflow-hidden rounded-2xl"
+        style={{
+          backgroundColor: "#F2E6C9",
+          border: "3px solid #3D3A36",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div className="relative z-10 p-5 text-[#3D3A36]">
+          {/* 图标 + 标题 */}
+          <div className="mb-4 flex items-center gap-3">
+            <span className="text-3xl">{slide.icon}</span>
+            <h2 className="text-[18px] font-black leading-tight">{slide.title}</h2>
+          </div>
+
+          {/* 正文 */}
+          <div className="mb-6 min-h-[80px] text-[14px] font-semibold leading-relaxed text-[#3D3A36]/85">
+            {slide.body}
+          </div>
+
+          {/* 翻页指示点 */}
+          <div className="mb-4 flex items-center justify-center gap-2">
+            {TUTORIAL_SLIDES.map((_, i) => (
+              <div
+                key={i}
+                className={`h-2 w-2 rounded-full transition-all ${i === page ? "bg-[#C97A4F] scale-125" : "bg-[#3D3A36]/25"}`}
+              />
+            ))}
+          </div>
+
+          {/* 按钮区 */}
+          <div className="flex items-center justify-between gap-3">
+            {page > 0 ? (
+              <button
+                onClick={() => setPage((p) => p - 1)}
+                className="rounded-md border border-[#3D3A36]/25 bg-white/60 px-4 py-2.5 text-[14px] font-black text-[#3D3A36] transition hover:bg-white/85 active:scale-[0.99] sm:rounded-lg sm:px-5 sm:py-3"
+              >
+                ← 上一页
+              </button>
+            ) : (
+              <button
+                onClick={g.closeTutorial}
+                className="rounded-md border border-[#3D3A36]/15 bg-white/40 px-4 py-2.5 text-[12px] font-semibold text-[#3D3A36]/60 transition hover:bg-white/65 active:scale-[0.99] sm:rounded-lg sm:px-5 sm:py-3"
+              >
+                跳过引导
+              </button>
+            )}
+            <button
+              onClick={isLast ? g.closeTutorial : () => setPage((p) => p + 1)}
+              className="rounded-md border border-[#3D3A36]/25 bg-white/60 px-5 py-2.5 text-[14px] font-black text-[#3D3A36] transition hover:bg-white/85 active:scale-[0.99] sm:rounded-lg sm:px-6 sm:py-3"
+            >
+              {isLast ? "开始游戏 →" : "下一页 →"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+// ───────── 转职弹窗 ─────────
+export function JobChangeDialog({ g }: { g: UseGameApi }) {
+  if (!g.jobChangeOpen || !g.jobChangeTargetId) return null;
+  const target = g.monsters.find((m) => m.id === g.jobChangeTargetId);
+  if (!target) return null;
+  const options = g.jobChangeOptions;
+  if (!options) return null;
+
+  return (
+    <Overlay>
+      <div
+        className="relative my-auto w-full max-w-[540px] max-h-[calc(100svh-2rem)] overflow-y-auto rounded-2xl"
+        style={{
+          backgroundColor: "#F2E6C9",
+          border: "3px solid #3D3A36",
+          boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+        }}
+      >
+        <div className="relative z-10 p-4 text-[#3D3A36] sm:p-5">
+          <div className="mb-1 text-[16px] font-black leading-tight">⚡ 转职选择</div>
+          <div className="mb-4 text-[14px] font-semibold leading-relaxed text-[#3D3A36]/85">
+            为 <span className="font-black">{target.name}</span>（Lv.{target.level}）选择进阶职业
+          </div>
+          <div className="space-y-2 sm:space-y-3">
+            {options.map((opt: JobChangeOption, idx: number) => {
+              const label = ADVANCED_CLASS_LABEL[opt.advancedClass];
+              return (
+                <button
+                  key={idx}
+                  onClick={() => g.applyJobChangeAction(target.id, opt)}
+                  disabled={g.shards < opt.cost || g.ap < 1}
+                  className="flex w-full flex-col rounded-md border border-[#3D3A36]/25 bg-white/60 px-3 py-2.5 text-left text-[#3D3A36] transition hover:bg-white/85 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-lg sm:px-4 sm:py-3"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{label?.icon ?? "⚡"}</span>
+                    <span className="text-[14px] font-black leading-tight">{opt.label}</span>
+                  </div>
+                  <span className="mt-1 text-[12px] font-semibold leading-snug opacity-75">{opt.desc}</span>
+                  <div className="mt-1.5 flex flex-wrap gap-1 text-[10px] font-semibold text-[#3D3A36]/80">
+                    {opt.statMods.hpPct && <span className="rounded bg-[#3D3A36]/10 px-1.5 py-0.5">HP {opt.statMods.hpPct > 0 ? "+" : ""}{Math.round(opt.statMods.hpPct * 100)}%</span>}
+                    {opt.statMods.atkPct && <span className="rounded bg-[#3D3A36]/10 px-1.5 py-0.5">ATK {opt.statMods.atkPct > 0 ? "+" : ""}{Math.round(opt.statMods.atkPct * 100)}%</span>}
+                    {opt.statMods.critDelta && <span className="rounded bg-[#3D3A36]/10 px-1.5 py-0.5">暴击 {opt.statMods.critDelta > 0 ? "+" : ""}{Math.round(opt.statMods.critDelta * 100)}%</span>}
+                    {opt.statMods.speedDelta && <span className="rounded bg-[#3D3A36]/10 px-1.5 py-0.5">速度 {opt.statMods.speedDelta > 0 ? "+" : ""}{opt.statMods.speedDelta}</span>}
+                    {opt.auraEffect && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-800">光环：{opt.auraEffect}</span>}
+                  </div>
+                  <div className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-[#3D3A36]/70">
+                    消耗：<ShardIcon size={12} /> {opt.cost} + 1 AP
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <button
+            onClick={g.closeJobChange}
+            className="mt-3 flex w-full flex-col rounded-md border border-[#3D3A36]/25 bg-white/40 px-3 py-2 text-center text-[13px] font-black text-[#3D3A36]/70 transition hover:bg-white/60 active:scale-[0.99] sm:rounded-lg sm:mt-4"
+          >
+            取消
+          </button>
         </div>
       </div>
     </Overlay>

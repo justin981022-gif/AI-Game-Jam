@@ -1,10 +1,11 @@
 // 状态管理 hook：驱动 UI 的核心状态机
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BALANCE, BOARD_POLICIES, BONUS_TIERS, EVENTS, GROWTH_CHOICES, LEVELS, PREP_EVENTS, TRAITS } from "./data";
+import { BALANCE, BOARD_POLICIES, BONUS_TIERS, EVENTS, GROWTH_CHOICES, HERO_MECHANISM_EVENTS, LEVELS, PREP_EVENTS, TRAITS } from "./data";
 import {
   allActiveTraits,
   applyHeroVariant,
   applyBonusTier,
+  applyJobChange,
   applyLevelUp,
   calcPension,
   calcRewardOnClear,
@@ -12,6 +13,7 @@ import {
   createHero,
   decideEnding,
   generateResumePool,
+  getJobChangeOptions,
   pick,
   randomHeroVariant,
   resumeToMonster,
@@ -26,6 +28,7 @@ import type {
   GrowthChoice,
   GrowthRequest,
   Hero,
+  JobChangeOption,
   LogEntry,
   Monster,
   NegotiateRequest,
@@ -52,6 +55,12 @@ export interface EvalView {
 }
 
 export interface UseGameApi {
+  // 新手引导
+  tutorialOpen: boolean;
+  closeTutorial: () => void;
+  // 存档
+  hasSave: boolean;
+  loadGame: () => void;
   // 核心状态
   gameState: GameState;
   levelIndex: number;
@@ -108,6 +117,8 @@ export interface UseGameApi {
   closeTraining: () => void;
   applyTraining: (monsterId: string) => void;
   trainingCost: (monster: Monster) => number;
+  healCost: (monster: Monster) => number;
+  healMonster: (monsterId: string) => void;
   doLabor: () => void;
   startBattle: () => void;
   toggleSpeed: () => void;
@@ -121,13 +132,82 @@ export interface UseGameApi {
   dismissMonster: (monsterId: string) => void;
   answerNegotiate: (approve: boolean) => void;
   restart: () => void;
+  restartRound: () => void;
   canBuild: boolean;
   buildCost: number;
+  // 转职系统
+  jobChangeOpen: boolean;
+  jobChangeTargetId: string | null;
+  jobChangeOptions: [JobChangeOption, JobChangeOption] | null;
+  openJobChange: (monsterId: string) => void;
+  closeJobChange: () => void;
+  applyJobChangeAction: (monsterId: string, option: JobChangeOption) => void;
+  canJobChange: (m: Monster) => boolean;
+  // 勇者机制事件卡片
+  pendingMechanismEvent: { title: string; cardText: string; options: [{ label: string; sub: string }, { label: string; sub: string }] } | null;
+  chooseMechanismOption: (idx: 0 | 1) => void;
 }
 
-const lastLevelIdx = LEVELS.length - 1; // L07
+const lastLevelIdx = LEVELS.length - 1;
+const SAVE_KEY = "dungeon_hr_save";
+
+interface SaveData {
+  gameState: GameState;
+  levelIndex: number;
+  shards: number;
+  ap: number;
+  slots: number;
+  monsters: Monster[];
+  resumePool: ResumeCandidate[];
+  recruitRefreshLeft: number;
+  freeRecruitRefreshLeft: number;
+  usedFlags: string[];
+  // FIX #7: 保存 activePolicy
+  activePolicy?: BoardPolicy | null;
+}
+
+function writeSave(data: SaveData) {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch { /* quota exceeded — silently fail */ }
+}
+
+// Reverse mapping: artUrl → bustAsset for migrating old saves without bustAsset
+const ART_TO_BUST: Record<string, string> = {
+  "/art/characters/A-CHR-GROOBAS.png": "/art/characters/A-CHR-BUST-GROOBAS.png",
+  "/art/characters/A-CHR-XIAOXING.png": "/art/characters/A-CHR-BUST-XIAOXING.png",
+  "/art/characters/A-CHR-GENERIC-1.png": "/art/characters/A-CHR-BUST-GENERIC-1.png",
+  "/art/characters/A-CHR-GENERIC-2.png": "/art/characters/A-CHR-BUST-GENERIC-2.png",
+  "/art/characters/A-CHR-GENERIC-3.png": "/art/characters/A-CHR-BUST-GENERIC-3.png",
+};
+
+function readSave(): SaveData | null {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as SaveData;
+    // Migrate old saves: patch missing bustAsset from artUrl
+    if (data.monsters) {
+      data.monsters = data.monsters.map((m) => {
+        if (!m.bustAsset && m.artUrl) {
+          return { ...m, bustAsset: ART_TO_BUST[m.artUrl] || m.artUrl };
+        }
+        return m;
+      });
+    }
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function deleteSave() {
+  localStorage.removeItem(SAVE_KEY);
+}
 
 export function useGame(): UseGameApi {
+  const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [hasSave, setHasSave] = useState(() => !!readSave());
   const [gameState, setGameState] = useState<GameState>("GAME_INIT");
   const [levelIndex, setLevelIndex] = useState(0);
   const [shards, setShards] = useState(BALANCE.SHARD_INIT);
@@ -154,6 +234,7 @@ export function useGame(): UseGameApi {
   const [eventTimeLeft, setEventTimeLeft] = useState(BALANCE.EVENT_TIMEOUT_S);
   const [eventIsTutorial, setEventIsTutorial] = useState(false);
   const [prepEvent, setPrepEvent] = useState<PrepEvent | null>(null);
+  const [pendingMechanismEvent, setPendingMechanismEvent] = useState<{ title: string; cardText: string; options: [{ label: string; sub: string }, { label: string; sub: string }] } | null>(null);
   const [dailyPolicyChoices, setDailyPolicyChoices] = useState<BoardPolicy[]>([]);
   const [activePolicy, setActivePolicy] = useState<BoardPolicy | null>(null);
   const [growth, setGrowth] = useState<GrowthRequest | null>(null);
@@ -161,6 +242,8 @@ export function useGame(): UseGameApi {
   const [evalOpen, setEvalOpen] = useState(false);
   const [evalData, setEvalData] = useState<EvalView | null>(null);
   const [dismissOpen, setDismissOpen] = useState(false);
+  const [jobChangeOpen, setJobChangeOpen] = useState(false);
+  const [jobChangeTargetId, setJobChangeTargetId] = useState<string | null>(null);
   const [endingId, setEndingId] = useState<string | null>(null);
   const [gameOverId, setGameOverId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -178,11 +261,16 @@ export function useGame(): UseGameApi {
   const eventTimerRef = useRef<number | null>(null);
   const pausedRef = useRef(false);
   const anyDeadThisBattleRef = useRef(false);
+  const mechanismEventFiredRef = useRef(false);
   const activePolicyRef = useRef<BoardPolicy | null>(null);
   const prepRewardMultRef = useRef(1);
   const prepPensionMultRef = useRef(1);
   const prepTeamAtkPctRef = useRef(0);
   const lastGrowthMonsterIdRef = useRef<string | null>(null);
+  // FIX #3: Use ref for speed so doTick always reads current value
+  const speedRef = useRef(1);
+  // FIX #4: Use ref for shards so event effects always read current value
+  const shardsRef = useRef(BALANCE.SHARD_INIT);
 
   // ───────── 准备阶段快照（用于撤销本回合操作） ─────────
   const prepSnapshotRef = useRef<{
@@ -199,6 +287,8 @@ export function useGame(): UseGameApi {
   monstersRef.current = monsters;
   heroRef.current = hero;
   activePolicyRef.current = activePolicy;
+  speedRef.current = speed;
+  shardsRef.current = shards;
 
   const level = LEVELS[levelIndex];
   const apMax = BALANCE.AP_MAX + (level?.apBonus ?? 0) + (activePolicy?.extraAp ?? 0);
@@ -213,9 +303,11 @@ export function useGame(): UseGameApi {
     return out;
   }, []);
 
+  // FIX #6: Randomize prep events instead of fixed mapping
   const prepEventForLevel = useCallback((idx: number) => {
     if (idx <= 0 || idx >= lastLevelIdx) return null;
-    return PREP_EVENTS[(idx - 1) % PREP_EVENTS.length];
+    // Randomly pick from PREP_EVENTS pool
+    return PREP_EVENTS[Math.floor(Math.random() * PREP_EVENTS.length)];
   }, []);
 
   const pushLog = useCallback((text: string, kind: LogEntry["kind"]) => {
@@ -244,39 +336,90 @@ export function useGame(): UseGameApi {
     };
   }, []);
 
+
+
+  // ───────── 读取存档 ─────────
+  const loadGame = useCallback(() => {
+    const data = readSave();
+    if (!data) return;
+    setGameState(data.gameState);
+    setLevelIndex(data.levelIndex);
+    setShards(data.shards);
+    setAp(data.ap);
+    setSlots(data.slots);
+    setMonsters(data.monsters);
+    setResumePool(data.resumePool);
+    setRecruitRefreshLeft(data.recruitRefreshLeft);
+    setFreeRecruitRefreshLeft(data.freeRecruitRefreshLeft);
+    usedFlagsRef.current = new Set(data.usedFlags);
+    // FIX #7: Restore activePolicy from save
+    if (data.activePolicy) {
+      setActivePolicy(data.activePolicy);
+      activePolicyRef.current = data.activePolicy;
+    } else {
+      setActivePolicy(null);
+    }
+    // 清理弹窗状态
+    setStoryText(null);
+    setPrepEvent(null);
+    setDailyPolicyChoices([]);
+    setRecruitOpen(false);
+    setBonusOpen(false);
+    setTrainingOpen(false);
+    setDismissOpen(false);
+    setEvalOpen(false);
+    setEvalData(null);
+    setGrowth(null);
+    setNegotiate(null);
+    setPendingEvent(null);
+    setEndingId(null);
+    setGameOverId(null);
+    setToasts([]);
+    prepRewardMultRef.current = 1;
+    prepPensionMultRef.current = 1;
+    prepTeamAtkPctRef.current = 0;
+    // 保存快照以支持撤销
+    saveSnapshot(data.shards, data.ap, data.slots, data.monsters, data.resumePool, data.recruitRefreshLeft, data.freeRecruitRefreshLeft);
+  }, [saveSnapshot]);
+
   // ───────── 进入某关的准备阶段 ─────────
   const enterPrep = useCallback(
     (idx: number) => {
       const lvl = LEVELS[idx];
-      // 结局关 L07
-      if (idx === lastLevelIdx) {
-        const aliveCount = monstersRef.current.filter((m) => m.state === "active").length;
-        const ending = decideEnding(shards, aliveCount, "win");
-        // T06 在 L07 起点触发
-        setStoryText(TRIGGERS.T06);
-        setEndingId(ending);
-        setGameState("ENDING");
-        return;
-      }
 
       // 每日扣薪（准备阶段开始）
       const dailySalary = monstersRef.current
         .filter((m) => m.state === "active" || m.state === "negative")
         .reduce((s, m) => s + m.salary, 0);
 
-      let newShards = shards;
-      setShards((prevShards) => {
-        const next = prevShards - dailySalary;
-        if (lvl.hasBattle && next < 0) {
-          // 破产
-          setStoryText(TRIGGERS.T09);
-          setGameOverId("E04");
-          setGameState("GAME_OVER");
-          return prevShards;
-        }
-        newShards = Math.max(0, next);
-        return newShards;
-      });
+      // FIX #1: Calculate newShards directly from shardsRef to avoid stale closure
+      const currentShards = shardsRef.current;
+      const newShards = Math.max(0, currentShards - dailySalary);
+
+      // 破产检查
+      if (lvl.hasBattle && currentShards - dailySalary < 0) {
+        setStoryText(TRIGGERS.T09);
+        setGameOverId("E04");
+        setGameState("GAME_OVER");
+        deleteSave();
+        setHasSave(false);
+        return;
+      }
+
+      // FIX #2: 结局关也先扣薪再判定
+      if (idx === lastLevelIdx) {
+        const aliveCount = monstersRef.current.filter((m) => m.state === "active").length;
+        const ending = decideEnding(newShards, aliveCount, "win");
+        setShards(newShards);
+        setStoryText(TRIGGERS.T06);
+        setEndingId(ending);
+        setGameState("ENDING");
+        deleteSave();
+        setHasSave(false);
+        return;
+      }
+
+      setShards(newShards);
 
       const newAp = BALANCE.AP_MAX + lvl.apBonus;
       const newResumes = generateResumePool(3, lvl.id);
@@ -299,16 +442,33 @@ export function useGame(): UseGameApi {
       // 保存快照（扣薪后、行动前的状态）
       saveSnapshot(newShards, newAp, slots, monstersRef.current, newResumes, 2, 0);
 
-      // L06 无独立过场卡片（T06 已迁至 L07）
+      // FIX #7: 自动存档包含 activePolicy（此时为 null，新关开始）
+      const autoSave: SaveData = {
+        gameState: "MAIN_PREP",
+        levelIndex: idx,
+        shards: newShards,
+        ap: newAp,
+        slots,
+        monsters: monstersRef.current,
+        resumePool: newResumes,
+        recruitRefreshLeft: 2,
+        freeRecruitRefreshLeft: 0,
+        usedFlags: Array.from(usedFlagsRef.current),
+        activePolicy: null,
+      };
+      writeSave(autoSave);
+      setHasSave(true);
     },
-    [shards, slots, saveSnapshot, chooseUniquePolicies]
+    [slots, saveSnapshot, chooseUniquePolicies]
   );
 
   // ───────── 开始游戏 ─────────
   const startGame = useCallback(() => {
+    isT01Ref.current = true;
     setStoryText(TRIGGERS.T01);
     setGameState("MAIN_PREP");
     setLevelIndex(0);
+    setShards(BALANCE.SHARD_INIT);
     setAp(BALANCE.AP_MAX);
     const initResumes = generateResumePool(3, "L01");
     setResumePool(initResumes);
@@ -322,10 +482,38 @@ export function useGame(): UseGameApi {
     prepTeamAtkPctRef.current = 0;
     // 保存 L01 初始快照
     saveSnapshot(BALANCE.SHARD_INIT, BALANCE.AP_MAX, BALANCE.SLOT_INIT, [], initResumes);
+    // 自动存档
+    const autoSave: SaveData = {
+      gameState: "MAIN_PREP",
+      levelIndex: 0,
+      shards: BALANCE.SHARD_INIT,
+      ap: BALANCE.AP_MAX,
+      slots: BALANCE.SLOT_INIT,
+      monsters: [],
+      resumePool: initResumes,
+      recruitRefreshLeft: 2,
+      freeRecruitRefreshLeft: 0,
+      usedFlags: Array.from(usedFlagsRef.current),
+      activePolicy: null,
+    };
+    writeSave(autoSave);
+    setHasSave(true);
   }, [saveSnapshot]);
 
+  const closeTutorial = useCallback(() => {
+    setTutorialOpen(false);
+  }, []);
+
+  // 标记是否为开局 T01 邮件（用于关闭后触发引导）
+  const isT01Ref = useRef(false);
+
   const closeStory = useCallback(() => {
+    const wasT01 = isT01Ref.current;
+    isT01Ref.current = false;
     setStoryText(null);
+    if (wasT01) {
+      setTutorialOpen(true);
+    }
   }, []);
 
   // 手动进入下一关（用于无战斗关卡如 L01）
@@ -471,6 +659,40 @@ export function useGame(): UseGameApi {
     return BALANCE.TRAINING_BASE_COST + monster.level * BALANCE.TRAINING_COST_PER_LEVEL;
   }, []);
 
+  // ───────── 治疗（消耗碎片，不消耗 AP，回满 HP） ─────────
+  const healCost = useCallback((monster: Monster) => {
+    if (monster.hp >= monster.hpMax) return 0;
+    return Math.max(1, Math.round(20 * (1 - monster.hp / monster.hpMax)));
+  }, []);
+
+  const healMonster = useCallback(
+    (monsterId: string) => {
+      const target = monstersRef.current.find((m) => m.id === monsterId);
+      if (!target || target.state === "dead") {
+        showToast("该员工无法治疗。");
+        return;
+      }
+      if (target.hp >= target.hpMax) {
+        showToast("该员工已满血，无需治疗。");
+        return;
+      }
+      const cost = healCost(target);
+      if (shards < cost) {
+        showToast("灵魂碎片不足，无法治疗。");
+        return;
+      }
+      setMonsters((prev) =>
+        prev.map((m) => {
+          if (m.id !== monsterId) return m;
+          return { ...m, hp: m.hpMax };
+        })
+      );
+      setShards((s) => s - cost);
+      showToast(`${target.name} 治疗完毕（-${cost} 碎片），HP 回满。`);
+    },
+    [shards, showToast, healCost]
+  );
+
   // ───────── 单独培训（消耗碎片 + 1 AP → 指定怪物升级） ─────────
   const openTraining = useCallback((monsterId?: string) => {
     if (ap <= 0) return;
@@ -534,7 +756,7 @@ export function useGame(): UseGameApi {
     [ap, shards, showToast, trainingCost]
   );
 
-  // ───────── 打零工（1 AP → +4 碎片） ─────────
+  // ───────── 打零工（1 AP → +5 碎片） ─────────
   const doLabor = useCallback(() => {
     if (ap <= 0) return;
     setShards((s) => s + BALANCE.AP_TO_SHARD_RATE);
@@ -585,6 +807,23 @@ export function useGame(): UseGameApi {
       if (typeof effect.prep_team_atk_pct === "number") prepTeamAtkPctRef.current += effect.prep_team_atk_pct as number;
       if (typeof effect.prep_reward_mult === "number") prepRewardMultRef.current += effect.prep_reward_mult as number;
       if (typeof effect.prep_pension_mult === "number") prepPensionMultRef.current += effect.prep_pension_mult as number;
+      if (typeof effect.prep_team_crit === "number") {
+        // 全员暴击率 +N%
+        setMonsters((prev) =>
+          prev.map((m) => ({
+            ...m,
+            critRate: Math.min(0.5, m.critRate + (effect.prep_team_crit as number)),
+          }))
+        );
+      }
+      if (typeof effect.tank_hp_pct === "number") {
+        setMonsters((prev) =>
+          prev.map((m) => {
+            if (m.template !== "MON_TANK") return m;
+            return { ...m, hp: Math.min(m.hpMax, Math.round(m.hp * (1 + (effect.tank_hp_pct as number)))) };
+          })
+        );
+      }
       showToast(`日常事件已处理：${prepEvent.options[idx].label}`);
       setPrepEvent(null);
     },
@@ -649,6 +888,7 @@ export function useGame(): UseGameApi {
     eventsCountRef.current = 0;
     pausedRef.current = false;
     anyDeadThisBattleRef.current = false;
+    mechanismEventFiredRef.current = false;
     setBattleEnded(null);
     setLogs([]);
     logIdRef.current = 0;
@@ -659,20 +899,20 @@ export function useGame(): UseGameApi {
     if (variant) pushLog(`本波勇者词缀：${variant.title}（${variant.desc}）`, "system");
     if (policy) pushLog(`本日经营方针：${policy.title}。`, "system");
 
-    // 启动循环
-    window.setTimeout(() => doTick(), 600 / speed);
+    // FIX #3: 启动循环使用 speedRef
+    window.setTimeout(() => doTick(), 600 / speedRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [level, monsters, speed, showToast, pushLog]);
+  }, [level, monsters, showToast, pushLog]);
 
   // 检查是否触发事件
   const tryTriggerEvent = useCallback(
-    (round: number): GameEvent | null => {
+    (round: number, excludeIds?: Set<string>): (GameEvent & { _relMonsterId?: string }) | null => {
       if (eventsCountRef.current >= BALANCE.MAX_EVENTS) return null;
       const ms = monstersRef.current;
       const h = heroRef.current;
       if (!h) return null;
       const aliveM = ms.filter((m) => m.state !== "dead" && m.state !== "quit");
-      const poolIds = level.eventPool.filter((id) => !triggeredEventsRef.current.has(id));
+      const poolIds = level.eventPool.filter((id) => !triggeredEventsRef.current.has(id) && !(excludeIds?.has(id)));
 
       for (const id of poolIds) {
         const ev = EVENTS[id];
@@ -722,6 +962,9 @@ export function useGame(): UseGameApi {
           case "late_battle_random":
             cond = round >= 6;
             break;
+          case "round_3_random":
+            cond = round === 3;
+            break;
         }
         if (cond && !relMonster && ev.cardText.includes("[怪物名]")) relMonster = pick(aliveM);
         if (cond && Math.random() <= ev.triggerProbability) {
@@ -767,10 +1010,41 @@ export function useGame(): UseGameApi {
       const aliveForScript = ms.filter((m) => m.state !== "dead" && m.state !== "quit");
       if (aliveForScript.length > 0) {
         const lowest = [...aliveForScript].sort((a, b) => a.hp - b.hp)[0];
-        lowest.hp = 0;
-        lowest.state = "dead";
-        anyDeadThisBattleRef.current = true;
-        pushLog(`${lowest.name} 力竭倒下。HR 系统记录在案。`, "death");
+        pausedRef.current = true;
+        clearTick();
+        setMonsters([...ms]);
+        setHero({ ...h });
+        const forcedEvent: GameEvent = {
+          id: "__FORCED_DEATH__",
+          triggerCondition: "",
+          triggerProbability: 1,
+          availableLevels: [],
+          cardText: `勇者突然觉醒了隐藏血脉，全身散发出耀眼的金色光芒！一道毁灭性的剑气直接贯穿了 ${lowest.name}，这一击无法闪避……`,
+          options: [
+            { label: "挺身而出挡在前面", sub: "（但腿已经在抖了）", effect: {} },
+            { label: "紧急拨打工伤保险热线", sub: "（无人接听）", effect: {} },
+          ],
+          timeoutDefault: 0,
+        };
+        setPendingEvent({ event: forcedEvent, monsterId: lowest.id });
+        setEventTimeLeft(BALANCE.EVENT_TIMEOUT_S);
+        setEventIsTutorial(false);
+        return;
+      }
+    }
+
+    // ── 勇者机制事件卡片弹出（每场战斗仅一次） ──
+    if (result.heroMechanismTriggered && !mechanismEventFiredRef.current) {
+      const pool = HERO_MECHANISM_EVENTS[result.heroMechanismTriggered];
+      if (pool && pool.length > 0) {
+        const card = pool[Math.floor(Math.random() * pool.length)];
+        mechanismEventFiredRef.current = true;
+        pausedRef.current = true;
+        clearTick();
+        setMonsters([...ms]);
+        setHero({ ...h });
+        setPendingMechanismEvent(card);
+        return;
       }
     }
 
@@ -788,23 +1062,25 @@ export function useGame(): UseGameApi {
       return;
     }
 
-    // 勇者首次暴击触发 B07 hook
-    if (result.heroCritThisRound) {
-      const ev = tryTriggerEvent(round) as (GameEvent & { _relMonsterId?: string }) | null;
-      if (ev && ev.id === "B07") {
-        triggeredEventsRef.current.add(ev.id);
+    // FIX #5: 勇者首次暴击时直接检查 B07 是否在 eventPool 中
+    if (result.heroCritThisRound && level.eventPool.includes("B07") && !triggeredEventsRef.current.has("B07")) {
+      const b07 = EVENTS["B07"];
+      if (b07 && eventsCountRef.current < BALANCE.MAX_EVENTS) {
+        const aliveForB07 = ms.filter((m) => m.state !== "dead" && m.state !== "quit");
+        const relMonster = aliveForB07.length > 0 ? pick(aliveForB07) : undefined;
+        triggeredEventsRef.current.add("B07");
         eventsCountRef.current += 1;
         pausedRef.current = true;
         clearTick();
-        setPendingEvent({ event: ev, monsterId: ev._relMonsterId });
+        setPendingEvent({ event: b07, monsterId: relMonster?.id });
         setEventTimeLeft(BALANCE.EVENT_TIMEOUT_S);
         setEventIsTutorial(false);
         return;
       }
     }
 
-    // 事件触发
-    const ev = tryTriggerEvent(round) as (GameEvent & { _relMonsterId?: string }) | null;
+    // 事件触发（排除 B07 避免重复）
+    const ev = tryTriggerEvent(round, new Set(["B07"]));
     if (ev) {
       triggeredEventsRef.current.add(ev.id);
       eventsCountRef.current += 1;
@@ -818,11 +1094,11 @@ export function useGame(): UseGameApi {
       return;
     }
 
-    // 继续下一 tick
+    // FIX #3: 继续下一 tick 使用 speedRef
     clearTick();
-    tickRef.current = window.setTimeout(() => doTick(), BALANCE.ROUND_TICK_MS / speed);
+    tickRef.current = window.setTimeout(() => doTick(), BALANCE.ROUND_TICK_MS / speedRef.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pushLog, speed, tryTriggerEvent, level]);
+  }, [pushLog, tryTriggerEvent, level]);
 
   const toggleSpeed = useCallback(() => {
     setSpeed((s) => (s === 1 ? 2 : s === 2 ? 4 : 1));
@@ -831,6 +1107,20 @@ export function useGame(): UseGameApi {
   // ───────── 事件选择 ─────────
   const applyEventEffect = useCallback(
     (ev: GameEvent, optIdx: 0 | 1, monsterId?: string) => {
+      // 特殊事件：强制阵亡（两个选项结果相同）
+      if (ev.id === "__FORCED_DEATH__") {
+        const ms = monstersRef.current;
+        const target = monsterId ? ms.find((m) => m.id === monsterId) : undefined;
+        if (target) {
+          target.hp = 0;
+          target.state = "dead";
+          anyDeadThisBattleRef.current = true;
+          pushLog(`${target.name} 力竭倒下。HR 系统记录在案。`, "death");
+        }
+        setMonsters([...ms]);
+        return;
+      }
+
       const effect = ev.options[optIdx].effect;
       const ms = monstersRef.current;
       const h = heroRef.current;
@@ -838,10 +1128,11 @@ export function useGame(): UseGameApi {
 
       const relM = monsterId ? ms.find((m) => m.id === monsterId) : undefined;
 
-      // 费用检查
+      // FIX #4: 费用检查使用 shardsRef 获取最新值
       let costPaid = true;
       if (typeof effect.cost === "number") {
-        if (shards >= (effect.cost as number)) {
+        const currentShards = shardsRef.current;
+        if (currentShards >= (effect.cost as number)) {
           setShards((s) => s - (effect.cost as number));
         } else {
           showToast("灵魂碎片不足，效果未生效。");
@@ -899,19 +1190,49 @@ export function useGame(): UseGameApi {
       if (effect.morale_down) {
         // 简化：无士气词条则无影响
       }
+      // ─── 新增事件效果（v0.24） ───
+      if (effect.tank_absorb_all) {
+        // TANK 承受全部伤害（HP-15%），其余不受影响
+        const tanks = ms.filter((m) => m.state !== "dead" && m.template === "MON_TANK");
+        for (const t of tanks) {
+          t.hp = Math.max(1, Math.round(t.hp * 0.85));
+        }
+      }
+      if (effect.psy_war_atk) {
+        // 50% 成功免费获得 +10% 攻击；50% 失败全员攻击 -5%
+        if (Math.random() < 0.5) {
+          for (const m of ms) if (m.state !== "dead") m.bonusAtkMult *= 1.1;
+          showToast("豁免成功！全员攻击 +10%");
+        } else {
+          for (const m of ms) if (m.state !== "dead") m.bonusAtkMult *= 0.95;
+          showToast("豁免失败…全员攻击 -5%");
+        }
+      }
+      if (typeof effect.hero_atk_pct_next_round === "number") {
+        h.atkPctNextRound += effect.hero_atk_pct_next_round as number;
+      }
+      if (typeof effect.tank_hp_pct === "number") {
+        const tanks = ms.filter((m) => m.state !== "dead" && m.template === "MON_TANK");
+        for (const t of tanks) {
+          t.hp = Math.min(t.hpMax, Math.round(t.hp * (1 + (effect.tank_hp_pct as number))));
+        }
+      }
 
       setMonsters([...ms]);
       setHero({ ...h });
     },
-    [shards, showToast]
+    [showToast, pushLog]
   );
 
+  // FIX #3: resumeAfterEvent uses speedRef
   const resumeAfterEvent = useCallback(() => {
     setPendingEvent(null);
     pausedRef.current = false;
     clearTick();
-    tickRef.current = window.setTimeout(() => doTick(), 500 / speed);
-  }, [doTick, speed]);
+    tickRef.current = window.setTimeout(() => doTick(), 500 / speedRef.current);
+  }, [doTick]);
+
+
 
   const chooseEventOption = useCallback(
     (idx: 0 | 1) => {
@@ -924,6 +1245,17 @@ export function useGame(): UseGameApi {
       resumeAfterEvent();
     },
     [pendingEvent, applyEventEffect, resumeAfterEvent]
+  );
+
+  // 勇者机制事件卡片选择（纯展示通知，选项不影响实际效果，效果已在engine层生效）
+  const chooseMechanismOption = useCallback(
+    (_idx: 0 | 1) => {
+      setPendingMechanismEvent(null);
+      pausedRef.current = false;
+      clearTick();
+      tickRef.current = window.setTimeout(() => doTick(), 500 / speedRef.current);
+    },
+    [doTick]
   );
 
   // 事件倒计时
@@ -965,6 +1297,8 @@ export function useGame(): UseGameApi {
 
       if (result === "lose") {
         // 全灭
+        deleteSave();
+        setHasSave(false);
         setTimeout(() => {
           setStoryText(TRIGGERS.T08);
           setGameOverId("E03");
@@ -1025,6 +1359,11 @@ export function useGame(): UseGameApi {
             completePersonalGoal(m, goalCompleted);
           }
           m.hp = Math.min(m.hp, m.hpMax);
+          // 战后恢复：存活怪物恢复 50% 已损失 HP
+          const lost = m.hpMax - m.hp;
+          if (lost > 0) {
+            m.hp = Math.min(m.hpMax, m.hp + Math.round(lost * BALANCE.POST_BATTLE_HEAL_RATIO));
+          }
         }
 
         // 通关绩效提成
@@ -1050,7 +1389,7 @@ export function useGame(): UseGameApi {
         }
       }, 1200);
     },
-    [level]
+    [level, showToast]
   );
 
   // ───────── EVAL 继续 ─────────
@@ -1237,12 +1576,62 @@ export function useGame(): UseGameApi {
     [showToast]
   );
 
-  // ───────── 重新开始 / 撤销本回合 ─────────
-  const restart = useCallback(() => {
-    clearTick();
+  // ───────── 转职系统 ─────────
+  const canJobChange = useCallback(
+    (m: Monster) => {
+      if (m.advancedClass !== null) return false;
+      if (m.state !== "active") return false;
+      if (m.level < 3) return false;
+      return true;
+    },
+    []
+  );
 
-    // 如果在准备阶段且有快照，则撤销本回合操作（恢复到本关开始时的状态）
-    if (gameState === "MAIN_PREP" && prepSnapshotRef.current) {
+  const openJobChange = useCallback(
+    (monsterId: string) => {
+      const m = monstersRef.current.find((mon) => mon.id === monsterId);
+      if (!m || !canJobChange(m)) return;
+      setJobChangeTargetId(monsterId);
+      setJobChangeOpen(true);
+    },
+    [canJobChange]
+  );
+
+  const closeJobChange = useCallback(() => {
+    setJobChangeOpen(false);
+    setJobChangeTargetId(null);
+  }, []);
+
+  const applyJobChangeAction = useCallback(
+    (monsterId: string, option: JobChangeOption) => {
+      if (ap < 1) {
+        showToast("行动点不足！");
+        return;
+      }
+      const cost = option.cost;
+      if (shards < cost) {
+        showToast(`碎片不足！需要 ${cost} 碎片。`);
+        return;
+      }
+      setAp((a) => a - 1);
+      setShards((s) => s - cost);
+      setMonsters((prev) =>
+        prev.map((m) => {
+          if (m.id !== monsterId) return m;
+          return applyJobChange({ ...m }, option);
+        })
+      );
+      setJobChangeOpen(false);
+      setJobChangeTargetId(null);
+      showToast(`转职成功！${option.label} 已就位。`);
+    },
+    [ap, shards, showToast]
+  );
+
+  // ───────── 重新开始该轮次（恢复到本关准备阶段开始时的快照） ─────────
+  const restartRound = useCallback(() => {
+    clearTick();
+    if (prepSnapshotRef.current) {
       const snap = prepSnapshotRef.current;
       setShards(snap.shards);
       setAp(snap.ap);
@@ -1264,12 +1653,27 @@ export function useGame(): UseGameApi {
       setDailyPolicyChoices([]);
       setActivePolicy(null);
       setGrowth(null);
+      setNegotiate(null);
+      setEvalOpen(false);
+      setEvalData(null);
+      setPendingEvent(null);
+      setHero(null);
+      setBattleEnded(null);
+      setLogs([]);
       setToasts([]);
-      showToast("已撤销本回合操作。");
-      return;
+      setGameState("MAIN_PREP");
+      prepRewardMultRef.current = 1;
+      prepPensionMultRef.current = 1;
+      prepTeamAtkPctRef.current = 0;
+      showToast("已重新开始该轮次。");
     }
+  }, [showToast]);
 
-    // 否则完全重置游戏
+  // ───────── 重新开始（完全重置，清除存档回标题） ─────────
+  const restart = useCallback(() => {
+    clearTick();
+    deleteSave();
+    setHasSave(false);
     setGameState("GAME_INIT");
     setLevelIndex(0);
     setShards(BALANCE.SHARD_INIT);
@@ -1308,12 +1712,16 @@ export function useGame(): UseGameApi {
     prepRewardMultRef.current = 1;
     prepPensionMultRef.current = 1;
     prepTeamAtkPctRef.current = 0;
-  }, [gameState, showToast]);
+  }, []);
 
   // 清理
   useEffect(() => () => clearTick(), []);
 
   return {
+    tutorialOpen,
+    closeTutorial,
+    hasSave,
+    loadGame,
     gameState,
     levelIndex,
     levelId: level?.id ?? "",
@@ -1367,6 +1775,8 @@ export function useGame(): UseGameApi {
     closeTraining,
     applyTraining: applyTrainingAction,
     trainingCost,
+    healCost,
+    healMonster,
     doLabor,
     startBattle,
     toggleSpeed,
@@ -1380,7 +1790,24 @@ export function useGame(): UseGameApi {
     dismissMonster,
     answerNegotiate,
     restart,
+    restartRound,
     canBuild,
     buildCost,
+    // 转职系统
+    jobChangeOpen,
+    jobChangeTargetId,
+    jobChangeOptions: (() => {
+      if (!jobChangeTargetId) return null;
+      const target = monsters.find((m) => m.id === jobChangeTargetId);
+      if (!target) return null;
+      return getJobChangeOptions(target);
+    })(),
+    openJobChange,
+    closeJobChange,
+    applyJobChangeAction,
+    canJobChange,
+    // 勇者机制事件卡片
+    pendingMechanismEvent,
+    chooseMechanismOption,
   };
 }

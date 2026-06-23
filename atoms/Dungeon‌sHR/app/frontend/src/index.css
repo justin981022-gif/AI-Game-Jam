@@ -105,3 +105,74 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* ─── 战斗动效 keyframes ─── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+
+@keyframes shakeHard {
+  0%, 100% { transform: translateX(0) scale(1); }
+  10% { transform: translateX(-6px) scale(1.02); }
+  20% { transform: translateX(6px) scale(0.98); }
+  30% { transform: translateX(-5px) scale(1.03); }
+  40% { transform: translateX(5px) scale(0.97); }
+  50% { transform: translateX(-4px) scale(1.02); }
+  60% { transform: translateX(4px) scale(0.98); }
+  70% { transform: translateX(-3px) scale(1.01); }
+  80% { transform: translateX(2px); }
+  90% { transform: translateX(-1px); }
+}
+
+@keyframes floatUp {
+  0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  30% { opacity: 1; transform: translate(-50%, -12px) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -32px) scale(0.8); }
+}
+
+@keyframes fadeDown {
+  0% { opacity: 1; transform: translateY(0); }
+  50% { opacity: 0.5; transform: translateY(6px); }
+  100% { opacity: 0.2; transform: translateY(12px); filter: grayscale(1); }
+}
+
+/* ─── 准备阶段动效 ─── */
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.5) translateY(20px); }
+  60% { opacity: 1; transform: scale(1.08) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes slotExpand {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shardPulseGain {
+  0% { transform: scale(1); color: inherit; }
+  30% { transform: scale(1.25); color: #10b981; }
+  100% { transform: scale(1); color: inherit; }
+}
+
+@keyframes shardPulseLose {
+  0% { transform: scale(1); color: inherit; }
+  30% { transform: scale(1.25); color: #e11d48; }
+  100% { transform: scale(1); color: inherit; }
+}
+
+@keyframes rankBounce {
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-30deg); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(5deg); }
+  70% { transform: translate(-50%, -50%) scale(0.9) rotate(-3deg); }
+  100% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+}
+
+@keyframes sceneFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}

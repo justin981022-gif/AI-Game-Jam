@@ -4,14 +4,16 @@ import {
   BALANCE,
   BATTLE_LOG_TEMPLATES,
   HEROES,
+  HERO_SKILLS,
   HERO_VARIANTS,
   HIDDEN_TRAIT_POOL,
+  JOB_CHANGE_OPTIONS,
   MONSTER_TEMPLATES,
   PERSONAL_GOALS,
   RESUME_DATA,
   TRAITS,
 } from "./data";
-import type { BonusTier, Hero, HeroVariant, Monster, MonsterTemplate, ResumeCandidate, RewardBreakdown, TraitId } from "./types";
+import type { AdvancedClass, BonusTier, Hero, HeroVariant, JobChangeOption, Monster, MonsterTemplate, ResumeCandidate, RewardBreakdown, TraitId } from "./types";
 import bustMetaRaw from "./bust_meta.json";
 import namePoolRaw from "./recruit_name_pool.json";
 
@@ -75,11 +77,13 @@ const ROLE_BASE_STATS: Record<string, { hp: number; atk: number; speed: number; 
   RANGE: { hp: 45, atk: 14, speed: 12, critRate: 0.10, salary: 9 },
 };
 
-// Role → monster art (for battle display, not bust)
-const ROLE_ART: Record<string, string[]> = {
-  TANK: [ART.groobas, ART.generic3],
-  DPS: [ART.generic1],
-  RANGE: [ART.xiaoxing, ART.generic2],
+// Bust key → correct battle art (1:1 mapping, no random)
+const BUST_TO_ART: Record<string, string> = {
+  GROOBAS: ART.groobas,
+  XIAOXING: ART.xiaoxing,
+  "GENERIC-1": ART.generic1,
+  "GENERIC-2": ART.generic2,
+  "GENERIC-3": ART.generic3,
 };
 
 // Visible trait pools by role
@@ -135,9 +139,8 @@ function generateCandidateFromBust(bustKey: string, usedIntros: Set<string>): Re
     personalNote = pick(NAME_POOL.self_intro_pool.lines);
   }
 
-  // Art for battle (small icon) — pick from role art
-  const artOptions = ROLE_ART[role];
-  const artUrl = pick(artOptions);
+  // Art for battle (small icon) — use bust-specific art (1:1 mapping)
+  const artUrl = BUST_TO_ART[bustKey] || ART.generic1;
 
   return {
     id: uid("resume"),
@@ -224,7 +227,9 @@ export function resumeToMonster(r: ResumeCandidate): Monster {
     species: r.species,
     template: r.template,
     role: r.position,
-    artUrl: r.artUrl, // battle icon art
+    advancedClass: null,
+    artUrl: r.artUrl,
+    bustAsset: r.bustAsset, // bust portrait for monster slot display
     baseHpMax: r.hp,
     baseAtk: r.atk,
     hp: hpMax,
@@ -269,7 +274,44 @@ export function createHero(heroId: string): Hero {
     atkPctNextRound: 0,
     forcedSkip: false,
     hasCritOnce: false,
+    skills: def.skills ?? [],
+    regenCounter: 0,
+    awakened: false,
+    awakeningRoundsLeft: 0,
+    friendshipActive: false,
+    revived: false,
+    itemUsesLeft: Math.random() < 0.5 ? 1 : 2, // 每场 1-2 次
+    ultimateUsed: false,
   };
+}
+
+// ─── 转职系统 ───
+export function getJobChangeOptions(m: Monster): [JobChangeOption, JobChangeOption] | null {
+  if (m.advancedClass !== null) return null; // 已转职
+  if (m.state !== "active") return null;
+  return JOB_CHANGE_OPTIONS[m.template] ?? null;
+}
+
+export function applyJobChange(m: Monster, option: JobChangeOption): Monster {
+  m.advancedClass = option.advancedClass;
+  // 应用数值修改
+  const { hpPct, atkPct, critDelta, speedDelta } = option.statMods;
+  if (hpPct) {
+    m.baseHpMax = Math.round(m.baseHpMax * (1 + hpPct));
+    m.hpMax = Math.round(m.hpMax * (1 + hpPct));
+    m.hp = Math.round(m.hp * (1 + hpPct));
+  }
+  if (atkPct) {
+    m.baseAtk = Math.round(m.baseAtk * (1 + atkPct));
+    m.atk = Math.round(m.atk * (1 + atkPct));
+  }
+  if (critDelta) {
+    m.critRate = Math.min(0.5, m.critRate + critDelta);
+  }
+  if (speedDelta) {
+    m.speed = Math.max(1, m.speed + speedDelta);
+  }
+  return m;
 }
 
 export function applyHeroVariant(hero: Hero, variant?: HeroVariant): Hero {
@@ -358,6 +400,11 @@ export function effectiveAtk(m: Monster, team: Monster[], hero?: Hero, round = 1
   // 合同未签：本场 ATK +10%
   if (traits.includes("contract_pending")) atk *= 1.1;
 
+  // 精英克星：面对精英级勇者时自身攻击 +20%
+  if (traits.includes("glass") && hero && ["HERO_ELITE", "HERO_ELITE_2", "HERO_FINAL"].includes(hero.id)) {
+    atk *= 1.2;
+  }
+
   // 事件临时倍率 / 本回合加成
   atk *= m.tempAtkMult;
   atk *= 1 + m.nextRoundAtkPct;
@@ -373,22 +420,149 @@ function fillTemplate(tpl: string, m: string, x: number, atk?: string, def?: str
     .replace("{def}", def ?? m);
 }
 
+export type HeroMechanismType = "awakening" | "friendship" | "item_potion" | "item_scroll" | "item_shield" | "sabotage" | "ultimate_execute" | "ultimate_aoe" | "resurrect";
+
+// 延迟执行的机制参数（卡片展示后再执行）
+export interface DeferredMechanism {
+  type: HeroMechanismType;
+  targetName: string;
+  // 具体参数
+  healAmount?: number; // item_potion
+  atkBoost?: number; // item_scroll
+  sabotageTargetId?: string; // sabotage
+  executeTargetId?: string; // ultimate_execute
+  aoeDmg?: number; // ultimate_aoe
+}
+
 export interface RoundResult {
   logs: { text: string; kind: "monster" | "hero" | "crit" | "death" }[];
   monstersDeadThisRound: string[];
   heroCritThisRound: boolean;
+  heroMechanismTriggered: HeroMechanismType | null;
+  mechanismTargetName?: string;
+  deferredMechanism?: DeferredMechanism;
 }
 
 // 执行一个 ROUND_TICK 的演算，直接修改 monsters / hero
+// deferFirstMechanism: 若为 true，第一个触发的机制不执行效果，仅记录参数供卡片展示后执行
 export function runRoundTick(
   monsters: Monster[],
   hero: Hero,
-  opts: { round?: number } = {}
+  opts: { round?: number; deferFirstMechanism?: boolean } = {}
 ): RoundResult {
   const logs: RoundResult["logs"] = [];
   const monstersDeadThisRound: string[] = [];
   let heroCritThisRound = false;
+  let heroMechanismTriggered: HeroMechanismType | null = null;
+  let mechanismTargetName: string | undefined;
+  let deferredMechanism: DeferredMechanism | undefined;
+  const deferFirst = opts.deferFirstMechanism ?? false;
   const alive = () => monsters.filter((m) => m.state !== "dead" && m.state !== "quit");
+
+  // ── 勇者回血技能（regen）：每 3 回合恢复 5% maxHP ──
+  if (hero.skills.includes("regen")) {
+    hero.regenCounter += 1;
+    if (hero.regenCounter >= 3) {
+      hero.regenCounter = 0;
+      const heal = Math.round(hero.hpMax * 0.05);
+      hero.hp = Math.min(hero.hpMax, hero.hp + heal);
+      logs.push({ text: `${hero.name} 恢复了 ${heal} 点生命值（回血技能）。`, kind: "hero" });
+    }
+  }
+
+  // ── 勇者觉醒：HP<30% 时一次性爆发，攻击翻倍 2 回合 ──
+  if (hero.skills.includes("awakening") && !hero.awakened && hero.hp > 0 && hero.hp / hero.hpMax < 0.3) {
+    if (!heroMechanismTriggered && deferFirst) {
+      // 延迟执行：仅标记，不执行效果
+      heroMechanismTriggered = "awakening";
+      mechanismTargetName = hero.name;
+      deferredMechanism = { type: "awakening", targetName: hero.name };
+      // 不设置 awakened/awakeningRoundsLeft，等卡片选择后执行
+    } else {
+      hero.awakened = true;
+      hero.awakeningRoundsLeft = 2;
+      if (!heroMechanismTriggered) { heroMechanismTriggered = "awakening"; mechanismTargetName = hero.name; }
+      logs.push({ text: `💥 ${hero.name} 觉醒了！怒火中烧，攻击力翻倍持续 2 回合！`, kind: "hero" });
+    }
+  }
+  // 觉醒倍率应用（在攻击计算前设置）
+  if (hero.awakeningRoundsLeft > 0) {
+    hero.atkPctThisRound += 1.0; // +100% = 翻倍
+    hero.awakeningRoundsLeft -= 1;
+  }
+
+  // ── 友谊之力：每回合 20% 概率暴击率翻倍 1 回合 ──
+  hero.friendshipActive = false;
+  if (hero.skills.includes("friendship") && Math.random() < HERO_SKILLS.friendship.chance) {
+    if (!heroMechanismTriggered && deferFirst) {
+      heroMechanismTriggered = "friendship";
+      mechanismTargetName = hero.name;
+      deferredMechanism = { type: "friendship", targetName: hero.name };
+      // 不设置 friendshipActive，等卡片选择后执行
+    } else {
+      hero.friendshipActive = true;
+      if (!heroMechanismTriggered) { heroMechanismTriggered = "friendship"; mechanismTargetName = hero.name; }
+      logs.push({ text: `✨ ${hero.name} 感受到了友谊之力！本回合暴击率大幅提升！`, kind: "hero" });
+    }
+  }
+
+  // ── 勇者道具：随机使用道具 ──
+  if (hero.skills.includes("item") && hero.itemUsesLeft > 0 && Math.random() < HERO_SKILLS.item.chance) {
+    hero.itemUsesLeft -= 1;
+    const itemRoll = Math.random();
+    if (itemRoll < 0.33) {
+      // 回血药水：恢复 15% HP
+      const heal = Math.round(hero.hpMax * 0.15);
+      if (!heroMechanismTriggered && deferFirst) {
+        heroMechanismTriggered = "item_potion";
+        mechanismTargetName = hero.name;
+        deferredMechanism = { type: "item_potion", targetName: hero.name, healAmount: heal };
+      } else {
+        hero.hp = Math.min(hero.hpMax, hero.hp + heal);
+        if (!heroMechanismTriggered) { heroMechanismTriggered = "item_potion"; mechanismTargetName = hero.name; }
+        logs.push({ text: `🧪 ${hero.name} 使用了回血药水，恢复 ${heal} 点生命值！`, kind: "hero" });
+      }
+    } else if (itemRoll < 0.66) {
+      // 攻击卷轴：本回合攻击 +30%
+      if (!heroMechanismTriggered && deferFirst) {
+        heroMechanismTriggered = "item_scroll";
+        mechanismTargetName = hero.name;
+        deferredMechanism = { type: "item_scroll", targetName: hero.name, atkBoost: 0.3 };
+      } else {
+        hero.atkPctThisRound += 0.3;
+        if (!heroMechanismTriggered) { heroMechanismTriggered = "item_scroll"; mechanismTargetName = hero.name; }
+        logs.push({ text: `📜 ${hero.name} 使用了攻击卷轴，本回合攻击力 +30%！`, kind: "hero" });
+      }
+    } else {
+      // 护盾：本回合受到伤害减半
+      if (!heroMechanismTriggered && deferFirst) {
+        heroMechanismTriggered = "item_shield";
+        mechanismTargetName = hero.name;
+        deferredMechanism = { type: "item_shield", targetName: hero.name };
+      } else {
+        (hero as Hero & { shieldActive?: boolean }).shieldActive = true;
+        if (!heroMechanismTriggered) { heroMechanismTriggered = "item_shield"; mechanismTargetName = hero.name; }
+        logs.push({ text: `🛡️ ${hero.name} 使用了防御护盾，本回合受到伤害减半！`, kind: "hero" });
+      }
+    }
+  }
+
+  // ── 策反：对消极怠工怪物 30% 概率使其本回合不攻击 ──
+  if (hero.skills.includes("sabotage")) {
+    for (const m of alive()) {
+      if (m.state === "negative" && !allActiveTraits(m).includes("loyalty") && Math.random() < HERO_SKILLS.sabotage.chance) {
+        if (!heroMechanismTriggered && deferFirst) {
+          heroMechanismTriggered = "sabotage";
+          mechanismTargetName = m.name;
+          deferredMechanism = { type: "sabotage", targetName: m.name, sabotageTargetId: m.id };
+        } else {
+          m.skipNextRound = true;
+          if (!heroMechanismTriggered) { heroMechanismTriggered = "sabotage"; mechanismTargetName = m.name; }
+          logs.push({ text: `🗣️ ${hero.name} 策反了 ${m.name}！"你们老板根本不在乎你！" ${m.name} 本回合拒绝攻击。`, kind: "hero" });
+        }
+      }
+    }
+  }
 
   // ── 怪物方攻击勇者 ──
   let monsterTotal = 0;
@@ -411,6 +585,11 @@ export function runRoundTick(
     const isCrit = Math.random() < critRate;
     if (isCrit) dmg *= BALANCE.CRIT_MULT;
     dmg = Math.max(1, Math.round(dmg));
+    // 勇者格挡技能（block）：概率减免 50% 伤害
+    if (hero.skills.includes("block") && Math.random() < HERO_SKILLS.block.chance) {
+      dmg = Math.round(dmg * 0.5);
+      logs.push({ text: `${hero.name} 格挡了 ${m.name} 的攻击，伤害减半！`, kind: "hero" });
+    }
     monsterTotal += dmg;
     m.damageDealt += dmg;
     m.hits += 1;
@@ -421,6 +600,11 @@ export function runRoundTick(
       logs.push({ text: fillTemplate(pick(BATTLE_LOG_TEMPLATES.monsterHit), m.name, dmg), kind: "monster" });
     }
   }
+  // 护盾效果：本回合受到伤害减半
+  if ((hero as Hero & { shieldActive?: boolean }).shieldActive) {
+    monsterTotal = Math.round(monsterTotal * 0.5);
+    (hero as Hero & { shieldActive?: boolean }).shieldActive = false;
+  }
   hero.hp = Math.max(0, hero.hp - monsterTotal);
   // 清理本回合加成
   for (const m of monsters) {
@@ -428,7 +612,61 @@ export function runRoundTick(
     m.tempAtkMult = 1;
   }
 
-  if (hero.hp <= 0) return { logs, monstersDeadThisRound, heroCritThisRound };
+  // ── 勇者必杀技：HP<50% 时一次机会 ──
+  if (hero.skills.includes("ultimate") && !hero.ultimateUsed && hero.hp > 0 && hero.hp / hero.hpMax < 0.5) {
+    hero.ultimateUsed = true;
+    const livingMonsters = alive();
+    // 尝试秒杀最低 HP 且 HP<20% 的怪物
+    const lowHpMonster = livingMonsters
+      .filter((m) => m.hp / m.hpMax < 0.2)
+      .sort((a, b) => a.hp - b.hp)[0];
+    if (lowHpMonster) {
+      if (!heroMechanismTriggered && deferFirst) {
+        heroMechanismTriggered = "ultimate_execute";
+        mechanismTargetName = lowHpMonster.name;
+        deferredMechanism = { type: "ultimate_execute", targetName: lowHpMonster.name, executeTargetId: lowHpMonster.id };
+      } else {
+        lowHpMonster.hp = 0;
+        lowHpMonster.state = "dead";
+        monstersDeadThisRound.push(lowHpMonster.id);
+        if (!heroMechanismTriggered) { heroMechanismTriggered = "ultimate_execute"; mechanismTargetName = lowHpMonster.name; }
+        logs.push({ text: `⚡ ${hero.name} 发动必杀技——「审判之剑」！直接斩杀了 ${lowHpMonster.name}！`, kind: "hero" });
+      }
+    } else {
+      // 全屏 AOE：ATK×0.6 对全体
+      const aoeDmg = Math.round(hero.atk * 0.6);
+      if (!heroMechanismTriggered && deferFirst) {
+        heroMechanismTriggered = "ultimate_aoe";
+        mechanismTargetName = hero.name;
+        deferredMechanism = { type: "ultimate_aoe", targetName: hero.name, aoeDmg };
+      } else {
+        for (const m of livingMonsters) {
+          m.hp = Math.max(0, m.hp - aoeDmg);
+        }
+        if (!heroMechanismTriggered) { heroMechanismTriggered = "ultimate_aoe"; mechanismTargetName = hero.name; }
+        logs.push({ text: `⚡ ${hero.name} 发动必杀技——「圣光爆裂」！对全体怪物造成 ${aoeDmg} 点伤害！`, kind: "hero" });
+      }
+    }
+  }
+
+  // ── 勇者复活：精英勇者死后 40% 概率以 50%HP 复活一次 ──
+  if (hero.hp <= 0 && hero.skills.includes("revive") && !hero.revived && Math.random() < HERO_SKILLS.revive.chance) {
+    if (!heroMechanismTriggered && deferFirst) {
+      hero.revived = true; // 标记已用复活（防止重复触发）
+      heroMechanismTriggered = "resurrect";
+      mechanismTargetName = hero.name;
+      deferredMechanism = { type: "resurrect", targetName: hero.name, healAmount: Math.round(hero.hpMax * 0.5) };
+      // 不恢复HP，等卡片选择后执行
+    } else {
+      hero.revived = true;
+      hero.hp = Math.round(hero.hpMax * 0.5);
+      heroMechanismTriggered = "resurrect";
+      mechanismTargetName = hero.name;
+      logs.push({ text: `🌟 ${hero.name} 倒下了……但奇迹发生了！不屈的意志使其以半血复活！`, kind: "hero" });
+    }
+  }
+
+  if (hero.hp <= 0) return { logs, monstersDeadThisRound, heroCritThisRound, heroMechanismTriggered, mechanismTargetName, deferredMechanism };
 
   // ── 勇者攻击怪物方 ──
   if (hero.forcedSkip) {
@@ -444,7 +682,8 @@ export function runRoundTick(
       logs.push({ text: fillTemplate(pick(BATTLE_LOG_TEMPLATES.heroMiss), t ? t.name : "怪物", 0), kind: "hero" });
     } else {
       let heroDmg = heroAtk * rand(0.9, 1.1);
-      const isCrit = Math.random() < hero.critRate;
+      const effectiveCritRate = hero.friendshipActive ? Math.min(1, hero.critRate * 2) : hero.critRate;
+      const isCrit = Math.random() < effectiveCritRate;
       if (isCrit) {
         heroDmg *= BALANCE.CRIT_MULT;
         if (!hero.hasCritOnce) {
@@ -454,19 +693,40 @@ export function runRoundTick(
       }
       heroDmg = Math.max(1, Math.round(heroDmg));
 
-      // 按 HP 比例分配伤害到怪物队
+      // 嘲讽机制（方案B）：有 TANK 时，TANK 吸收 60% 伤害（重装骑士 70%），其余平分剩余
       const livingMonsters = alive();
-      const totalHp = livingMonsters.reduce((s, m) => s + m.hp, 0) || 1;
+      const tanks = livingMonsters.filter((m) => m.template === "MON_TANK");
+      const nonTanks = livingMonsters.filter((m) => m.template !== "MON_TANK");
+      const hasTaunt = tanks.length > 0 && nonTanks.length > 0;
+
+      // 计算每个怪物的基础伤害份额
+      const shareMap = new Map<string, number>();
+      if (hasTaunt) {
+        // 重装骑士吸收 70%，普通 TANK 吸收 60%
+        const hasHeavyArmor = tanks.some((t) => t.advancedClass === "HEAVY_ARMOR");
+        const absorbRatio = hasHeavyArmor ? 0.7 : BALANCE.TAUNT_ABSORB_RATIO;
+        const tankShare = Math.round(heroDmg * absorbRatio);
+        const nonTankShare = heroDmg - tankShare;
+        const perTank = Math.round(tankShare / tanks.length);
+        const perNonTank = nonTanks.length > 0 ? Math.round(nonTankShare / nonTanks.length) : 0;
+        for (const t of tanks) shareMap.set(t.id, perTank);
+        for (const nt of nonTanks) shareMap.set(nt.id, perNonTank);
+      } else {
+        // 无嘲讽：按 HP 比例分配
+        const totalHp = livingMonsters.reduce((s, m) => s + m.hp, 0) || 1;
+        for (const m of livingMonsters) {
+          shareMap.set(m.id, Math.round((m.hp / totalHp) * heroDmg));
+        }
+      }
+
       for (const m of livingMonsters) {
-        let share = Math.round((m.hp / totalHp) * heroDmg);
+        let share = shareMap.get(m.id) ?? 0;
         const traits = allActiveTraits(m);
-        // 易燃体质：火焰勇者伤害 ×2（精英视为火焰）
-        if (traits.includes("glass") && hero.critRate >= 0.18) share = Math.round(share * 2);
+        // 精英克星：面对精英级勇者时受到伤害 ×1.5
+        if (traits.includes("glass") && ["HERO_ELITE", "HERO_ELITE_2", "HERO_FINAL"].includes(hero.id)) share = Math.round(share * 1.5);
         // 前排意识：稳定减伤；玻璃心：受到暴击伤害增加
         if (traits.includes("shield_wall")) share = Math.round(share * 0.88);
         if (isCrit && traits.includes("glass_heart")) share = Math.round(share * 1.25);
-
-        // L03 强制阵亡已移至 tick 层脚本（v0.5），此处不再做伤害倍率
 
         m.hp = Math.max(0, m.hp - share);
         if (isCrit) {
@@ -475,6 +735,23 @@ export function runRoundTick(
           logs.push({ text: fillTemplate(pick(BATTLE_LOG_TEMPLATES.heroHit), m.name, share), kind: "hero" });
         }
       }
+    }
+  }
+
+  // ── 勇者群攻技能（cleave）：概率对全体怪物造成 ATK×0.4 伤害（不走嘲讽分摊） ──
+  if (hero.skills.includes("cleave") && !hero.forcedSkip && Math.random() < HERO_SKILLS.cleave.chance) {
+    const cleaveDmg = Math.round(hero.atk * 0.4);
+    for (const m of alive()) {
+      m.hp = Math.max(0, m.hp - cleaveDmg);
+    }
+    logs.push({ text: `${hero.name} 发动群攻！对全体怪物造成 ${cleaveDmg} 点伤害！`, kind: "hero" });
+  }
+
+  // ── 战术法师光环（MAGE aura）：队伍全体 ATK+5% ──
+  const hasMageAura = alive().some((m) => m.advancedClass === "MAGE");
+  if (hasMageAura) {
+    for (const m of alive()) {
+      m.tempAtkMult = Math.max(m.tempAtkMult, 1.05);
     }
   }
 
@@ -488,7 +765,7 @@ export function runRoundTick(
     }
   }
 
-  return { logs, monstersDeadThisRound, heroCritThisRound };
+  return { logs, monstersDeadThisRound, heroCritThisRound, heroMechanismTriggered, mechanismTargetName };
 }
 
 // EVAL：抚恤金（salary × 3 + 5）

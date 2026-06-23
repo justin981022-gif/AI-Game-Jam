@@ -1,5 +1,6 @@
 // 数据层：全部 JSON 化数据内嵌为常量，便于策划调参
 import type {
+  AdvancedClass,
   BattleLogTemplates,
   BoardPolicy,
   BonusTierDef,
@@ -7,7 +8,9 @@ import type {
   GameEvent,
   GrowthChoice,
   HeroDef,
+  HeroSkill,
   HeroVariant,
+  JobChangeOption,
   LevelDef,
   MonsterTemplate,
   PersonalGoal,
@@ -62,6 +65,11 @@ export const ART = {
   rankD: "/art/emotes/A-EMOTE-RANK-D.png",
   // 道具
   shardIcon: "/art/props/A-PROP-SHARD-ICON.png",
+  // 结局BGM
+  bgmE01: "https://mgx-backend-cdn.metadl.com/generate/audios/1305315/2026-06-22/ra4aogyaaiga/ending-e01-triumph.mp3",
+  bgmE02: "https://mgx-backend-cdn.metadl.com/generate/audios/1305315/2026-06-22/ra4anhyaaihq/ending-e02-bittersweet.mp3",
+  bgmE03: "https://mgx-backend-cdn.metadl.com/generate/audios/1305315/2026-06-22/ra4aglyaaiha/ending-e03-desolate.mp3",
+  bgmE04: "https://mgx-backend-cdn.metadl.com/generate/audios/1305315/2026-06-22/ra4awpaaaigq/ending-e04-catastrophe.mp3",
 };
 
 // 全局数值常量（balance v0.7: 扩展轮次后补强前期经济缓冲）
@@ -94,8 +102,8 @@ export const BALANCE = {
   EVENT_TIMEOUT_S: 10,
   B04_COST: 17,
   B06_COST: 16,
-  // 打零工
-  AP_TO_SHARD_RATE: 5,
+  // 打零工（v0.8 优化：5→8）
+  AP_TO_SHARD_RATE: 8,
   // 通关绩效提成（v0.4 + v0.6）
   COMPLETION_BASE: 10,
   SURVIVE_REWARD: 10, // v0.4: 8 → 10
@@ -107,6 +115,10 @@ export const BALANCE = {
   // 消极怠工
   SLACKER_THIS_BATTLE_MULT: 0.75,
   SLACKER_NEXT_BATTLE_MULT: 0.85,
+  // 嘲讽机制（方案B）：TANK 吸收 60% 总伤害，其余平分 40%
+  TAUNT_ABSORB_RATIO: 0.6,
+  // 战后恢复：存活怪物恢复 50% 已损失 HP
+  POST_BATTLE_HEAL_RATIO: 0.5,
 };
 
 // 奖金三档
@@ -118,7 +130,7 @@ export const BONUS_TIERS: Record<string, BonusTierDef> = {
 
 export const TRAITS: Record<TraitId, TraitDef> = {
   tough: { id: "tough", name: "吃苦耐劳", type: "positive", desc: "血量上限 +20%", hidden: false },
-  glass: { id: "glass", name: "易燃体质", type: "neutral", desc: "遇火焰类勇者伤害 ×2", hidden: false },
+  glass: { id: "glass", name: "精英克星", type: "neutral", desc: "面对精英级勇者（L07+）时受到伤害 ×1.5，但自身攻击 +20%", hidden: false },
   team_player: { id: "team_player", name: "团队协作", type: "positive", desc: "队伍中其他怪物攻击 +5%", hidden: false },
   cancer: { id: "cancer", name: "团队毒瘤", type: "negative", desc: "队伍中其他怪物攻击 -10%", hidden: false },
   lone_wolf: { id: "lone_wolf", name: "社恐", type: "neutral", desc: "奖金效果减半", hidden: false },
@@ -140,14 +152,14 @@ export const TRAITS: Record<TraitId, TraitDef> = {
 
 // 勇者数据（balance v0.5.0 §4.2 — v0.6 HP ~100% 上调 + ATK 下调）
 export const HEROES: Record<string, HeroDef> = {
-  HERO_W01: { id: "HERO_W01", name: "勇者·初出茅庐", hp: 110, atk: 5, critRate: 0.00 },
-  HERO_W02: { id: "HERO_W02", name: "勇者·小有名气", hp: 220, atk: 7, critRate: 0.04 },
-  HERO_W03: { id: "HERO_W03", name: "勇者·身经百战", hp: 330, atk: 10, critRate: 0.08 },
-  HERO_W04: { id: "HERO_W04", name: "勇者·声名远扬", hp: 440, atk: 13, critRate: 0.13 },
-  HERO_W05: { id: "HERO_W05", name: "勇者·银牌审计员", hp: 540, atk: 15, critRate: 0.16 },
-  HERO_ELITE: { id: "HERO_ELITE", name: "精英勇者", hp: 660, atk: 18, critRate: 0.22 },
-  HERO_ELITE_2: { id: "HERO_ELITE_2", name: "勇者·路演破坏者", hp: 780, atk: 21, critRate: 0.25 },
-  HERO_FINAL: { id: "HERO_FINAL", name: "最终勇者·IPO 终审官", hp: 920, atk: 24, critRate: 0.28 },
+  HERO_W01: { id: "HERO_W01", name: "勇者·初出茅庐", hp: 110, atk: 5, critRate: 0.00, skills: [] },
+  HERO_W02: { id: "HERO_W02", name: "勇者·小有名气", hp: 220, atk: 7, critRate: 0.04, skills: ["item"] },
+  HERO_W03: { id: "HERO_W03", name: "勇者·身经百战", hp: 330, atk: 10, critRate: 0.08, skills: ["item", "friendship"] },
+  HERO_W04: { id: "HERO_W04", name: "勇者·声名远扬", hp: 440, atk: 13, critRate: 0.13, skills: ["item", "friendship", "awakening"] },
+  HERO_W05: { id: "HERO_W05", name: "勇者·银牌审计员", hp: 540, atk: 15, critRate: 0.16, skills: ["regen", "item", "friendship", "awakening", "sabotage"] },
+  HERO_ELITE: { id: "HERO_ELITE", name: "精英勇者", hp: 660, atk: 18, critRate: 0.22, skills: ["cleave", "regen", "item", "friendship", "awakening", "sabotage", "revive", "ultimate"] },
+  HERO_ELITE_2: { id: "HERO_ELITE_2", name: "勇者·路演破坏者", hp: 780, atk: 21, critRate: 0.25, skills: ["cleave", "block", "regen", "item", "friendship", "awakening", "sabotage", "revive", "ultimate"] },
+  HERO_FINAL: { id: "HERO_FINAL", name: "最终勇者·IPO 终审官", hp: 920, atk: 24, critRate: 0.28, skills: ["cleave", "block", "regen", "item", "friendship", "awakening", "sabotage", "revive", "ultimate"] },
 };
 
 export const LEVELS: LevelDef[] = [
@@ -156,10 +168,10 @@ export const LEVELS: LevelDef[] = [
   { id: "L03", title: "第一次阵亡", hasBattle: true, heroId: "HERO_W02", eventPool: ["B01", "B02"], difficulty: 2, apBonus: 0, forcedCasualty: true },
   { id: "L04", title: "怪物谈薪", hasBattle: true, heroId: "HERO_W03", eventPool: ["B01", "B02", "B05", "B08"], difficulty: 3, apBonus: 0, forcedCasualty: false },
   { id: "L05", title: "IPO 中期警告", hasBattle: true, heroId: "HERO_W04", eventPool: ["B01", "B02", "B03", "B04", "B05", "B06", "B08", "B09"], difficulty: 3, apBonus: 0, forcedCasualty: false },
-  { id: "L06", title: "审计加压", hasBattle: true, heroId: "HERO_W05", eventPool: ["B01", "B02", "B03", "B04", "B05", "B06", "B08", "B09", "B10"], difficulty: 4, apBonus: 1, forcedCasualty: false },
-  { id: "L07", title: "路演前夜", hasBattle: true, heroId: "HERO_ELITE", eventPool: ["B02", "B03", "B04", "B05", "B06", "B07", "B10", "B11"], difficulty: 4, apBonus: 1, forcedCasualty: false },
-  { id: "L08", title: "媒体日突袭", hasBattle: true, heroId: "HERO_ELITE_2", eventPool: ["B02", "B03", "B04", "B05", "B06", "B07", "B10", "B11", "B12"], difficulty: 5, apBonus: 1, forcedCasualty: false },
-  { id: "L09", title: "最终压力测试", hasBattle: true, heroId: "HERO_FINAL", eventPool: ["B02", "B03", "B04", "B05", "B06", "B07", "B10", "B11", "B12", "B13"], difficulty: 5, apBonus: 2, forcedCasualty: false },
+  { id: "L06", title: "审计加压", hasBattle: true, heroId: "HERO_W05", eventPool: ["B01", "B02", "B03", "B04", "B05", "B06", "B08", "B09", "B10", "B14", "B16"], difficulty: 4, apBonus: 1, forcedCasualty: false },
+  { id: "L07", title: "路演前夜", hasBattle: true, heroId: "HERO_ELITE", eventPool: ["B02", "B03", "B04", "B05", "B06", "B07", "B10", "B11", "B14", "B15", "B16"], difficulty: 4, apBonus: 1, forcedCasualty: false },
+  { id: "L08", title: "媒体日突袭", hasBattle: true, heroId: "HERO_ELITE_2", eventPool: ["B02", "B03", "B04", "B05", "B06", "B07", "B10", "B11", "B12", "B14", "B15", "B16", "B17"], difficulty: 5, apBonus: 1, forcedCasualty: false },
+  { id: "L09", title: "最终压力测试", hasBattle: true, heroId: "HERO_FINAL", eventPool: ["B02", "B03", "B04", "B05", "B06", "B07", "B10", "B11", "B12", "B13", "B14", "B15", "B16", "B17"], difficulty: 5, apBonus: 2, forcedCasualty: false },
   { id: "L10", title: "结局·上市钟声", hasBattle: false, heroId: null, eventPool: [], difficulty: 0, apBonus: 0, forcedCasualty: false },
 ];
 
@@ -332,6 +344,55 @@ export const EVENTS: Record<string, GameEvent> = {
     ],
     timeoutDefault: 0,
   },
+  // ─── 新增战斗事件（v0.24） ───
+  B14: {
+    id: "B14",
+    triggerCondition: "round_3_random",
+    triggerProbability: 0.7,
+    availableLevels: ["L06", "L07", "L08", "L09"],
+    cardText: "勇者突然使出群攻技能！地面震波向全体怪物袭来——",
+    options: [
+      { label: "紧急散开阵型", sub: "全体怪物血量 -5%，但下回合攻击 +15%", effect: { alive_hp_pct: -0.05, team_atk_pct_battle: 0.15 } },
+      { label: "集中防御", sub: "TANK 承受全部伤害（HP-15%），其余不受影响", effect: { tank_absorb_all: true } },
+    ],
+    timeoutDefault: 1,
+  },
+  B15: {
+    id: "B15",
+    triggerCondition: "hero_hp_above_60_round3",
+    triggerProbability: 0.6,
+    availableLevels: ["L07", "L08", "L09"],
+    cardText: "勇者从背包掏出回复药水，准备恢复体力。",
+    options: [
+      { label: "派刺客打断", sub: "消耗 12 碎片，勇者本回合无法回血且攻击 -10%", effect: { cost: 12, hero_atk_pct_this_round: -0.1, hero_forced_skip: true } },
+      { label: "趁他喝药全力输出", sub: "我方全体本回合攻击 ×1.3", effect: { team_atk_pct_battle: 0.3 } },
+    ],
+    timeoutDefault: 1,
+  },
+  B16: {
+    id: "B16",
+    triggerCondition: "monster_count_3_round4",
+    triggerProbability: 0.75,
+    availableLevels: ["L06", "L07", "L08"],
+    cardText: "地下城工会代表突然出现：『根据劳动法，连续作战超过 4 回合需要支付加班费。』",
+    options: [
+      { label: "支付加班费", sub: "消耗 15 碎片，全员攻击 +20% 持续到战斗结束", effect: { cost: 15, team_atk_pct_battle: 0.2 } },
+      { label: "申请豁免", sub: "50% 成功免费获得 +10% 攻击；50% 失败全员攻击 -5%", effect: { psy_war_atk: true } },
+    ],
+    timeoutDefault: 1,
+  },
+  B17: {
+    id: "B17",
+    triggerCondition: "late_battle_random",
+    triggerProbability: 0.5,
+    availableLevels: ["L08", "L09"],
+    cardText: "勇者召唤了援军！一个小勇者加入战场，虽然弱但会分散注意力。",
+    options: [
+      { label: "集火小勇者", sub: "本回合全体攻击集中在小勇者（勇者本回合不受伤）", effect: { hero_forced_skip: true } },
+      { label: "无视，继续打大的", sub: "勇者下回合攻击 +15%（援军鼓舞）", effect: { hero_atk_pct_next_round: 0.15 } },
+    ],
+    timeoutDefault: 1,
+  },
 };
 
 export const PREP_EVENTS: PrepEvent[] = [
@@ -378,6 +439,34 @@ export const PREP_EVENTS: PrepEvent[] = [
     options: [
       { label: "压价扩建", sub: "获得 10 碎片，适合立刻扩建", effect: { shards: 10 } },
       { label: "让他们修训练场", sub: "本关全员攻击 +5%", effect: { prep_team_atk_pct: 0.05 } },
+    ],
+  },
+  // ─── 新增日常事件（v0.24） ───
+  {
+    id: "P-E06",
+    title: "日常突发 · 转职培训班",
+    cardText: "隔壁魔王城开了个转职培训班，今天有团购优惠。",
+    options: [
+      { label: "团购报名", sub: "获得 12 碎片（用于转职费用）", effect: { shards: 12 } },
+      { label: "自己培训更靠谱", sub: "本关全员暴击率 +3%", effect: { prep_team_crit: 0.03 } },
+    ],
+  },
+  {
+    id: "P-E07",
+    title: "日常突发 · 勇者情报",
+    cardText: "情报部门截获了下一位勇者的技能情报，但需要付费解密。",
+    options: [
+      { label: "付费解密", sub: "消耗 8 碎片，本关全员攻击 +8%（知己知彼）", effect: { cost: 8, prep_team_atk_pct: 0.08 } },
+      { label: "省钱硬扛", sub: "获得 5 碎片情报费退款", effect: { shards: 5 } },
+    ],
+  },
+  {
+    id: "P-E08",
+    title: "日常突发 · 员工体检",
+    cardText: "年度体检报告出来了，部分员工亚健康需要调理。",
+    options: [
+      { label: "全员调理", sub: "消耗 6 碎片，全员血量 +15%", effect: { cost: 6, team_hp_pct: 0.15 } },
+      { label: "只给重点岗位", sub: "TANK 血量 +20%（其余不变）", effect: { tank_hp_pct: 0.2 } },
     ],
   },
 ];
@@ -549,9 +638,262 @@ export interface MonsterTemplateDef {
 export const MONSTER_TEMPLATES: MonsterTemplateDef[] = [
   { template: "MON_TANK", species: "slime", art: ART.groobas, baseHp: 75, baseAtk: 10, baseSpeed: 9, baseCritRate: 0.03, baseSalary: 8, visiblePool: ["tough", "team_player", "shield_wall", "mentor", "glass_heart"] },
   { template: "MON_TANK", species: "mushroom", art: ART.generic3, baseHp: 75, baseAtk: 10, baseSpeed: 9, baseCritRate: 0.03, baseSalary: 8, visiblePool: ["tough", "cancer", "shield_wall", "compliance", "overtime_ready"] },
-  { template: "MON_DPS", species: "skeleton", art: ART.xiaoxing, baseHp: 50, baseAtk: 16, baseSpeed: 11, baseCritRate: 0.08, baseSalary: 10, visiblePool: ["lone_wolf", "team_player", "precision", "overtime_ready", "glass_heart"] },
-  { template: "MON_DPS", species: "imp", art: ART.generic2, baseHp: 50, baseAtk: 16, baseSpeed: 11, baseCritRate: 0.08, baseSalary: 10, visiblePool: ["cancer", "tough", "precision", "mentor", "compliance"] },
-  { template: "MON_RANGE", species: "goblin", art: ART.generic1, baseHp: 45, baseAtk: 14, baseSpeed: 12, baseCritRate: 0.10, baseSalary: 9, visiblePool: ["team_player", "glass", "lone_wolf", "precision", "overtime_ready", "compliance"] },
+  { template: "MON_DPS", species: "goblin", art: ART.generic1, baseHp: 50, baseAtk: 16, baseSpeed: 11, baseCritRate: 0.12, baseSalary: 10, visiblePool: ["team_player", "lone_wolf", "precision", "overtime_ready", "compliance"] },
+  { template: "MON_DPS", species: "imp", art: ART.generic2, baseHp: 50, baseAtk: 16, baseSpeed: 11, baseCritRate: 0.12, baseSalary: 10, visiblePool: ["cancer", "tough", "precision", "mentor", "compliance"] },
+  { template: "MON_RANGE", species: "skeleton", art: ART.xiaoxing, baseHp: 45, baseAtk: 14, baseSpeed: 12, baseCritRate: 0.10, baseSalary: 9, visiblePool: ["lone_wolf", "team_player", "precision", "overtime_ready", "glass_heart"] },
 ];
 
 export const HIDDEN_TRAIT_POOL: TraitId[] = ["loyalty", "nostalgic", "cheap_skate", "tough", "lone_wolf", "night_shift", "battle_trance", "quiet_quitter"];
+
+// 职业标签映射（用于 UI 显示）
+export const TEMPLATE_LABEL: Record<string, { icon: string; label: string; color: string; bg: string; desc: string }> = {
+  MON_TANK: { icon: "🛡️", label: "前排肉盾", color: "text-blue-800", bg: "bg-blue-100 border-blue-300", desc: "嘲讽：吸收60%勇者伤害，保护队友" },
+  MON_DPS: { icon: "⚔️", label: "近战输出", color: "text-red-800", bg: "bg-red-100 border-red-300", desc: "高攻击、高暴击率，主要输出手" },
+  MON_RANGE: { icon: "🏹", label: "远程输出", color: "text-green-800", bg: "bg-green-100 border-green-300", desc: "均衡型，速度快，暴击率适中" },
+};
+
+// ─── 转职系统数据 ───
+export const JOB_CHANGE_MIN_LEVEL = 3;
+export const JOB_CHANGE_AP_COST = 1;
+
+export const JOB_CHANGE_OPTIONS: Record<MonsterTemplate, [JobChangeOption, JobChangeOption]> = {
+  MON_TANK: [
+    { advancedClass: "HEAVY_ARMOR", label: "重装骑士", desc: "HP+30%，嘲讽吸收提升至70%", cost: 18, statMods: { hpPct: 0.3 } },
+    { advancedClass: "WARRIOR", label: "战场勇士", desc: "ATK+20%，HP+10%，攻守兼备", cost: 16, statMods: { atkPct: 0.2, hpPct: 0.1 } },
+  ],
+  MON_DPS: [
+    { advancedClass: "ASSASSIN", label: "暗影刺客", desc: "暴击率+8%，ATK+10%，致命一击", cost: 18, statMods: { atkPct: 0.1, critDelta: 0.08 } },
+    { advancedClass: "BERSERKER", label: "狂战士", desc: "ATK+30%，但HP-15%，极限输出", cost: 15, statMods: { atkPct: 0.3, hpPct: -0.15 } },
+  ],
+  MON_RANGE: [
+    { advancedClass: "MAGE", label: "战术法师", desc: "队伍全体ATK+5%光环", cost: 18, statMods: {}, auraEffect: "team_atk_5" },
+    { advancedClass: "SNIPER", label: "精准狙击手", desc: "ATK+25%，速度-2，一击必杀", cost: 16, statMods: { atkPct: 0.25, speedDelta: -2 } },
+  ],
+};
+
+// 高级职业标签（用于 UI 显示）
+export const ADVANCED_CLASS_LABEL: Record<AdvancedClass, { icon: string; label: string; color: string; bg: string; desc: string }> = {
+  HEAVY_ARMOR: { icon: "🏰", label: "重装骑士", color: "text-indigo-800", bg: "bg-indigo-100 border-indigo-300", desc: "HP+30%，嘲讽吸收70%伤害" },
+  WARRIOR: { icon: "⚔️", label: "战场勇士", color: "text-orange-800", bg: "bg-orange-100 border-orange-300", desc: "ATK+20%，HP+10%，攻守兼备" },
+  ASSASSIN: { icon: "🗡️", label: "暗影刺客", color: "text-purple-800", bg: "bg-purple-100 border-purple-300", desc: "暴击率+8%，ATK+10%，致命一击" },
+  BERSERKER: { icon: "🔥", label: "狂战士", color: "text-rose-800", bg: "bg-rose-100 border-rose-300", desc: "ATK+30%，HP-15%，极限输出" },
+  MAGE: { icon: "✨", label: "战术法师", color: "text-violet-800", bg: "bg-violet-100 border-violet-300", desc: "队伍全体ATK+5%光环" },
+  SNIPER: { icon: "🎯", label: "精准狙击手", color: "text-teal-800", bg: "bg-teal-100 border-teal-300", desc: "ATK+25%，速度-2" },
+};
+
+// ─── 勇者后期技能定义 ───
+export const HERO_SKILLS: Record<string, HeroSkill> = {
+  cleave: { id: "cleave", name: "群攻", desc: "概率对全体怪物造成 ATK×0.4 伤害（不走嘲讽分摊）", chance: 0.25 },
+  block: { id: "block", name: "格挡", desc: "概率减免一次怪物攻击 50% 伤害", chance: 0.20 },
+  regen: { id: "regen", name: "回血", desc: "每 3 回合恢复 5% maxHP", chance: 1.0 },
+  awakening: { id: "awakening", name: "觉醒", desc: "HP<30% 时觉醒，攻击翻倍持续 2 回合（一次性）", chance: 1.0 },
+  friendship: { id: "friendship", name: "友谊之力", desc: "每回合 20% 概率暴击率翻倍 1 回合", chance: 0.20 },
+  revive: { id: "revive", name: "不屈复活", desc: "精英勇者死后 40% 概率以 50%HP 复活一次", chance: 0.40 },
+  sabotage: { id: "sabotage", name: "策反", desc: "对消极怠工怪物 30% 概率使其本回合不攻击", chance: 0.30 },
+  item: { id: "item", name: "道具", desc: "每场 1-2 次随机使用道具（回血/攻击卷轴/护盾）", chance: 0.35 },
+  ultimate: { id: "ultimate", name: "必杀技", desc: "HP<50% 时一次机会发动必杀（全屏AOE 或秒杀）", chance: 1.0 },
+};
+
+// ─── 勇者机制触发事件卡片（幽默风格，选项不影响实际效果） ───
+export interface HeroMechanismEventCard {
+  title: string;
+  cardText: string;
+  options: [{ label: string; sub: string }, { label: string; sub: string }];
+}
+
+export const HERO_MECHANISM_EVENTS: Record<string, HeroMechanismEventCard[]> = {
+  awakening: [
+    {
+      title: "⚠️ 紧急警报",
+      cardText: "勇者突然浑身发光，头发竖了起来！空气中弥漫着危险的气息……这是传说中的「觉醒」！",
+      options: [
+        { label: "趁他变身打他！", sub: "（然而变身是无敌帧）" },
+        { label: "全员后退三步！", sub: "（来不及了，地方太小）" },
+      ],
+    },
+    {
+      title: "⚠️ 异常能量波动",
+      cardText: "勇者的眼睛变成了金色！BGM突然变燃了！这剧情我在动画里看过……",
+      options: [
+        { label: "快！播放舒缓音乐对冲！", sub: "（音响被震坏了）" },
+        { label: "紧急联系编剧改剧本", sub: "（编剧已读不回）" },
+      ],
+    },
+    {
+      title: "⚠️ 主角光环发动",
+      cardText: "勇者突然开始回忆童年、师父、已故的伙伴……这是要爆发的节奏啊！",
+      options: [
+        { label: "打断他的回忆！", sub: "（但他有霸体）" },
+        { label: "也开始回忆自己的过去", sub: "（并没有什么用）" },
+      ],
+    },
+  ],
+  friendship: [
+    {
+      title: "✨ 场外援助",
+      cardText: "勇者的粉丝后援会到了！他们在场外举着荧光棒大喊「你可以的」！",
+      options: [
+        { label: "举报非法集会", sub: "（城管今天休息）" },
+        { label: "安排啦啦队对冲", sub: "（预算超了）" },
+      ],
+    },
+    {
+      title: "✨ 羁绊之力",
+      cardText: "勇者掏出一张泛黄的合照，眼神变得坚定：「为了大家……」暴击率翻倍了！",
+      options: [
+        { label: "派人去抢那张照片", sub: "（被弹开了）" },
+        { label: "也给员工发合照激励", sub: "（大家表示不需要）" },
+      ],
+    },
+    {
+      title: "✨ 友情爆发",
+      cardText: "远方传来勇者同伴的呐喊声！虽然人没来，但精神支持到位了！",
+      options: [
+        { label: "信号干扰！切断通讯！", sub: "（是心灵感应，切不断）" },
+        { label: "也给员工打鸡血电话", sub: "（全部转入语音信箱）" },
+      ],
+    },
+  ],
+  item_potion: [
+    {
+      title: "🧪 可疑补给",
+      cardText: "勇者从背包里掏出一瓶可疑的红色液体，一口闷了下去！HP在恢复！",
+      options: [
+        { label: "那是食堂的番茄汁！", sub: "（并不是）" },
+        { label: "派人去偷背包", sub: "（背包有密码锁）" },
+      ],
+    },
+    {
+      title: "🧪 非法回血",
+      cardText: "勇者居然在战斗中喝药！这不犯规吗？！裁判呢？？",
+      options: [
+        { label: "申请药检！", sub: "（这里没有药检制度）" },
+        { label: "我们也喝！", sub: "（公司不报销）" },
+      ],
+    },
+  ],
+  item_scroll: [
+    {
+      title: "📜 神秘卷轴",
+      cardText: "勇者展开一张发光的卷轴念了几句咒语，浑身散发出攻击性的气场！",
+      options: [
+        { label: "那是盗版卷轴吧", sub: "（然而效果是真的）" },
+        { label: "记下咒语回头研究", sub: "（听不懂异世界语）" },
+      ],
+    },
+    {
+      title: "📜 外挂道具",
+      cardText: "勇者使用了「攻击力提升卷轴」！这种东西从哪买的？！",
+      options: [
+        { label: "投诉商城不平衡", sub: "（客服已下线）" },
+        { label: "也去买一张", sub: "（怪物没有购买权限）" },
+      ],
+    },
+  ],
+  item_shield: [
+    {
+      title: "🛡️ 临时防御",
+      cardText: "勇者掏出一面闪闪发光的护盾！这回合的攻击全被弹开了一半！",
+      options: [
+        { label: "那盾是租的吧", sub: "（人家买断了）" },
+        { label: "集中火力打盾！", sub: "（盾比你们硬）" },
+      ],
+    },
+    {
+      title: "🛡️ 乌龟战术",
+      cardText: "勇者缩在护盾后面！打不动啊！这也太赖皮了！",
+      options: [
+        { label: "等他盾消失再打", sub: "（但这回合已经挨打了）" },
+        { label: "绕后攻击！", sub: "（盾是360度的）" },
+      ],
+    },
+  ],
+  sabotage: [
+    {
+      title: "🗣️ 职场PUA",
+      cardText: "勇者低声说道：「来我们这边有五险一金哦……还有下午茶……」有人动摇了！",
+      options: [
+        { label: "立刻加薪挽留！", sub: "（预算不允许）" },
+        { label: "播放企业文化宣传片", sub: "（效果存疑）" },
+      ],
+    },
+    {
+      title: "🗣️ 挖墙脚",
+      cardText: "勇者居然在战场上发LinkedIn！「诚招队友，待遇从优」——有员工在偷看！",
+      options: [
+        { label: "没收手机！", sub: "（他用的是脑波传输）" },
+        { label: "反向策反：给勇者发offer", sub: "（他不接受降薪）" },
+      ],
+    },
+    {
+      title: "🗣️ 思想攻势",
+      cardText: "勇者开始讲述「自由的意义」和「追求梦想」……有怪物开始思考人生了！",
+      options: [
+        { label: "紧急开展团建活动", sub: "（大家更想走了）" },
+        { label: "用加班费堵住耳朵", sub: "（加班费不够塞）" },
+      ],
+    },
+  ],
+  ultimate_execute: [
+    {
+      title: "⚡ 处刑宣告",
+      cardText: "勇者举起了发光的剑，指向你最虚弱的员工：「审判之时到了！」",
+      options: [
+        { label: "全员趴下！", sub: "（被点名的躲不掉）" },
+        { label: "紧急拨打工伤保险", sub: "（保险不赔战斗伤亡）" },
+      ],
+    },
+    {
+      title: "⚡ 斩杀线",
+      cardText: "勇者的剑刃闪过寒光——他瞄准了血量最低的那位！这是必杀技！",
+      options: [
+        { label: "用爱感化", sub: "（他没有心）" },
+        { label: "让实习生顶上", sub: "（实习生已经跑了）" },
+      ],
+    },
+  ],
+  ultimate_aoe: [
+    {
+      title: "⚡ 全屏大招",
+      cardText: "空气中弥漫着危险的气息……勇者开始蓄力！「圣光爆裂！」全体伤害！",
+      options: [
+        { label: "全员趴下！", sub: "（没用，是范围伤害）" },
+        { label: "用爱感化", sub: "（他没有心）" },
+      ],
+    },
+    {
+      title: "⚡ 终极奥义",
+      cardText: "勇者双手合十，天空裂开一道光——「接受神的制裁吧！」全体中招！",
+      options: [
+        { label: "我们不信这个神！", sub: "（神不在乎）" },
+        { label: "申请宗教豁免", sub: "（审批要三个工作日）" },
+      ],
+    },
+  ],
+  resurrect: [
+    {
+      title: "💀→🌟 诈尸了？！",
+      cardText: "勇者明明已经倒下了……但他又站起来了？！这不科学！",
+      options: [
+        { label: "叫裁判！这犯规！", sub: "（裁判已下班）" },
+        { label: "加班费翻倍继续打！", sub: "（员工集体拒绝）" },
+      ],
+    },
+    {
+      title: "💀→🌟 不屈意志",
+      cardText: "「我还没输……」勇者从地上爬了起来，浑身散发着不甘的气场！",
+      options: [
+        { label: "确认一下他的死亡证明", sub: "（证明被撕了）" },
+        { label: "要求重新验尸", sub: "（他活蹦乱跳的）" },
+      ],
+    },
+    {
+      title: "💀→🌟 复活币",
+      cardText: "勇者摸出一枚金币塞进了嘴里……然后满血复活了？！什么付费复活机制？！",
+      options: [
+        { label: "投诉氪金不平衡！", sub: "（运营不管）" },
+        { label: "我们也买复活币！", sub: "（怪物商城没有卖）" },
+      ],
+    },
+  ],
+};

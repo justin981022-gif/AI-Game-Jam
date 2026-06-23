@@ -142,7 +142,11 @@ export function useBgm() {
         void playTrack("battle");
         return;
       }
-      if (gameState === "MAIN_PREP" || gameState === "EVAL" || gameState === "ENDING" || gameState === "GAME_OVER") {
+      if (gameState === "ENDING" || gameState === "GAME_OVER") {
+        stop();
+        return;
+      }
+      if (gameState === "MAIN_PREP" || gameState === "EVAL") {
         void playTrack("prep");
         return;
       }

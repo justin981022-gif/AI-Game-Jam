@@ -12,6 +12,8 @@ import {
   EvalDialog,
   EventDialog,
   GrowthDialog,
+  JobChangeDialog,
+  MechanismEventDialog,
   NegotiateDialog,
   PolicyDialog,
   PrepEventDialog,
@@ -19,6 +21,7 @@ import {
   StoryDialog,
   ToastContainer,
   TrainingDialog,
+  TutorialDialog,
 } from "@/components/Dialogs";
 
 
@@ -122,6 +125,16 @@ export default function Index() {
     };
   }, []);
 
+  // 有存档时自动加载，跳过标题画面
+  const autoLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!autoLoadedRef.current && g.hasSave && g.gameState === "GAME_INIT") {
+      autoLoadedRef.current = true;
+      void playTrack("prep");
+      g.loadGame();
+    }
+  }, [g.hasSave, g.gameState, g.loadGame, playTrack]);
+
   const handleStart = () => {
     if (startTimerRef.current !== null) {
       window.clearTimeout(startTimerRef.current);
@@ -158,7 +171,7 @@ export default function Index() {
         {g.gameState === "GAME_INIT" ? (
           <StartScreen onStart={handleStart} onInteract={handleTitleInteract} />
         ) : (
-          <div className="min-h-screen w-full px-2 py-2 pb-4 space-y-2 sm:px-3 sm:space-y-3">
+          <div className="min-h-screen w-full px-2 py-2 pb-4 space-y-2 sm:px-3 sm:space-y-3 animate-[sceneFadeIn_0.4s_ease-out]" key={g.gameState === "BATTLE" ? "battle" : "prep"}>
             <TopBar g={g} />
             {g.gameState === "BATTLE" ? <BattleScreen g={g} /> : <PrepScreen g={g} />}
           </div>
@@ -166,13 +179,16 @@ export default function Index() {
       </div>
 
       {/* 弹窗层 */}
+      <TutorialDialog g={g} />
       <StoryDialog g={g} />
       <PolicyDialog g={g} />
       <PrepEventDialog g={g} />
       <RecruitDialog g={g} />
       <BonusDialog g={g} />
       <TrainingDialog g={g} />
+      <JobChangeDialog g={g} />
       <EventDialog g={g} />
+      <MechanismEventDialog g={g} />
       <EvalDialog g={g} />
       <GrowthDialog g={g} />
       <DismissDialog g={g} />

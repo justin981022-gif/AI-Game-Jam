@@ -13,6 +13,35 @@ export type MonsterStateTag = "active" | "negative" | "quit" | "dead";
 // 怪物模板类型
 export type MonsterTemplate = "MON_TANK" | "MON_DPS" | "MON_RANGE";
 
+// 转职后的高级职业
+export type AdvancedClass =
+  | "HEAVY_ARMOR"   // TANK → 重装
+  | "WARRIOR"       // TANK → 战士
+  | "ASSASSIN"      // DPS → 刺客
+  | "BERSERKER"     // DPS → 狂战士
+  | "MAGE"          // RANGE → 法师
+  | "SNIPER";       // RANGE → 狙击手
+
+export interface JobChangeOption {
+  advancedClass: AdvancedClass;
+  label: string;
+  desc: string;
+  cost: number; // 碎片消耗
+  statMods: { hpPct?: number; atkPct?: number; critDelta?: number; speedDelta?: number };
+  auraEffect?: string; // 光环描述（如法师）
+  newTrait?: TraitId;
+}
+
+// 勇者技能类型
+export type HeroSkillId = "cleave" | "block" | "regen" | "awakening" | "friendship" | "revive" | "sabotage" | "item" | "ultimate";
+
+export interface HeroSkill {
+  id: HeroSkillId;
+  name: string;
+  desc: string;
+  chance: number; // 触发概率
+}
+
 export type PersonalGoalId =
   | "survive_2"
   | "deal_200"
@@ -69,7 +98,9 @@ export interface Monster {
   species: string;
   template: MonsterTemplate;
   role: string;
+  advancedClass: AdvancedClass | null;
   artUrl: string;
+  bustAsset: string;
   baseHpMax: number;
   baseAtk: number;
   hp: number;
@@ -133,6 +164,7 @@ export interface HeroDef {
   hp: number;
   atk: number;
   critRate: number;
+  skills: HeroSkillId[];
 }
 
 export interface Hero extends HeroDef {
@@ -142,6 +174,16 @@ export interface Hero extends HeroDef {
   atkPctNextRound: number;
   forcedSkip: boolean; // 被迫暂停一回合
   hasCritOnce: boolean;
+  // 后期技能（L06+）
+  skills: HeroSkillId[];
+  regenCounter: number; // regen 回合计数器
+  // 新机制状态
+  awakened: boolean; // 觉醒是否已触发（一次性）
+  awakeningRoundsLeft: number; // 觉醒攻击翻倍剩余回合
+  friendshipActive: boolean; // 本回合友谊之力是否激活
+  revived: boolean; // 是否已复活过
+  itemUsesLeft: number; // 本场剩余道具使用次数
+  ultimateUsed: boolean; // 必杀技是否已使用
 }
 
 export type EventEffect = Record<string, number | string | boolean>;

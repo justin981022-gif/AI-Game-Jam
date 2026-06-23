@@ -9,6 +9,7 @@ last_updated: 2026-06-02T05:50:21Z
 ## User Stories
 
 ## Task Breakdown
+- [x] 修正骷髅法师图像映射（skeleton→MON_RANGE+ART.xiaoxing, goblin→MON_DPS+ART.generic1）
 - [x] 生成游戏图片资产（角色/怪物/勇者/背景/UI）
 - [x] types.ts 全部类型与枚举
 - [x] data.ts 数据层（balance/levels/heroes/events/traits/triggers/endings/templates）
@@ -21,6 +22,13 @@ last_updated: 2026-06-02T05:50:21Z
 - [x] CheckUI 验证
 
 ## Progress Log
+- v0.25 勇者机制大幅升级+精英克星词条: (1) glass词条改为「精英克星」— 面对精英勇者受伤×1.5但ATK+20%; (2) 觉醒 — HP<30%攻击翻倍2回合(一次性); (3) 友谊之力 — 20%概率暴击率翻倍1回合; (4) 不屈复活 — 精英勇者死后40%概率50%HP复活; (5) 策反 — 对消极怠工怪物30%概率使其不攻击(loyalty免疫); (6) 道具 — 每场1-2次(回血药水15%/攻击卷轴+30%/护盾减伤50%); (7) 必杀技 — HP<50%时AOE(ATK×0.6)或秒杀HP<20%最低怪物. 技能按勇者等级递进解锁(W02道具/W03友谊/W04觉醒/W05策反/ELITE全部). lint+build通过.
+- v0.26 勇者机制幽默事件卡片UI: 新增MechanismEventDialog组件，当勇者触发新机制(觉醒/友谊/道具/策反/必杀技等)时弹出幽默事件卡片供玩家二选一，选项纯属娱乐不影响实际战斗效果。使用ART.cardEvent作为卡片背景，样式与战斗事件卡片一致。chooseMechanismOption关闭卡片后恢复战斗tick。lint+build通过.
+- v0.24 怪物转职+新事件+勇者技能: 确认所有系统已完整实现 — 转职系统(3模板×2选项, UI对话框, AP/碎片消耗), 新战斗事件B07-B17(含tank_absorb_all/psy_war_atk等新效果), 日常事件P-E01~P-E08(含prep_team_crit/tank_hp_pct), 勇者后期技能regen/cleave/block(W05+解锁). lint+build通过.
+- v0.23 职业标签优化: MonsterCard和RecruitDialog简历卡均新增职业类型标签（🛡️前排肉盾/⚔️近战输出/🏹远程输出），带彩色圆角pill样式，一眼可辨职业定位
+- v0.22 第一批数值优化: (1) TANK嘲讽机制方案B — 有TANK时TANK吸收60%总伤害/其余平分40%，无TANK时按HP比例分配; (2) 打零工收益 5→8 碎片/AP; (3) 战后HP恢复50%已损失HP; (4) DPS基础暴击率 8%→12%
+- v0.21 Tutorial: Added 6-page onboarding tutorial (game goal → recruit → battle → EVAL → expand/AP → economy). Shows once on first game start via localStorage flag. Reuses existing Overlay + ART.btn styling. Supports prev/next navigation, skip button, pagination dots. After closing, proceeds to normal game start flow.
+- v0.21 Ending BGM: Generated 4 ending-specific BGM tracks (E01 triumph, E02 bittersweet, E03 desolate, E04 catastrophe) using lyria-3-pro-preview model. Integrated into EndingDialog with auto-play on ending display, loop enabled, volume 0.5, and proper cleanup on unmount/restart.
 - v0.3 spec updates implemented: 打零工 action, 3-tier bonus, RewardOnClear formula, monster templates (TANK/DPS/RANGE with speed/crit), hero crit rates, PENSION=salary×3+5, negotiate +20%/slacker mechanics, L03 forced casualty threshold, B04/B06 costs, T06→L07/P04→L04 triggers, SHARD_INIT=55, SAFE_LINE=45, BUILD_COST 30/45/60
 - v0.4→v0.6 spec updates implemented: SHARD_INIT 55→70, SURVIVE_REWARD 8→10, DPS_UNIT 25→80, differential recruit costs (TANK 6/RANGE 10/DPS 12 ±15%), hero HP ~100% up + ATK down (W01 110/5, W02 220/7, W03 330/10, W04 440/13, ELITE 600/18), L03 forced casualty script path (hero.HP<0.4×HP_MAX && ROUND≥3 → force lowest HP monster dead), EVAL fallback targets non-TANK, recruitCost field added to monster schema
 - v0.7 updates implemented: recruitment reverted to FREE (1 AP only, no shard cost), removed recruitCost from Monster/ResumeCandidate/engine/data, SHARD_INIT 70→50, replaced all placeholder CDN art with local final PNG assets (backgrounds, characters, enemies, endings, emotes, props, UI), hero art now uses per-tier images (W01-W04/ELITE), title screen uses groobas/xiaoxing/HR characters
@@ -37,4 +45,11 @@ last_updated: 2026-06-02T05:50:21Z
 - v0.18 UI fixes: (1) MonsterCard添加min-h-[140px]与空卡槽统一高度，扩建第二行不再高度不一致, (2) ActionBtn文字从text-white改为text-[#3D3A36]深色，解决白底白字不可读问题
 - v0.19 Button consistency: All ART.btn-backed buttons (GameBtn, Index start button) now use text-[#3D3A36] dark text without drop-shadows, consistent hover effects (brightness-110, scale-[1.02], -translate-y-[1px], shadow-md), and active:brightness-90/scale-95 press feedback
 - v0.20 StartScene refactored: A-UI-TITLE.png as full-screen 16:9 contain background with #b7b1a3 edge fill, removed all old decorations (tower/placeholder/independent button), title text "地下城打工人/Dungeon HR" overlaid on top banner area (30-65% x 7-22%) in #3D3A36, transparent hit-area "开始入职" button overlaid on right-bottom terracotta slot (63-78% x 54-67%), no placeholder icons/particles/overlays
+- v0.27 修正骷髅法师图像映射: (1) data.ts中skeleton从MON_DPS→MON_RANGE，goblin从MON_RANGE→MON_DPS; (2) engine.ts中发现根本原因——artUrl通过ROLE_ART随机pick导致骷髅法师50%概率显示GENERIC-2的图。修复：移除ROLE_ART随机池，改用BUST_TO_ART 1:1映射(bustKey→对应ART)，确保每个角色始终显示自己的正确立绘。lint+build通过。
+- v0.28 修正怪物槽位图片错误: 根本原因——Monster类型缺少bustAsset字段，MonsterCard使用artUrl(全身art)而非bustAsset(半身像)。简历卡正确显示bustAsset，但招募入队后Monster对象丢失该字段。修复：(1) types.ts Monster接口添加bustAsset字段; (2) engine.ts resumeToMonster复制r.bustAsset到monster; (3) GameScreens.tsx MonsterCard img src改用m.bustAsset||m.artUrl。lint+build通过。
+- v0.29 修正所有弹窗+绩效考评中怪物图片: (1) Dialogs.tsx中6处target.artUrl/m.artUrl全部改为bustAsset||artUrl(BonusDialog/TrainingDialog/NegotiateDialog/GrowthDialog/EvalDialog存活列表/DismissDialog); (2) useGame.ts readSave添加ART_TO_BUST迁移映射，旧存档加载时自动补全bustAsset字段。lint+build通过。
+- v0.30 恢复全身像显示: 用户明确要求战斗界面/绩效考评/各种弹窗使用全身像(artUrl)而非半身像(bustAsset)。将GameScreens.tsx MonsterCard和Dialogs.tsx 6处全部从bustAsset||artUrl恢复为artUrl。仅招募简历卡(RecruitDialog)保留bustAsset半身像。lint+build通过。
+- v0.31 治疗按钮: 主界面怪物槽位卡片新增"💊 治疗"按钮(绿色pill样式，与培训/转职/奖金一致)。点击消耗灵魂碎片使HP回满，不消耗行动点。费用公式 cost=max(1, round(20*(1-hp/hpMax)))，范围1~20碎片。禁用条件：满血/已死亡/碎片不足。useGame.ts添加healCost+healMonster，GameScreens.tsx MonsterCard添加onHeal/healDisabled/healCostValue props。lint+build通过。
+- v0.32 修复勇者机制事件卡片不触发: 根本原因——engine.ts runRoundTick中heroMechanismTriggered仅在resurrect时赋值，awakening/friendship/item_potion/item_scroll/item_shield/sabotage/ultimate_execute/ultimate_aoe均未设置该标志。修复：在每个机制触发处添加`if (!heroMechanismTriggered) { heroMechanismTriggered = "xxx"; mechanismTargetName = ...; }`，确保第一个触发的机制会弹出幽默事件卡片。lint+build通过。
+- v0.33 机制事件卡片优化: (1) 每场战斗仅弹出一次卡片——添加mechanismEventFiredRef，startBattle时重置false，首次弹出后设true，后续tick不再弹(机制本身照常生效+出日志); (2) 选项纯娱乐不影响实际效果(效果已在engine层生效，卡片仅通知玩家勇者触发了什么能力)。lint+build通过。
 
